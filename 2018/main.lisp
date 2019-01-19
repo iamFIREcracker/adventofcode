@@ -4,50 +4,6 @@
       collect i))
 
 
-(defun partial-sums (lst)
-  (nreverse
-    (reduce (lambda (acc cur)
-              (cons (+ (first acc) cur) acc))
-            lst :initial-value (list 0))))
-
-
-(defun first-duplicate (lst)
-  (cond ((null lst) nil)
-        ((member (car lst) (cdr lst)) (car lst))
-        (t (first-duplicate (cdr lst)))))
-
-
-(defun solve-day1-1 (lst)
-  (reduce #'+ lst))
-
-
-(defun day1-1 ()
-  (let* ((in (open "./day1.input"))
-         (lst (read-by-line in))
-         (result (solve-day1-1 (mapcar #'parse-integer lst))))
-    (close in)
-    result))
-
-(defun solve-day1-2 (lst)
-  (labels ((solve (cur lst seen)
-            (let ((next (+ cur (car lst))))
-             (if (gethash next seen)
-               next
-               (progn
-                 (setf (gethash next seen) next)
-                 (solve
-                   next
-                   (append (cdr lst) (list (car lst)))
-                   seen))))))
-    (solve 0 lst (make-hash-table))))
-
-(defun day1-2 ()
-  (let* ((in (open "./day1.input"))
-         (lst (read-by-line in))
-         (result (solve-day1-2 (mapcar #'parse-integer lst))))
-    (close in)
-    result))
-
 (defun frequencies (str)
   (labels ((frequencies-recursive (lst acc)
              (if (not lst)

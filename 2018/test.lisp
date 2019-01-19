@@ -5,18 +5,6 @@
      (assert (equalp ,expected ,actual))
     t))
 
-;; Day 1-1
-(test 3 (solve-day1-1 '(1 1 1)))
-(test 0 (solve-day1-1 '(1 1 -2)))
-(test -6 (solve-day1-1 '(-1 -2 -3)))
-(test 484 (day1-1))
-;; Day 1-2
-(test 2 (solve-day1-2 '(1 -2 3 1)))
-(test 10 (solve-day1-2 '(3 3 4 -2 -4)))
-(test 5 (solve-day1-2 '(-6 3 8 5 -6)))
-(test 14 (solve-day1-2 '(7 7 -2 -7 -4)))
-(test 367 (day1-2))
-
 ;; Day 2-1
 (test 12 (solve-day2-1 '("abcdef" "bababc" "abbcde" "abcccd" "aabcdd" "abcdee" "ababab")))
 (test 5390 (day2-1))
