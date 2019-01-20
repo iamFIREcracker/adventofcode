@@ -8,8 +8,8 @@
       :with freqs
       :for id :in data
       :do (setf freqs (frequencies id))
-      :summing (if (hash-table-find 2 freqs) 1 0) :into twos
-      :summing (if (hash-table-find 3 freqs) 1 0) :into threes
+      :counting (hash-table-find 2 freqs) :into twos
+      :counting (hash-table-find 3 freqs) :into threes
       :finally (return (* twos threes)))
     (multiple-value-bind (a b)
         (loop
