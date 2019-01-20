@@ -5,17 +5,6 @@
      (assert (equalp ,expected ,actual))
     t))
 
-;; Day 3-1
-(test '("1" 82 901 26 12) (parse-claim "#1 @ 82,901: 26x12"))
-(test '((0 0) (0 1)) (expand-claim '("1" 1 1 1 2)))
-(test '((0 0) (1 0)) (expand-claim '("1" 1 1 2 1)))
-(test '((0 0) (0 1) (1 0) (1 1)) (expand-claim '("1" 1 1 2 2)))
-(test 4 (solve-day3-1 '(("1" 1 3 4 4) ("2" 3 1 4 4) ("3" 5 5 2 2))))
-(test 107820 (day3-1))
-;; Day 3-2
-(test "3" (solve-day3-2 '(("1" 1 3 4 4) ("2" 3 1 4 4) ("3" 5 5 2 2))))
-(test "661" (day3-2))
-
 ;; Day 4-1
 (test '("1518-11-01" 0 10 NIL NIL) (parse-time-log "[1518-11-01 00:00] Guard #10 begins shift"))
 (test '("1518-11-01" 5 NIL 19 NIL) (parse-time-log "[1518-11-01 00:05] falls asleep"))

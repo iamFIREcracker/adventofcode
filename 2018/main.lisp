@@ -4,88 +4,9 @@
       collect i))
 
 
-;; Given a claim: #1 @ 82,901: 26x12
-;; Returns ("#1" 82 901 26 12
-(defun parse-claim (str)
-  (let* ((parts (split-sequence:split-sequence #\Space str))
-         (id (second (split-sequence:split-sequence #\# (first parts))))
-         (pos (first (split-sequence:split-sequence #\: (third parts))))
-         (x (parse-integer (first (split-sequence:split-sequence #\, pos))))
-         (y (parse-integer (second (split-sequence:split-sequence #\, pos))))
-         (size (fourth parts))
-         (width (parse-integer (first (split-sequence:split-sequence #\x size))))
-         (height (parse-integer (second (split-sequence:split-sequence #\x size)))))
-    (list id x y width height)))
-
-
-(defun expand-claim (claim)
-  (let ((x (second claim))
-        (y (third claim))
-        (width (fourth claim))
-        (height (fifth claim)))
-    (loop for i from 0 to (- width 1)
-          append (loop for j from 0 to (- height 1)
-                       collect (list
-                                 (+ (- x 1) i)
-                                 (+ (- y 1) j))))))
-
-(defun print-hash (hash)
-  (loop for key being the hash-keys of hash
-        do (format T "~a -> ~a~%" key (gethash key hash))))
-
-
 (defun list-to-string (lst)
   "Convert a list into a string of concatenated characters"
   (format nil "~{~A ~}" lst))
-
-
-(defun claim-piece-of-fabric (coords fabric marker)
-  (let ((key (list-to-string coords)))
-    (setf (gethash key fabric)
-          (cons marker (gethash key fabric)))))
-
-
-(defun solve-day3-1 (claims)
-  (let ((fabric (make-hash-table :test 'equalp)))
-    (loop for claim in claims
-          do (loop for coords in (expand-claim claim)
-                   do (claim-piece-of-fabric coords fabric (first claim))))
-    (length
-      (loop for key being the hash-keys of fabric
-            when (> (length (gethash key fabric)) 1)
-            collect it))))
-
-
-(defun day3-1 ()
-  (let* ((in (open "./day3.input"))
-         (lst (read-by-line in))
-         (result (solve-day3-1 (mapcar #'parse-claim lst))))
-    (close in)
-    result))
-
-
-(defun solve-day3-2 (claims)
-  (let ((fabric (make-hash-table :test 'equalp))
-        (overlapping (make-hash-table :test 'equalp)))
-    (loop for claim in claims
-          do (loop for coords in (expand-claim claim)
-                   do (claim-piece-of-fabric coords fabric (first claim))))
-    (loop for key being the hash-keys of fabric
-          when (> (length (gethash key fabric)) 1)
-          do (loop for id in (gethash key fabric)
-                   do (setf (gethash id overlapping) T)))
-    (first
-      (loop for claim in claims
-            unless (gethash (first claim) overlapping)
-            collect (first claim)))))
-
-
-(defun day3-2 ()
-  (let* ((in (open "./day3.input"))
-         (lst (read-by-line in))
-         (result (solve-day3-2 (mapcar #'parse-claim lst))))
-    (close in)
-    result))
 
 
 (defun substringp (needle haystack &key (test 'char=))
