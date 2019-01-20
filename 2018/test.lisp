@@ -13,18 +13,6 @@
 ;; Day 4-2
 (test 4966 (day4-2))
 
-;; Day 5-1
-(test T (same-type-opposite-polarityp #\a #\A))
-(test T (same-type-opposite-polarityp #\A #\a))
-(test NIL (same-type-opposite-polarityp #\a #\a))
-(test () (reduce-polymer (coerce "aA" 'list)))
-(test () (reduce-polymer (coerce "aAAa" 'list)))
-(test 10 (solve-day5-1 (coerce "dabAcCaCBAcCcaDA" 'list)))
-; (test 9202 (day5-1))
-;; Day 5-2
-(test 4 (solve-day5-2 (coerce "dabAcCaCBAcCcaDA" 'list)))
-; (test 6394 (day5-2))
-
 ;; Day 6-1
 (test '(1 1) (parse-coords "1, 1"))
 (test 5 (manhattan-distance 1 1 3 4))

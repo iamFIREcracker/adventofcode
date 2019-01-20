@@ -139,6 +139,12 @@
          :do ,@body
          :finally (return ,ret)))
 
+(defmacro dovector ((var vector &optional ret) &body body)
+  "Perform `body` on all the elements of `vector`."
+  `(loop :for ,var :across ,vector
+         :do ,@body
+         :finally (return ,ret)))
+
 ;;;; Streams ------------------------------------------------------------------
 (defun read-all (file)
   "Reads the content of `file` and return a list of its lines."

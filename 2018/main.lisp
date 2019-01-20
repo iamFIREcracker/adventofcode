@@ -143,67 +143,6 @@
     result))
 
 
-(defun same-type-opposite-polarityp (u1 u2)
-  (and
-    (char-equal u1 u2)
-    (not (char= u1 u2))))
-
-
-(defun reduce-polymer (seq)
-  (cond
-    ((< (length seq) 2) seq)
-    ((same-type-opposite-polarityp (first seq) (second seq))
-     (reduce-polymer (cddr seq)))
-    (T (cons
-         (car seq)
-         (reduce-polymer (cdr seq))))))
-
-
-(defun react-polimer (polymer)
-  (let ((next (reduce-polymer polymer)))
-    (if (= (length next) (length polymer))
-      next
-      (react-polimer next))))
-
-
-(defun solve-day5-1 (polymer)
-  (length (react-polimer polymer)))
-
-
-(defun day5-1 ()
-  (let* ((in (open "./day5.input"))
-         (str (first (read-by-line in)))
-         (result (solve-day5-1
-                   (coerce str 'list))))
-    (close in)
-    result))
-
-(defun lowercase-alphabet-string ()
-  (loop for c from (char-code #\a) to (char-code #\z)
-        collect (code-char c)))
-
-
-(defun solve-day5-2 (polymer)
-  (length
-    (first
-      (sort
-        (loop for c in (lowercase-alphabet-string)
-              collect (react-polimer (remove-if
-                                       (lambda (u) (char-equal u c))
-                                      polymer)))
-        #'<
-        :key #'length))))
-
-
-(defun day5-2 ()
-  (let* ((in (open "./day5.input"))
-         (str (first (read-by-line in)))
-         (result (solve-day5-2
-                   (coerce str 'list))))
-    (close in)
-    result))
-
-
 (defun parse-coords (str)
   (let* ((parts (split-sequence:split-sequence #\Space str)))
     (list
