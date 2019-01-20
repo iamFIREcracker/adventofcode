@@ -5,15 +5,6 @@
      (assert (equalp ,expected ,actual))
     t))
 
-;; Day 2-1
-(test 12 (solve-day2-1 '("abcdef" "bababc" "abbcde" "abcccd" "aabcdd" "abcdee" "ababab")))
-(test 5390 (day2-1))
-;; Day 2-2
-(test NIL (off-by-onep "abcde" "axcye"))
-(test T (off-by-onep "fghij" "fguij"))
-(test "fgij" (solve-day2-2 '("abcde" "fghij" "klmno" "pqrst" "fguij" "axcye" "wvxyz")))
-(test "nvosmkcdtdbfhyxsphzgraljq" (day2-2))
-
 ;; Day 3-1
 (test '("1" 82 901 26 12) (parse-claim "#1 @ 82,901: 26x12"))
 (test '((0 0) (0 1)) (expand-claim '("1" 1 1 1 2)))
