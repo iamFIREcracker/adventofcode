@@ -1,6 +1,3 @@
-(ql:quickload :1am)
-(ql:quickload :split-sequence)
-
 (defpackage :aoc
   (:use :cl :1am :split-sequence)
   (:export
@@ -28,6 +25,6 @@
     :parse-integers
 
     :define-problem))
-    
+
 
 (defparameter *aoc-use* '(:use :cl :1am :split-sequence :aoc))
