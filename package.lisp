@@ -5,6 +5,7 @@
     :aesthetic-string
     :frequencies
     :hamming-distance
+    :manhattan-distance
     :curry
     :dorange
     :dovector
@@ -13,6 +14,13 @@
     :hash-table-keys
     :hash-table-values
     :print-hash-table
+
+    :make-disjointset
+    :disjointset-value
+    :disjointset-rank
+    :disjointset-parent
+    :disjointset-find
+    :disjointset-union
 
     :with-gensyms
     :mkstr

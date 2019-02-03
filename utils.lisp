@@ -28,6 +28,10 @@
   (lambda (&rest more-args)
     (apply function (append args more-args))))
 
+(defun manhattan-distance (seq1 seq2)
+  "Calculate the manthattan distance between `seq1` and `seq2`"
+  (reduce #'+ (mapcar #'abs (mapcar #'- seq1 seq2))))
+
 ;;;; Hash keys ---------------------------------------------------------------
 
 (defun hash-table-keys (h)
@@ -56,7 +60,37 @@
     (terpri)
     (finish-output)))
 
+;;;; Disjoint-set (Union/find) ------------------------------------------------
+
+(defstruct (disjointset (:constructor make-disjointset%)
+                        (:copier nil))
+  value
+  rank
+  parent)
+
+(defun make-disjointset (value)
+  (let* ((s (make-disjointset% :value value :rank 0)))
+    (setf (disjointset-parent s) s)
+    s))
+
+(defun disjointset-find (x)
+  (if (eq (disjointset-parent x) x)
+    x
+    (setf (disjointset-parent x) (disjointset-find (disjointset-parent x)))))
+
+(defun disjointset-union (x y)
+  (let ((x-root (disjointset-find x))
+        (y-root (disjointset-find y)))
+    (cond ((> (disjointset-rank x-root) (disjointset-rank y-root))
+           (setf (disjointset-parent y-root) x-root))
+          ((< (disjointset-rank x-root) (disjointset-rank y-root))
+           (setf (disjointset-parent x-root) y-root))
+          ((not (eq x-root y-root))
+           (setf (disjointset-parent y-root) x-root)
+           (incf (disjointset-rank x-root))))))
+
 ;;;; Copy pasta ---------------------------------------------------------------
+
 (defmacro with-gensyms (names &body body)
   "In fact, you've already seen one such pattern--many macros will, like the
   last version of do-primes, start with a LET that introduces a few variables

@@ -2359,53 +2359,6 @@
     result))
 
 
-(defun make-disjointset (x)
-  (let ((set (list x 0)))
-    (setf (cdr (cdr set)) set)
-    set))
-
-(defun disjointset-find (x)
-  (let ((parent (cdr (cdr x))))
-    (if (eq parent x)
-      x
-      (setf (cdr (cdr x)) (disjointset-find parent)))))
-
-
-(defun disjointset-union (x y)
-  (let ((x-root (disjointset-find x))
-        (y-root (disjointset-find y)))
-    (cond ((> (second x-root) (second y-root))
-           (setf (cdr (cdr y-root)) x-root))
-          ((< (second x-root) (second y-root))
-           (setf (cdr (cdr x-root)) y-root))
-          ((not (eq x-root y-root))
-           (setf (cdr (cdr y-root)) x-root)
-           (incf (second x-root))))))
-
-(defun solve-day25-1 (points)
-  (let ((sets (mapcar #'make-disjointset points)))
-    (loop :for s1 :in sets
-          :do (loop :for s2 :in sets
-                    :do (let* ((p1 (first s1))
-                               (p2 (first s2))
-                               (distance (manhattan-distance-seq p1 p2)))
-                          (if (<= distance 3)
-                            (disjointset-union s1 s2)))))
-    (length
-      (remove-duplicates
-        (mapcar #'disjointset-find sets)
-        :test 'eq))))
-
-(defun day25-1 ()
-  (let* ((in (open "./day25.input"))
-         (lst (read-by-line in))
-         (result (solve-day25-1 (mapcar
-                                  (lambda (x) (parse-numbers #\, x))
-                                  lst))))
-    (close in)
-    result))
-
-
 (defun largest (list-of-numbers)
   (do* ((x list-of-numbers (rest x))
         (elem (first x) (first x))
