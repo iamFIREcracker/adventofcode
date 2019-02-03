@@ -366,63 +366,6 @@
     result))
 
 
-(defun parse-tree (lst)
-  (let ((remaining (copy-seq lst)))
-    (labels ((recurse ()
-              (let ((nchildren (pop remaining))
-                    (nmetadata (pop remaining))
-                    (children ()))
-                (loop for i from 1 to nchildren
-                      do (push (recurse) children))
-                (list
-                  (nreverse children)
-                  (loop for i from 1 to nmetadata
-                        collect (pop remaining))))))
-        (recurse))))
-
-
-(defun solve-day8-1 (lst)
-  (labels ((solve (tree)
-             (let ((children (first tree))
-                   (metadata (second tree)))
-               (+
-                 (loop for child in children
-                       summing (solve child))
-                 (loop for metadata in metadata
-                       summing metadata)))))
-      (solve (parse-tree lst))))
-
-
-(defun day8-1 ()
-  (let* ((in (open "./day8.input"))
-         (str (first (read-by-line in)))
-         (result (solve-day8-1 (mapcar #'parse-integer
-                                       (split-sequence:split-sequence #\Space str)))))
-    (close in)
-    result))
-
-
-(defun solve-day8-2 (lst)
-  (labels ((solve (tree)
-             (let ((children (first tree))
-                   (metadata (second tree)))
-               (if (null children)
-                 (reduce #'+ metadata)
-                 (loop for i in metadata
-                       when (nth (- i 1) children)
-                       summing (solve (nth (- i 1) children)))))))
-      (solve (parse-tree lst))))
-
-
-(defun day8-2 ()
-  (let* ((in (open "./day8.input"))
-         (str (first (read-by-line in)))
-         (result (solve-day8-2 (mapcar #'parse-integer
-                                       (split-sequence:split-sequence #\Space str)))))
-    (close in)
-    result))
-
-
 (defun parse-marble-setup (str)
   (let ((parts (split-sequence:split-sequence #\Space str)))
     (list

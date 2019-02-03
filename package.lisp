@@ -29,7 +29,6 @@
     :prl
 
     :read-all
-    :parse-with
     :parse-integers
 
     :define-problem))

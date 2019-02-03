@@ -2,9 +2,7 @@
 (in-package :aoc/2018/25)
 
 (defun parse-point (s)
-  (mapcar
-    #'parse-integer
-    (split-sequence:split-sequence #\, s)))
+  (parse-integers (split-sequence:split-sequence #\, s)))
 
 (defun parse-points (x)
   (mapcar #'parse-point x))

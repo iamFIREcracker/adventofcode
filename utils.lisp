@@ -2,9 +2,11 @@
 
 ;;;; General ------------------------------------------------------------------
 
-(defmacro summation (x)
+(defun summation (x &key key)
   "Returns the sum of all the elements of `x`, or 0 if `x` is NIL"
-  `(reduce #'+ ,x))
+  (if key
+    (reduce #'+ (map 'list key x))
+    (reduce #'+ x)))
 
 (defmacro aesthetic-string (data)
   `(format NIL "~A" ,data))
@@ -188,6 +190,7 @@
     :collecting i))
 
 (defun parse-integers (x)
+  "Parse a list of strings (representing integers) into a list of integers."
   (mapcar #'parse-integer x))
 
 ;;;; Problems -----------------------------------------------------------------

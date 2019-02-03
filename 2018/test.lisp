@@ -36,17 +36,6 @@
 (test 15 (solve-day7-2 2 0 '(("C" "A") ("C" "F") ("A" "B") ("A" "D") ("B" "E") ("D" "E") ("F" "E"))))
 (test 1115 (day7-2))
 
-;; Day 8-1
-(test '(NIL (2)) (parse-tree '(0 1 2)))
-(test '(NIL (3 4)) (parse-tree '(0 2 3 4)))
-(test '(((NIL (1))) NIL) (parse-tree '(1 0 0 1 1)))
-(test '(((NIL (2))) (3 4)) (parse-tree '(1 2 0 1 2 3 4)))
-(test 138 (solve-day8-1 '(2 3 0 3 10 11 12 1 1 0 1 99 2 1 1 2)))
-(test 40036 (day8-1))
-;; Day 8-2
-(test 66 (solve-day8-2 '(2 3 0 3 10 11 12 1 1 0 1 99 2 1 1 2)))
-(test 21677 (day8-2))
-
 ;; Day 9-1
 (test 32 (solve-day9-1 '(9 25) 1))
 (test 8317 (solve-day9-1 '(10 1618) 1))
