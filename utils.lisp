@@ -2,11 +2,15 @@
 
 ;;;; General ------------------------------------------------------------------
 
-(defun summation (x &key key)
-  "Returns the sum of all the elements of `x`, or 0 if `x` is NIL"
-  (if key
-    (reduce #'+ (map 'list key x))
-    (reduce #'+ x)))
+(defun summation (x &key (key 'identity))
+  "Returns the sum of all the elements of `x`, or 0 if `x` is _empty_.
+
+  If `key` is specified, this function will return the sum of all
+  the values of `x`, `map`-ed using `key`."
+  (loop
+    :for e :being :the :elements :of x
+    :for v = (funcall key e)
+    :summing v))
 
 (defmacro aesthetic-string (data)
   `(format NIL "~A" ,data))
