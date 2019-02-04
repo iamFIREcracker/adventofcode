@@ -6,6 +6,8 @@
     :frequencies
     :hamming-distance
     :manhattan-distance
+    :recursively
+    :recur
     :curry
     :dorange
     :dovector
