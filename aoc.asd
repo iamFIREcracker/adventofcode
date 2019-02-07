@@ -12,4 +12,6 @@
                (:file "2018/day02")
                (:file "2018/day03")
                (:file "2018/day05")
+               (:file "2018/day08")
+               (:file "2018/day09")
                (:file "2018/day25")))

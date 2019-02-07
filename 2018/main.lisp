@@ -366,91 +366,6 @@
     result))
 
 
-(defun parse-marble-setup (str)
-  (let ((parts (split-sequence:split-sequence #\Space str)))
-    (list
-      (parse-integer (first parts))
-      (parse-integer (seventh parts)))))
-
-
-(defun circular (items)
-  "(setf *print-circle* t)"
-  (setf (cdr (last items)) items)
-  items)
-
-
-(defun circular-push (item position circle)
-  (let ((before (nthcdr position circle))
-        (after (nthcdr (+ 1 position) circle)))
-    (setf (cdr before)
-          (cons item after))))
-
-
-(defun circular-pop (position circle)
-  (let ((before (nthcdr (- position 1) circle))
-        (after (nthcdr (+ position 1) circle)))
-    (setf (cdr before) after)))
-
-
-(defun play-marbles (next circle size last-marble nplayers scores)
-  (if (> next last-marble)
-    scores
-    (if (not (= 0 (mod next 23)))
-      (play-marbles (+ 1 next)
-                    (circular-push next 1 circle)
-                    (+ 1 size)
-                    last-marble
-                    nplayers
-                    scores)
-      (let* ((current-player (mod next nplayers))
-             (to-remove-index (- size 7))
-             (to-remove (nth to-remove-index circle)))
-        (setf (gethash current-player scores)
-              (+
-                (gethash current-player scores 0)
-                next
-                to-remove))
-        (play-marbles (+ 1 next)
-                      (circular-pop to-remove-index circle)
-                      (- size 1)
-                      last-marble
-                      nplayers
-                      scores)))))
-
-
-(defun solve-day9-1 (lst multiplier)
-  (let* ((nplayers (first lst))
-         (last-marble (* multiplier (second lst)))
-         (scores (play-marbles 1
-                               (circular (list 0))
-                               1
-                               last-marble
-                               nplayers
-                               (make-hash-table))))
-    (first
-      (sort
-        (hash-to-list scores :map (lambda (score player) score))
-        #'>))))
-
-
-(defun day9-1 ()
-  (let* ((in (open "./day9.input"))
-         (str (first (read-by-line in)))
-         (result (solve-day9-1 (parse-marble-setup str)
-                               1)))
-    (close in)
-    result))
-
-
-(defun day9-1 ()
-  (let* ((in (open "./day9.input"))
-         (str (first (read-by-line in)))
-         (result (solve-day9-1 (parse-marble-setup str)
-                               100)))
-    (close in)
-    result))
-
-
 (defun parse-star (str)
   (let* ((parts (split-sequence:split-sequence #\< str))
          (coordsstr (second parts))
@@ -1788,7 +1703,7 @@
                       ((equal #\) head)
                        (setf curr-x (first (first branches))
                              curr-y (second (first branches))
-                             branches (rest branches) )))))
+                             branches (rest branches))))))
     facility-map))
 
 (defun facility-adjacent-rooms (curr facility-map)

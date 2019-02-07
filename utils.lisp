@@ -12,6 +12,10 @@
     :for v = (funcall key e)
     :summing v))
 
+(defun dividesp (divisor number)
+  "Returns `T` if `DIVISOR` divies `NUMBER`."
+  (zerop (rem number divisor)))
+
 (defmacro aesthetic-string (data)
   `(format NIL "~A" ,data))
 
@@ -106,6 +110,29 @@
           ((not (eq x-root y-root))
            (setf (disjointset-parent y-root) x-root)
            (incf (disjointset-rank x-root))))))
+
+;;;; Doubly linked list -------------------------------------------------------
+
+(defstruct dlink content prev next)
+
+(defun dlink-removef (d)
+  "Remove the `D` from the list, and return its `CONTENT`."
+  (let* ((prev (dlink-prev d))
+         (next (dlink-next d)))
+    (setf (dlink-next prev) next
+          (dlink-prev next) prev)
+    (dlink-content d)))
+
+(defun dlink-insertf (d content)
+  "Insert `CONTENT` right after `D.
+
+  Returns the newly inserted element.`"
+  (let* ((next (dlink-next d))
+         (new (make-dlink :content content)))
+    (setf (dlink-next d) new
+          (dlink-prev new) d
+          (dlink-next new) next
+          (dlink-prev next) new)))
 
 ;;;; Copy pasta ---------------------------------------------------------------
 

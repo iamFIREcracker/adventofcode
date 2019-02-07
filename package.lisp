@@ -2,6 +2,7 @@
   (:use :cl :1am :split-sequence)
   (:export
     :summation
+    :dividesp
     :aesthetic-string
     :frequencies
     :hamming-distance
@@ -23,6 +24,13 @@
     :disjointset-parent
     :disjointset-find
     :disjointset-union
+
+    :make-dlink
+    :dlink-current
+    :dlink-prev
+    :dlink-next
+    :dlink-removef
+    :dlink-insertf
 
     :with-gensyms
     :mkstr
