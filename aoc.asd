@@ -8,6 +8,8 @@
               #:split-sequence)
   :components ((:file "package")
                (:file "utils")
+               (:file "2017/day01")
+               (:file "2017/day02")
                (:file "2018/day01")
                (:file "2018/day02")
                (:file "2018/day03")
