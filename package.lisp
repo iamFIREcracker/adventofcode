@@ -4,6 +4,8 @@
     :summation
     :dividesp
     :aesthetic-string
+    :sorted
+    :nsorted
     :frequencies
     :hamming-distance
     :manhattan-distance
@@ -40,6 +42,7 @@
 
     :read-all
     :parse-integers
+    :read-integer
 
     :define-problem))
 

@@ -19,6 +19,14 @@
 (defmacro aesthetic-string (data)
   `(format NIL "~A" ,data))
 
+(defun sorted (s &optional (predicate 'char<))
+  "Sort `s`, destructively"
+  (sort s predicate))
+
+(defun nsorted (s &optional (predicate 'char<))
+  "Non-destructive version of `SORTED`"
+  (sorted (copy-seq s) predicate))
+
 (defun frequencies (s)
   "Returns a hash-table containing per each element of `s`, the number
   of times such element occurs in `s`"
@@ -38,9 +46,18 @@
   (lambda (&rest more-args)
     (apply function (append args more-args))))
 
-(defun manhattan-distance (seq1 seq2)
-  "Calculate the manthattan distance between `seq1` and `seq2`"
-  (reduce #'+ (mapcar #'abs (mapcar #'- seq1 seq2))))
+(defun manhattan-distance (a b)
+  "Calculate the manthattan distance between `a` and `b`.
+
+  If `a` is a `NUMBER`, its real and imaginary parts will be used as X and Y values (same for `b`).
+
+  Otherwise, `a` and `b` are treated as multi-dimensional sequencies."
+  (if (numberp a)
+    (+ (abs (- (realpart a)
+               (realpart b)))
+       (abs (- (imagpart a)
+               (imagpart b))))
+    (reduce #'+ (mapcar #'abs (mapcar #'- a b)))))
 
 (defmacro recursively (bindings &body body)
   "Execute `body` recursively, like Clojure's `loop`/`recur`.
@@ -235,6 +252,10 @@
 (defun parse-integers (x)
   "Parse a list of strings (representing integers) into a list of integers."
   (mapcar #'parse-integer x))
+
+(defun read-integer (x)
+  "Extract the first element from `X`, and parse is a integer."
+  (first (parse-integers x)))
 
 ;;;; Problems -----------------------------------------------------------------
 (defmacro define-problem ((year day)
