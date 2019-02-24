@@ -49,14 +49,12 @@
   (values (spiral-gen-last-pos gen)
           (spiral-gen-last gen)))
 
-;; XXX split into adjacents
-;; XXX use `SUMMATION` by :key
-(defun sum-of-adjacents-cells (grid center)
-  (loop
-    :for real :from -1 :to 1
-    :summing (loop
-               :for img :from 1 :downto -1
-               :summing (gethash (+ center (complex real img)) grid 0))))
+(defun adjacents (p)
+  (gathering
+    (doirange (y -1 1)
+      (doirange (x -1 1)
+        (unless (= 0 x y)
+          (gather (+ p (complex x y))))))))
 
 (define-problem (2017 3) (data read-integer)
   (let ((part2-grid (make-hash-table)))
@@ -70,11 +68,10 @@
       (loop
         :with gen = (make-spiral-gen)
         :for (pos) = (multiple-value-list (spiral-gen-next gen))
-        :for value = (sum-of-adjacents-cells part2-grid pos)
-        :do (progn
-              (setf (gethash pos part2-grid) value)
-              (when (> value data)
-                (return value)))))))
+        :for value = (summation (adjacents pos) :key (curry #'gethash >< part2-grid 0))
+        :do (when (> value data)
+              (return value))
+        :do (setf (gethash pos part2-grid) value)))))
 
 (1am:test test-2017/03
   (multiple-value-bind (part1 part2) (problem-run)

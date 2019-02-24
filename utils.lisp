@@ -42,10 +42,6 @@
   (when (= (length s1) (length s2))
     (count NIL (map 'list test s1 s2))))
 
-(defun curry (function &rest args)
-  (lambda (&rest more-args)
-    (apply function (append args more-args))))
-
 (defun manhattan-distance (a b)
   "Calculate the manthattan distance between `a` and `b`.
 
@@ -59,6 +55,14 @@
                (imagpart b))))
     (reduce #'+ (mapcar #'abs (mapcar #'- a b)))))
 
+(defmacro curry (function &rest args)
+  (let* ((i (position '>< args :test 'string=))
+         (before (if i (subseq args 0 i) args))
+         (after (and i (subseq args (1+ i)))))
+    (with-gensyms (more-arg)
+      `(lambda (,more-arg)
+         (funcall ,function ,@before ,more-arg ,@after)))))
+
 (defmacro recursively (bindings &body body)
   "Execute `body` recursively, like Clojure's `loop`/`recur`.
 
@@ -70,6 +74,44 @@
     `(labels ((recur (,@names)
                 ,@body))
       (recur ,@values))))
+
+(defmacro gathering (&body body)
+  "Run `body` to gather some things and return a fresh list of them.
+
+  `body` will be executed with the symbol `gather` bound to a
+  function of one argument.  Once `body` has finished, a list of
+  everything `gather` was called on will be returned.
+
+  It's handy for pulling results out of code that executes
+  procedurally and doesn't return anything, like `maphash` or
+  Alexandria's `map-permutations`.
+
+  The `gather` function can be passed to other functions, but should
+  not be retained once the `gathering` form has returned (it would
+  be useless to do so anyway).
+
+  Examples:
+
+    (gathering
+      (dotimes (i 5)
+        (gather i))
+    =>
+    (0 1 2 3 4)
+
+    (gathering
+      (mapc #'gather '(1 2 3))
+      (mapc #'gather '(a b)))
+    =>
+    (1 2 3 a b)
+
+  "
+  (with-gensyms (result)
+    `(let ((,result nil))
+       (flet ((gather (item)
+                (push item ,result)
+                item))
+         ,@body)
+       (nreverse ,result))))
 
 ;;;; Hash keys ---------------------------------------------------------------
 
@@ -234,6 +276,10 @@
   `(loop :for ,var :from ,from :below ,below
          :do ,@body
          :finally (return ,ret)))
+
+(defmacro doirange ((var from until &optional ret) &body body)
+  `(dorange (,var ,from (1+ ,until) ,ret)
+     ,@body))
 
 (defmacro dovector ((var vector &optional ret) &body body)
   "Perform `body` on all the elements of `vector`."

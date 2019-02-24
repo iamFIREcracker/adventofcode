@@ -11,8 +11,11 @@
     :manhattan-distance
     :recursively
     :recur
+    :gathering
+    :gather
     :curry
     :dorange
+    :doirange
     :dovector
 
     :hash-table-find
