@@ -261,10 +261,12 @@
      (terpri)
      (finish-output)))
 
-(defmacro dorange ((var from below &optional ret) &body body)
+;;;; Iterators ----------------------------------------------------------------
+
+(defmacro dorange ((var from to &optional ret) &body body)
   "Perform `body` on the given range of values.
   During iteration `body` will be executed with `var` bound to successive values
-  in the range [`from`, `below`).
+  in the range [`from`, `to`).
   Example:
     (dorange (x 5 8)
       (pr x y))
@@ -273,12 +275,13 @@
     6
     7
   "
-  `(loop :for ,var :from ,from :below ,below
+  `(loop :for ,var :from ,from :below ,to
          :do ,@body
          :finally (return ,ret)))
 
-(defmacro doirange ((var from until &optional ret) &body body)
-  `(dorange (,var ,from (1+ ,until) ,ret)
+(defmacro doirange ((var from to &optional ret) &body body)
+  "Similar to `DORANGE`, but `TO` is now included in the range."
+  `(dorange (,var ,from (1+ ,to) ,ret)
      ,@body))
 
 (defmacro dovector ((var vector &optional ret) &body body)

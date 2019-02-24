@@ -9,11 +9,13 @@
     :frequencies
     :hamming-distance
     :manhattan-distance
+
+    :curry
     :recursively
     :recur
     :gathering
     :gather
-    :curry
+
     :dorange
     :doirange
     :dovector
