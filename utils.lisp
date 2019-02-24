@@ -63,6 +63,18 @@
       `(lambda (,more-arg)
          (funcall ,function ,@before ,more-arg ,@after)))))
 
+;;;; Math --------------------------------------------------------------------
+
+(defun complex-rotate-cw (c)
+  "Rotate `c`, cloclwise."
+  (complex (imagpart c) (- (realpart c))))
+
+(defun complex-rotate-ccw (c)
+  "Rotate `c`, counter-clockwise."
+  (complex (- (imagpart c)) (realpart c)))
+
+;;;; Control flow ------------------------------------------------------------
+
 (defmacro recursively (bindings &body body)
   "Execute `body` recursively, like Clojure's `loop`/`recur`.
 

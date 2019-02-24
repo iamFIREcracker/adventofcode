@@ -9,8 +9,11 @@
     :frequencies
     :hamming-distance
     :manhattan-distance
-
     :curry
+
+    :complex-rotate-cw
+    :complex-rotate-ccw
+
     :recursively
     :recur
     :gathering

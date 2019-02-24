@@ -14,12 +14,6 @@
                     :last-pos #C(1 -1)
                     :dir #C(0 1)))
 
-(defun rotate-cw (c)
-  (complex (imagpart c) (- (realpart c))))
-
-(defun rotate-ccw (c)
-  (complex (- (imagpart c)) (realpart c)))
-
 (defun spiral-gen-next (gen)
   "To recap, a `SPIRAL-GEN` has the following properties:
 
@@ -40,8 +34,8 @@
          (dir (spiral-gen-dir gen))
          (next (1+ last))
          (next-pos-busy (gethash (+ last-pos dir) storage))
-         (next-pos (+ last-pos (if next-pos-busy (rotate-cw dir) dir)))
-         (next-dir (if next-pos-busy dir (rotate-ccw dir))))
+         (next-pos (+ last-pos (if next-pos-busy (complex-rotate-cw dir) dir)))
+         (next-dir (if next-pos-busy dir (complex-rotate-ccw dir))))
     (setf (gethash next-pos storage) next
           (spiral-gen-last gen) next
           (spiral-gen-last-pos gen) next-pos
