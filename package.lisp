@@ -4,6 +4,7 @@
     :summation
     :dividesp
     :aesthetic-string
+    :hexadecimal-string
     :sorted
     :nsorted
     :frequencies

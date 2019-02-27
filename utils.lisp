@@ -19,6 +19,9 @@
 (defmacro aesthetic-string (data)
   `(format NIL "~A" ,data))
 
+(defmacro hexadecimal-string (seq)
+  `(format NIL "~{~(~2,'0x~)~}" ,seq))
+
 (defun sorted (s &optional (predicate 'char<))
   "Sort `s`, destructively"
   (sort s predicate))
