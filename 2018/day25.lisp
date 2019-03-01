@@ -21,7 +21,8 @@
                       (disjointset-union s1 s2)))))
       (length
         (remove-duplicates
-          (mapcar #'disjointset-find sets)
+          sets
+          :key #'disjointset-find
           :test 'eq)))))
 
 (1am:test test-2018/25
