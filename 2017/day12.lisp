@@ -31,14 +31,11 @@
       :do (join-groups groups from linked)
       :finally (return (let ((sets (hash-table-values groups)))
                          (values
-                          (count (disjointset-find group-0)
-                                 sets
-                                 :key #'disjointset-find
-                                 :test 'eq)
-                          (length
-                            (remove-duplicates sets
-                                               :key #'disjointset-find
-                                               :test 'eq))))))))
+                           (count (disjointset-find group-0)
+                                  sets
+                                  :key #'disjointset-find
+                                  :test 'eq)
+                           (length (distinct-disjointsets sets))))))))
 
 (1am:test test-2017/12
   (multiple-value-bind (part1 part2) (problem-run)

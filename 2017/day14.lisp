@@ -38,10 +38,7 @@
                 :for b :in rest
                 :when (= 1 (manhattan-distance (disjointset-value a) (disjointset-value b)))
                 :do (disjointset-union a b)))
-        (length
-          (remove-duplicates sets
-                              :key #'disjointset-find
-                              :test 'eq))))))
+        (length (distinct-disjointsets sets))))))
 
 (1am:test test-2017/14
   (multiple-value-bind (part1 part2) (problem-run)

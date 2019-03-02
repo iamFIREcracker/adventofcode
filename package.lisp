@@ -35,6 +35,7 @@
     :disjointset-parent
     :disjointset-find
     :disjointset-union
+    :distinct-disjointsets
 
     :make-dlink
     :dlink-current

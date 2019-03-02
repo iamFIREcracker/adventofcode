@@ -185,6 +185,11 @@
            (setf (disjointset-parent y-root) x-root)
            (incf (disjointset-rank x-root))))))
 
+(defun distinct-disjointsets (sets)
+  (remove-duplicates sets
+                     :key #'disjointset-find
+                     :test 'eq))
+
 ;;;; Doubly linked list -------------------------------------------------------
 
 (defstruct dlink content prev next)

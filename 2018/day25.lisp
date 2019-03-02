@@ -19,11 +19,7 @@
                          (distance (manhattan-distance p1 p2)))
                     (if (<= distance 3)
                       (disjointset-union s1 s2)))))
-      (length
-        (remove-duplicates
-          sets
-          :key #'disjointset-find
-          :test 'eq)))))
+      (length (distinct-disjointsets sets)))))
 
 (1am:test test-2018/25
   (multiple-value-bind (part1) (problem-run)
