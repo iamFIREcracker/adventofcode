@@ -21,7 +21,7 @@
   - `LAST`: the last value used
   - `LAST-POS`: where `LAST` was last placed inside `STORAGE`
   - `DIR`: where to check for an empty cell
-  
+
 
   XXX
 

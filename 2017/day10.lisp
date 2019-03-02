@@ -1,4 +1,6 @@
-(defpackage :aoc/2017/10 #.cl-user::*aoc-use*)
+(defpackage :aoc/2017/10 #.cl-user::*aoc-use*
+  (:export
+    :knot-hash))
 (in-package :aoc/2017/10)
 
 (defvar *size*)
@@ -38,23 +40,27 @@
     :for slice = (subseq hash i (+ i 16))
     :collecting (reduce #'logxor slice)))
 
+(defun knot-hash-init (&aux (hash (make-array *size*)))
+  (dotimes (n *size* hash)
+    (setf (aref hash n) n)))
+
+(defun knot-hash (data)
+  (let ((hash (knot-hash-init))
+        (lengths (append (parse-ascii-codes data) *additional-lengths*))
+        (current 0)
+        (skip 0))
+    (dotimes (n 64 (hexadecimal-string (dense-hash hash)))
+      (multiple-value-bind (c s) (scramble hash lengths current skip)
+        (setf current c
+              skip s)))))
+
 (define-problem (2017 10) (data first)
-  (flet ((init-hash (&aux (hash (make-array *size*)))
-           (dotimes (n *size* hash)
-             (setf (aref hash n) n))))
-    (values
-      (let ((hash (init-hash))
-            (lengths (append (parse-line-of-integers data) *additional-lengths*)))
-        (scramble hash lengths 0 0)
-        (* (aref hash 0) (aref hash 1)))
-      (let ((hash (init-hash))
-            (lengths (append (parse-ascii-codes data) *additional-lengths*))
-            (current 0)
-            (skip 0))
-        (dotimes (n 64 (hexadecimal-string (dense-hash hash)))
-          (multiple-value-bind (c s) (scramble hash lengths current skip)
-            (setf current c
-                  skip s)))))))
+  (values
+    (let ((hash (knot-hash-init))
+          (lengths (append (parse-line-of-integers data) *additional-lengths*)))
+      (scramble hash lengths 0 0)
+      (* (aref hash 0) (aref hash 1)))
+    (knot-hash data)))
 
 (1am:test test-2017/10
   (multiple-value-bind (part1 part2) (problem-run)
