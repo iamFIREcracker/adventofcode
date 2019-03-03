@@ -44,7 +44,7 @@
             (progn
               (ring-movef board 1)
               (ring-insertf board marble)))
-      :finally (return (reduce #'max scores)))))
+      :finally (return (maximization scores)))))
 
 (define-problem (2018 9) (data first)
   (multiple-value-bind (players marbles) (parse-marble-setup data)

@@ -41,7 +41,7 @@
            (inc-reg (registers reg delta)
              (incf (gethash reg registers 0) delta))
            (max-reg-value (registers)
-             (reduce #'max (hash-table-values registers))))
+             (maximization (hash-table-values registers))))
     (loop
       :with registers = (make-hash-table :test 'equal)
       :for instruction :in data ; XXX isn't there a better way to handle this?

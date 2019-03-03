@@ -12,6 +12,16 @@
     :for v = (funcall key e)
     :summing v))
 
+(defun maximization (x &key (key 'identity))
+  "Returns the max of all the elements of `x`, or NIL if `x` is _empty_.
+
+  If `key` is specified, this function will return the max of all
+  the values of `x`, `map`-ed using `key`."
+  (loop
+    :for e :being :the :elements :of x
+    :for v = (funcall key e)
+    :maximizing v))
+
 (defun dividesp (divisor number)
   "Returns `T` if `DIVISOR` divies `NUMBER`."
   (zerop (rem number divisor)))

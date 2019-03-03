@@ -2,6 +2,7 @@
   (:use :cl :1am :split-sequence)
   (:export
     :summation
+    :maximization
     :dividesp
     :aesthetic-string
     :hexadecimal-string
