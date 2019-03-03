@@ -5,6 +5,7 @@
     :dividesp
     :aesthetic-string
     :hexadecimal-string
+    :hexadecimal-binary
     :sorted
     :nsorted
     :frequencies

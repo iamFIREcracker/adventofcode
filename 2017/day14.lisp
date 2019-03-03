@@ -1,16 +1,12 @@
 (defpackage :aoc/2017/14 #.cl-user::*aoc-use*)
 (in-package :aoc/2017/14)
 
-(defun binary-string (seq &aux ret)
-  (dovector (c seq (apply 'mkstr (nreverse ret))) ;; XXX rewrite this, please
-    (push (format NIL "~4,'0b" (parse-integer (mkstr c) :radix 16)) ret)))
-
 (defun make-grid (data)
   (loop
     :for i :upto 127
     :for string = (mkstr data #\- i)
     :for hash = (aoc/2017/10:knot-hash string)
-    :for binary = (binary-string hash)
+    :for binary = (hexadecimal-binary hash)
     :collect binary))
 
 (defun init-sets (grid)

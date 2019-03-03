@@ -22,6 +22,12 @@
 (defmacro hexadecimal-string (seq)
   `(format NIL "~{~(~2,'0x~)~}" ,seq))
 
+(defmacro hexadecimal-binary (s)
+  `(let* ((len (* 4 (length ,s)))
+          (control-str (mkstr "~" len ",'0b"))
+          (num (parse-integer ,s :radix 16)))
+     (format NIL control-str num)))
+
 (defun sorted (s &optional (predicate 'char<))
   "Sort `s`, destructively"
   (sort s predicate))
