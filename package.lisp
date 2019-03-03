@@ -3,6 +3,7 @@
   (:export
     :summation
     :maximization
+    :minimization
     :dividesp
     :aesthetic-string
     :hexadecimal-string
