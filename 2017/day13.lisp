@@ -25,7 +25,7 @@
     :for time-to-layer = depth
     :for range = (layer-range layer)
     :for period = (* (1- range) 2)
-    :when (zerop (mod time-to-layer period))
+    :when (dividesp period time-to-layer)
     :sum (* depth range))) 
 
 (defun caughtp (layers delay)
@@ -35,11 +35,11 @@
     :for time-to-layer = (+ delay depth)
     :for range = (layer-range layer)
     :for period = (* (1- range) 2)
-    :thereis (zerop (mod time-to-layer period))))
+    :thereis (dividesp period time-to-layer)))
 
 (define-problem (2017 13) (data parse-layers)
   (values
-    (pr (trip-severity data))
+    (trip-severity data)
     (loop
       :for delay = 1 :then (1+ delay)
       :unless (caughtp data delay)
