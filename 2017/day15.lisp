@@ -24,13 +24,13 @@
     (values
       (loop
         :with (gen-a gen-b) = data
-        :for n :below 40000000
+        :repeat 40000000
         :for a = (next-a gen-a) :then (next-a a)
         :for b = (next-b gen-b) :then (next-b b)
         :count (numbers-match-p a b))
       (loop
         :with (gen-a gen-b) = data
-        :for n :below 5000000
+        :repeat 5000000
         :for a = (next-a-part2 gen-a) :then (next-a-part2 a)
         :for b = (next-b-part2 gen-b) :then (next-b-part2 b)
         :count (numbers-match-p a b)))))

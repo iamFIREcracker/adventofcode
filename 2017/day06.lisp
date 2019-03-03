@@ -12,7 +12,7 @@
     (setf (aref ret bank) 0)
     (loop
       :with i = bank
-      :for n :below most-blocks
+      :repeat most-blocks
       :do (setf i (mod (1+ i) (length ret)))
       :do (incf (aref ret i)))
     ret))

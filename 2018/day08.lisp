@@ -12,12 +12,12 @@
             (nmetadata (pop remaining)))
         (make-node
           :children (loop
-                      :for i :below nchildren
+                      :repeat nchildren
                       :collecting (recur) :into ret
                       :finally (return (make-array (length ret)
                                                    :initial-contents ret)))
           :metadata (loop
-                      :for i :below nmetadata
+                      :repeat nmetadata
                       :collecting (pop remaining)))))))
 
 
