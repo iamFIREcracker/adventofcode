@@ -36,6 +36,13 @@
   "Returns `T` if `DIVISOR` divies `NUMBER`."
   (zerop (rem number divisor)))
 
+(defun alphabet ()
+  (loop
+    :with from = (char-code #\a)
+    :with to = (char-code #\z)
+    :for code :from from :to to
+    :collecting (code-char code)))
+
 (defmacro aesthetic-string (data)
   `(format NIL "~A" ,data))
 

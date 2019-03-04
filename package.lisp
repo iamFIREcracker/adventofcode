@@ -5,6 +5,7 @@
     :maximization
     :minimization
     :dividesp
+    :alphabet
     :aesthetic-string
     :hexadecimal-string
     :hexadecimal-binary
