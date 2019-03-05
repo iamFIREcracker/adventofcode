@@ -42,11 +42,17 @@
     :distinct-disjointsets
 
     :make-dlink
-    :dlink-current
+    :dlink-content
     :dlink-prev
     :dlink-next
     :dlink-removef
     :dlink-insertf
+
+    :make-ring
+    :ring-current
+    :ring-movef
+    :ring-removef
+    :ring-insertf
 
     :with-gensyms
     :mkstr

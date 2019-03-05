@@ -246,6 +246,34 @@
           (dlink-next new) next
           (dlink-prev next) new)))
 
+;;;; Ring ---------------------------------------------------------------------
+
+(defstruct (ring (:constructor make-ring%))
+  current)
+
+(defun make-ring (content)
+  "Creates a circular `DLINK` having a single element with `CONTENT`"
+  (let ((element (make-dlink :content content)))
+    (setf (dlink-prev element) element
+          (dlink-next element) element)
+    (make-ring% :current element)))
+
+(defun ring-movef (r offset)
+  "Moves `r`'s `current` pointer `offset` elements forward (or backward)"
+  (let ((move (if (> offset 0) #'dlink-next #'dlink-prev)))
+    (dotimes (i (abs offset))
+      (setf (ring-current r) (funcall move (ring-current r))))))
+
+(defun ring-removef (r &aux (current (ring-current r)))
+  "Removes `r`'s `current`"
+  (let* ((content (dlink-removef current)))
+    (setf (ring-current r) (dlink-next current))
+    content))
+
+(defun ring-insertf (r content &aux (current (ring-current r)))
+  "Insert `content` right after `r`'s `current`"
+  (setf (ring-current r) (dlink-insertf current content)))
+
 ;;;; Copy pasta ---------------------------------------------------------------
 
 (defmacro with-gensyms (names &body body)
