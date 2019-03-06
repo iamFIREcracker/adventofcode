@@ -1,37 +1,17 @@
 (defpackage :aoc/2017/20 #.cl-user::*aoc-use*)
 (in-package :aoc/2017/20)
 
-(defstruct (particle (:conc-name NIL))
+(defstruct particle
   id
-  px
-  py
-  pz
-  vx
-  vy
-  vz
-  ax
-  ay
-  az)
+  position
+  velocity
+  acceleration)
 
 (defun particle-movef (p)
-  (let ((px (px p))
-        (py (py p))
-        (pz (pz p))
-        (vx (vx p))
-        (vy (vy p))
-        (vz (vz p))
-        (ax (ax p))
-        (ay (ay p))
-        (az (az p)))
-    (setf (vx p) (+ vx ax)
-          (vy p) (+ vy ay)
-          (vz p) (+ vz az)
-          (px p) (+ px vx ax)
-          (py p) (+ py vy ay)
-          (pz p) (+ pz vz az))))
-
-(defun particle-position (p)
-  (list (px p) (py p) (pz p)))
+  (let* ((velocity (mapcar #'+ (particle-velocity p) (particle-acceleration p)))
+         (position (mapcar #'+ (particle-position p) velocity)))
+    (setf (particle-velocity p) velocity
+          (particle-position p) position)))
 
 (defun parse-particles (x &aux (id -1))
   (labels ((parse-xyz (s &aux (splits (split-sequence:split-sequence #\, s)))
@@ -42,33 +22,12 @@
                    (velocity (parse-xyz (third splits)))
                    (acceleration (parse-xyz (fourth splits))))
                (make-particle :id (incf id)
-                              :px (first position)
-                              :py (second position)
-                              :pz (third position)
-                              :vx (first velocity)
-                              :vy (second velocity)
-                              :vz (third velocity)
-                              :ax (first acceleration)
-                              :ay (second acceleration)
-                              :az (third acceleration)))))
+                              :position position
+                              :velocity velocity
+                              :acceleration acceleration))))
     (mapcar #'parse-particle x)))
 
-(defun unique-only (x &key (key 'identity) (test 'eql))
-  (let ((kvs (mapcar #'(lambda (k)
-                         (list k (funcall key k)))
-                     x)))
-    (recursively ((kv (first kvs))
-                  (rest (rest kvs)))
-      (when kv
-        (let ((k (first kv))
-              (v (second kv)))
-          (cond ((member v rest :key #'second :test test)
-                 (let ((without-duplicates (remove v rest :key #'second :test test)))
-                   (recur (first without-duplicates) (rest without-duplicates))))
-                (T (cons k (recur (first rest) (rest rest))))))))))
-
 (define-problem (2017 20) (data parse-particles)
-                     
   (labels ((copy-particles (particles)
              (mapcar #'copy-structure particles))
            (move-particles (particles)
@@ -88,7 +47,7 @@
         :do (let ((min-next (closest-to-origin particles)))
               (setf min min-next
                     closest (find min-next particles :key #'distance-to-origin)))
-        :finally (return (id closest)))
+        :finally (return (particle-id closest)))
       (loop
         :with particles = (copy-particles data)
         :repeat 1000

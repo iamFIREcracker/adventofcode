@@ -12,6 +12,7 @@
     :sorted
     :nsorted
     :frequencies
+    :unique-only
     :hamming-distance
     :manhattan-distance
     :curry

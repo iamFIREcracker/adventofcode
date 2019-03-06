@@ -73,6 +73,24 @@
               (incf (gethash c freqs)))
         :finally (return freqs)))
 
+(defun unique-only (x &key (key 'identity) (test 'eql))
+  "Remove from `X` all the elements which are not unique.
+
+  This differs from REMOVE-DUPLICATES in that if a element has duplicates, not just
+  the duplicates but the element itself is removed.
+
+  PS. slow as balls -- O(n²)"
+  (let ((kvs (mapcar #'(lambda (k) (list k (funcall key k))) x)))
+    (recursively ((kv (first kvs))
+                  (rest (rest kvs)))
+      (when kv
+        (let ((k (first kv))
+              (v (second kv)))
+          (cond ((member v rest :key #'second :test test)
+                 (let ((without-duplicates (remove v rest :key #'second :test test)))
+                   (recur (first without-duplicates) (rest without-duplicates))))
+                (T (cons k (recur (first rest) (rest rest))))))))))
+
 (defun hamming-distance (s1 s2 &key (test 'eql))
   "Number of positional differences in two equal length strings."
   (when (= (length s1) (length s2))
