@@ -36,21 +36,17 @@
            (distance-to-origin (p)
              (manhattan-distance (list 0 0 0) (particle-position p)))
            (closest-to-origin (particles)
-             (minimization particles :key #'distance-to-origin)))
+             (let ((min (minimization particles :key #'distance-to-origin)))
+               (find min particles :key #'distance-to-origin))))
     (values
       (loop
         :with particles = (copy-particles data)
-        :with min = (closest-to-origin particles)
-        :with closest = (find min particles :key #'distance-to-origin)
-        :repeat 1000
+        :repeat 500
         :do (move-particles particles)
-        :do (let ((min-next (closest-to-origin particles)))
-              (setf min min-next
-                    closest (find min-next particles :key #'distance-to-origin)))
-        :finally (return (particle-id closest)))
+        :finally (return (particle-id (closest-to-origin particles))))
       (loop
         :with particles = (copy-particles data)
-        :repeat 1000
+        :repeat 500
         :do (move-particles particles)
         :do (setf particles (unique-only particles :key #'particle-position :test 'equal))
         :finally (return (length particles))))))
