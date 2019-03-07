@@ -2,25 +2,25 @@
 (in-package :aoc/2017/17)
 
 (define-problem (2017 17) (data read-integer)
-  (flet ((next-value (dl)
-           (dlink-content (dlink-next dl)))
-         (prev-value (buffer)
-           (dlink-content (dlink-prev (ring-current buffer)))))
+  (values
+    (flet ((next-value (dl)
+             (dlink-content (dlink-next dl))))
+      (loop
+        :with buffer = (make-ring 0)
+        :for n :from 1 :upto 2017
+        :do (ring-movef buffer data)
+        :do (ring-insertf buffer n)
+        :finally (return (next-value (ring-current buffer)))))
     (loop
-      :with buffer = (make-ring 0)
-      :with cell-0 = (ring-current buffer)
-      :with part1
+      :with curr = 0
+      :with last
       :for n :from 1 :upto 50000000
-      :do (ring-movef buffer data)
-      :do (ring-insertf buffer n)
-      :do (when (= n 2017)
-            (setf part1 (prl (next-value (ring-current buffer)))))
-      :finally (return (values part1 (next-value cell-0))))))
+      :for next = (mod (+ curr data) n)
+      :do (setf curr (1+ next))
+      :when (= curr 1) :do (setf last n)
+      :finally (return last))))
 
-(1am:test test-2017/17)
-  ; XXX it takes minutes for this solution to run, so better to keep this
-  ; disabled until we find a better one -- don't wanna waste all that time
-  ; when running `(1am:run)`
-  ; (multiple-value-bind (part1 part2) (problem-run)
-  ;   (1am:is (= 1914 part1))
-  ;   (1am:is (= 41797835 part2))))
+(1am:test test-2017/17
+  (multiple-value-bind (part1 part2) (problem-run)
+    (1am:is (= 1914 part1))
+    (1am:is (= 41797835 part2))))
