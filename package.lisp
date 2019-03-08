@@ -12,6 +12,7 @@
     :sorted
     :nsorted
     :frequencies
+    :group-by
     :unique-only
     :hamming-distance
     :manhattan-distance

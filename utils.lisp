@@ -73,23 +73,44 @@
               (incf (gethash c freqs)))
         :finally (return freqs)))
 
+(defun group-by (x &key (key 'identity) (test 'eql))
+  "Groups the elements of `x` based on the values returned by applying function
+  `key` to such elements.
+
+  `key` is a function computing a key value for each element, and based on that
+  value groups are created, and `test` instead, is the equality function used to
+  compare key values together.
+
+  Note: this function aggregates common elements regardless of their input
+  order.
+
+  Examples:
+
+    (group-by '(1 2 3 4 5 6) :key #'oddp)
+    =>
+    (((5 3 1) T) ((6 4 2) NIL))
+  "
+  (loop
+    :with groups = (make-hash-table :test test)
+    :with keys = (make-hash-table :test test)
+    :for k :being :the :elements :of x
+    :for v = (funcall key k)
+    :do (push k (gethash v groups))
+    :unless (gethash v keys) :do (setf (gethash v keys) T) :and :collect v :into sorted-keys
+    :finally (return (loop
+                       :for k :in sorted-keys
+                       :for group = (gethash k groups)
+                       :collect (list group k)))))
+
 (defun unique-only (x &key (key 'identity) (test 'eql))
   "Remove from `X` all the elements which are not unique.
 
   This differs from REMOVE-DUPLICATES in that if a element has duplicates, not just
   the duplicates but the element itself is removed.
-
-  PS. slow as balls -- O(n²)"
-  (let ((kvs (mapcar #'(lambda (k) (list k (funcall key k))) x)))
-    (recursively ((kv (first kvs))
-                  (rest (rest kvs)))
-      (when kv
-        (let ((k (first kv))
-              (v (second kv)))
-          (cond ((member v rest :key #'second :test test)
-                 (let ((without-duplicates (remove v rest :key #'second :test test)))
-                   (recur (first without-duplicates) (rest without-duplicates))))
-                (T (cons k (recur (first rest) (rest rest))))))))))
+  "
+  (loop
+    :for (group) :in (group-by x :key key :test test)
+    :when (= 1 (length group)) :collect (first group)))
 
 (defun hamming-distance (s1 s2 &key (test 'eql))
   "Number of positional differences in two equal length strings."
