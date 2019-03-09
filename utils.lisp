@@ -131,7 +131,7 @@
     (reduce #'+ (mapcar #'abs (mapcar #'- a b)))))
 
 (defmacro curry (function &rest args)
-  (let* ((i (position '>< args :test 'string=))
+  (let* ((i (position '_ args :test 'string=))
          (before (if i (subseq args 0 i) args))
          (after (and i (subseq args (1+ i)))))
     (with-gensyms (more-arg)

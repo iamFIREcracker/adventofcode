@@ -62,7 +62,7 @@
       (loop
         :with gen = (make-spiral-gen)
         :for (pos) = (multiple-value-list (spiral-gen-next gen))
-        :for value = (summation (adjacents pos) :key (curry #'gethash >< part2-grid 0))
+        :for value = (summation (adjacents pos) :key (curry #'gethash _ part2-grid 0))
         :do (when (> value data)
               (return value))
         :do (setf (gethash pos part2-grid) value)))))
