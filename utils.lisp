@@ -430,18 +430,14 @@
 (defmacro define-problem ((year day)
                           (arg &optional (reader 'identity))
                           &body body)
-  (multiple-value-bind (body declarations docstring)
-      (alexandria:parse-body body :documentation t)
-    (with-gensyms (file)
-      (let ((run (symb 'problem-run)))
-        `(defun ,run (&optional ,arg)
-           ,@(when docstring (list docstring))
-           ,@declarations
-           (let ((,file (open (problem-input-path ,year ,day))))
-             (unwind-protect
-                 (progn (setf ,arg (,reader (read-all ,file)))
-                        ,@body)
-               (when ,file (close ,file)))))))))
+  (with-gensyms (file)
+    (let ((run (symb 'problem-run)))
+      `(defun ,run (&optional ,arg)
+         (let ((,file (open (problem-input-path ,year ,day))))
+           (unwind-protect
+               (progn (setf ,arg (,reader (read-all ,file)))
+                      ,@body)
+             (when ,file (close ,file))))))))
 
 (defun problem-input-path (year day)
   (make-pathname
