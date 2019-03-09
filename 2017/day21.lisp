@@ -24,10 +24,10 @@
       (2 1) (1 1) (0 1)
       (2 2) (1 2) (0 2))))
 
-(defun indices-square (i j size)
+(defun indices-square (top left size)
   (gathering
-    (dorange (i i (+ i size))
-      (dorange (j j (+ j size))
+    (dorange (i top (+ top size))
+      (dorange (j left (+ left size))
         (gather (list i j))))))
 
 (defun select-pixels (source indices &aux (size (size source)))
@@ -64,13 +64,10 @@
 
 (defun break-up (pixels &aux (size (size pixels)))
   (let ((sub-size (if (dividesp 2 size) 2 3)))
-    (loop
-      :for i = 0 :then (+ i sub-size) ;; XXX can we enhance DORANGE to support _delta_ factor?
-      :while (< i size)
-      :append (loop
-                :for j = 0 :then (+ j sub-size)
-                :while (< j size)
-                :collect (select-pixels pixels (indices-square i j sub-size))))))
+    (gathering
+      (dorange (i 0 size sub-size)
+        (dorange (j 0 size sub-size)
+          (gather (select-pixels pixels (indices-square i j sub-size))))))))
 
 (defun combine (squares &aux (size (size squares)))
   ;; XXX review this?!
@@ -88,7 +85,7 @@
     (loop
       :with pixels = ".#...####"
       :with part1
-      :for iteration :from 1 :upto 5
+      :for iteration :from 1 :upto 18
       :for grids = (break-up pixels)
       :for expansions = (mapcar (curry #'gethash _ data) grids)
       :do (setf pixels (combine expansions))

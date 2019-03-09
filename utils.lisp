@@ -383,25 +383,27 @@
 
 ;;;; Iterators ----------------------------------------------------------------
 
-(defmacro dorange ((var from to &optional ret) &body body)
+(defmacro dorange ((var from to &optional (delta 1)) &body body)
   "Perform `body` on the given range of values.
   During iteration `body` will be executed with `var` bound to successive values
   in the range [`from`, `to`).
+
   Example:
     (dorange (x 5 8)
-      (pr x y))
+      (pr x))
     ; =>
     5
     6
     7
   "
-  `(loop :for ,var :from ,from :below ,to
-         :do ,@body
-         :finally (return ,ret)))
+  `(loop
+     :for ,var = ,from :then (+ ,var ,delta)
+     :while (< ,var ,to)
+     :do (progn ,@body)))
 
-(defmacro doirange ((var from to &optional ret) &body body)
+(defmacro doirange ((var from to &optional (delta 1)) &body body)
   "Similar to `DORANGE`, but `TO` is now included in the range."
-  `(dorange (,var ,from (1+ ,to) ,ret)
+  `(dorange (,var ,from (1+ ,to) ,delta)
      ,@body))
 
 (defmacro dovector ((var vector &optional ret) &body body)
