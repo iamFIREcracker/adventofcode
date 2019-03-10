@@ -8,6 +8,22 @@
   dir)
 
 (defun make-spiral-gen (&aux (storage (make-hash-table)))
+  "Create a spiral sequence generator configured as below:
+
+    ...   ...
+    .1.   .C.
+    ...   ..^
+
+  `LAST`     = 1
+  `LAST-POS` = #C(1 -1)
+  `DIR`      = #C(0  1)
+
+  This might look a little weird, but if you look at how SPIRAL-GEN-NEXT work,
+  you will realize this is required so that:
+
+  - `2` will be placed on `LAST-POS` + `DIR` (to the right of `1`)
+  - `DIR` will be rotated counter-clockwise (facing the center)
+  "
   (setf (gethash #C(0 0) storage) 1)
   (make-spiral-gen% :storage storage
                     :last 1
@@ -15,20 +31,61 @@
                     :dir #C(0 1)))
 
 (defun spiral-gen-next (gen)
-  "To recap, a `SPIRAL-GEN` has the following properties:
+  "Generate successive values of the spiral sequnce, returning the last position
+  used, as well as the last value.
+
+  To recap, a SPIRAL-GEN has the following properties:
 
   - `STORAGE`: used to keep track of already visited cells
   - `LAST`: the last value used
   - `LAST-POS`: where `LAST` was last placed inside `STORAGE`
   - `DIR`: where to check for an empty cell
 
+  The idea is _simple_:
 
-  XXX
+  - if `LAST-POS` + `DIR` is empty, use that and rotate `DIR` counter-clockwise
+  (facing the center of the spiral)
+  - if `LAST-POS` + `DIR` is *not* empty, temporarily rotate `DIR` clockwise and
+  use `LAST-POS` + `DIR-TEMP`
 
-   ...
-   .12
-   ..."
-  (let* ((storage (spiral-gen-storage gen)) ; there should be a simple way to do stuff like this -- similar to `WITH-SLOTS`
+  Example:
+
+  Suppose we just placed number 2 on the grid:
+
+    ...   ...
+    .12   .C<
+    ...   ...
+
+  `LAST`     = 2
+  `LAST-POS` = #C( 1 0)
+  `DIR`      = #C(-1 0)
+
+  `LAST-POS` + `DIR` is already occupied, so we temporarily rotate `DIR`
+  clockwise place `3` in `LAST-POS` + `DIR-TEMP`, and move on (leaving `DIR`
+  unchanged).
+
+    ..3   ..<
+    .12   .C.
+    ...   ...
+
+  `LAST`      = 3
+  `LAST-POST` = #C( 1 1)
+  `DIR`       = #C(-1 0)
+
+  This time, `LAST-POS` + `DIR` is not occupied, so we place `4` there, and then
+  rotate `DIR` clockwise.
+
+    .43   .v.
+    .12   .C.
+    ...   ...
+
+  `LAST`      = 4
+  `LAST-POST` = #C(0  1)
+  `DIR`       = #C(0 -1)
+
+  And so on, and so forth.
+  "
+  (let* ((storage (spiral-gen-storage gen)) ; XXX there should be a simple way to do stuff like this -- similar to `WITH-SLOTS`
          (last (spiral-gen-last gen))
          (last-pos (spiral-gen-last-pos gen))
          (dir (spiral-gen-dir gen))
