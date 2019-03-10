@@ -30,6 +30,7 @@
                (:file "2017/day20")
                (:file "2017/day21")
                (:file "2017/day22")
+               (:file "2017/day23")
                (:file "2018/day01")
                (:file "2018/day02")
                (:file "2018/day03")

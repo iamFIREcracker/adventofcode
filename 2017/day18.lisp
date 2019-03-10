@@ -1,4 +1,17 @@
-(defpackage :aoc/2017/18 #.cl-user::*aoc-use*)
+(defpackage :aoc/2017/18 #.cl-user::*aoc-use*
+  (:export
+    :ip-pos
+    :*registers*
+    :reg-name-to-pos
+    :value-or-reg-content
+    :i-set
+    :i-mul
+    :*instructions-by-name*
+    :make-program
+    :program-registers
+    :program-next-instruction-name
+    :program-exec-next-instruction
+    :parse-instructions))
 (in-package :aoc/2017/18)
 
 (defconstant ip-pos 26)
@@ -48,14 +61,9 @@
   (when (plusp (value-or-reg-content x))
     (incf (aref *registers* ip-pos) (1- (value-or-reg-content y)))))
 
+(defparameter *instructions-by-name* NIL)
 (defun instruction-by-name (name)
-  (cond ((string= "snd" name) #'i-snd)
-        ((string= "set" name) #'i-set)
-        ((string= "add" name) #'i-add)
-        ((string= "mul" name) #'i-mul)
-        ((string= "mod" name) #'i-mod)
-        ((string= "rcv" name) #'i-rcv)
-        ((string= "jgz" name) #'i-jgz)))
+  (second (assoc name *instructions-by-name* :test 'equal)))
 
 (defstruct (instruction
              (:copier NIL)
@@ -90,8 +98,9 @@
                    :instructions instructions)))
 
 (defun program-next-instruction-name (p)
-  (let ((ip (aref (program-registers p) ip-pos)))
-    (name (nth ip (program-instructions p)))))
+  (let* ((ip (aref (program-registers p) ip-pos))
+         (instruction (nth ip (program-instructions p))))
+    (and instruction (name instruction))))
 
 (defun program-exec-next-instruction (p)
   (let* ((ip (aref (program-registers p) ip-pos))
@@ -104,12 +113,10 @@
   (loop
     :with *part2*
     :with current = (make-program 0 data)
-    :with *id* = (program-id current)
     :with *registers* = (program-registers current)
     :for name = (program-next-instruction-name current)
     :for ret = (program-exec-next-instruction current)
-    :when (string= "rcv" name)
-    :return ret))
+    :when (string= "rcv" name) :return ret))
 
 (defun solve-part2 (data)
   (labels ((rcv-queue-not-empty-p (p)
@@ -137,6 +144,13 @@
                   *registers* (program-registers current))))))
 
 (define-problem (2017 18) (data parse-instructions)
+  (setf *instructions-by-name* `(("snd" ,#'i-snd)
+                                 ("set" ,#'i-set)
+                                 ("add" ,#'i-add)
+                                 ("mul" ,#'i-mul)
+                                 ("mod" ,#'i-mod)
+                                 ("rcv" ,#'i-rcv)
+                                 ("jgz" ,#'i-jgz)))
   (values
     (solve-part1 data)
     (solve-part2 data)))
