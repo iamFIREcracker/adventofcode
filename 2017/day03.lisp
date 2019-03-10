@@ -108,21 +108,19 @@
           (gather (+ p (complex x y))))))))
 
 (define-problem (2017 3) (data read-integer)
-  (let ((part2-grid (make-hash-table)))
-    (setf (gethash #C(0 0) part2-grid) 1)
-    (values
-      (loop
-        :with gen = (make-spiral-gen)
-        :for (pos n) = (multiple-value-list (spiral-gen-next gen))
-        :do (when (= n data)
-              (return (manhattan-distance #C(0 0) pos))))
-      (loop
-        :with gen = (make-spiral-gen)
-        :for (pos) = (multiple-value-list (spiral-gen-next gen))
-        :for value = (summation (adjacents pos) :key (curry #'gethash _ part2-grid 0))
-        :do (when (> value data)
-              (return value))
-        :do (setf (gethash pos part2-grid) value)))))
+  (values
+    (loop
+      :with gen = (make-spiral-gen)
+      :for (pos n) = (multiple-value-list (spiral-gen-next gen))
+      :when (= n data) :return (manhattan-distance #C(0 0) pos))
+    (loop
+      :with gen = (make-spiral-gen)
+      :with grid = (make-hash-table)
+      :initially (setf (gethash #C(0 0) grid) 1)
+      :for (pos) = (multiple-value-list (spiral-gen-next gen))
+      :for value = (summation (adjacents pos) :key (curry #'gethash _ grid 0))
+      :when (> value data) :return value
+      :do (setf (gethash pos grid) value))))
 
 (1am:test test-2017/03
   (multiple-value-bind (part1 part2) (problem-run)
