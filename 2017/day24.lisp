@@ -51,6 +51,6 @@
         (solve-part1 (longest bridges))))))
 
 (1am:test test-2017/24
-  (multiple-value-bind (part1) (problem-run)
+  (multiple-value-bind (part1 part2) (problem-run)
     (1am:is (= 2006 part1))
-    (1am:is (= 1994 part1))))
+    (1am:is (= 1994 part2))))
