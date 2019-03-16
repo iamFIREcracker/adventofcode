@@ -1,17 +1,30 @@
-(defpackage :aoc/2017/23 #.cl-user::*aoc-use*)
+(defpackage :aoc/2017/23 #.cl-user::*aoc-use*
+  (:import-from :aoc/2017/18
+                :*instructions-by-name*
+                :*registers*
+                :i-mul
+                :i-set
+                :ip-pos
+                :make-program
+                :parse-instructions
+                :program-exec-next-instruction
+                :program-next-instruction-name
+                :program-registers
+                :reg-name-to-pos
+                :value-or-reg-content))
 (in-package :aoc/2017/23)
 
-(defun i-sub (x y &aux (pos (aoc/2017/18:reg-name-to-pos x)))
-  (decf (aref aoc/2017/18:*registers* pos) (aoc/2017/18:value-or-reg-content y)))
+(defun i-sub (x y &aux (pos (reg-name-to-pos x)))
+  (decf (aref *registers* pos) (value-or-reg-content y)))
 
 (defun i-jnz (x y)
-  (unless (zerop (aoc/2017/18:value-or-reg-content x))
-    (incf (aref aoc/2017/18:*registers* aoc/2017/18:ip-pos) (1- (aoc/2017/18:value-or-reg-content y)))))
+  (unless (zerop (value-or-reg-content x))
+    (incf (aref *registers* ip-pos) (1- (value-or-reg-content y)))))
 
 (defun solve-part-2 ()
   "It turns out the input program tries to find all the not-prime numbers
   in the range [108100, 125100].
-  
+
   How did I figure it out? By converting the input code into working CL code
   first (TAGBODY for the win), and with a lot of PRLs.
 
@@ -82,19 +95,19 @@
       :count (not (primesp n)))))
 
 (define-problem (2017 23) (data)
-  (setf aoc/2017/18:*instructions-by-name* `(("set" ,#'aoc/2017/18:i-set)
-                                             ("sub" ,#'i-sub)
-                                             ("mul" ,#'aoc/2017/18:i-mul)
-                                             ("jnz" ,#'i-jnz)))
+  (setf *instructions-by-name* `(("set" ,#'i-set)
+                                 ("sub" ,#'i-sub)
+                                 ("mul" ,#'i-mul)
+                                 ("jnz" ,#'i-jnz)))
   (values
     (loop
-      :with instructions = (aoc/2017/18:parse-instructions data)
-      :with current = (aoc/2017/18:make-program 0 instructions)
-      :with aoc/2017/18:*registers* = (aoc/2017/18:program-registers current)
-      :for name = (aoc/2017/18:program-next-instruction-name current)
+      :with instructions = (parse-instructions data)
+      :with current = (make-program 0 instructions)
+      :with *registers* = (program-registers current)
+      :for name = (program-next-instruction-name current)
       :count (string= "mul" name)
       :while name
-      :do (aoc/2017/18:program-exec-next-instruction current))
+      :do (program-exec-next-instruction current))
     (solve-part-2)))
 
 (1am:test test-2017/23

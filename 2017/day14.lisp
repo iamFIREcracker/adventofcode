@@ -1,11 +1,12 @@
-(defpackage :aoc/2017/14 #.cl-user::*aoc-use*)
+(defpackage :aoc/2017/14 #.cl-user::*aoc-use*
+  (:import-from :aoc/2017/10 :knot-hash))
 (in-package :aoc/2017/14)
 
 (defun make-grid (data)
   (loop
     :for i :upto 127
     :for string = (mkstr data #\- i)
-    :for hash = (aoc/2017/10:knot-hash string)
+    :for hash = (knot-hash string)
     :for binary = (hexadecimal-binary hash)
     :collect binary))
 

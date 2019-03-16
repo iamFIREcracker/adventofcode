@@ -49,7 +49,7 @@
 
 (defun i-mod (x y &aux (pos (reg-name-to-pos x)))
   (setf (aref *registers* pos) (mod (aref *registers* pos)
-                                  (value-or-reg-content y))))
+                                    (value-or-reg-content y))))
 
 (defun i-rcv (x &aux (pos (reg-name-to-pos x)))
   (if (not *part2*)
@@ -61,7 +61,7 @@
   (when (plusp (value-or-reg-content x))
     (incf (aref *registers* ip-pos) (1- (value-or-reg-content y)))))
 
-(defparameter *instructions-by-name* NIL)
+(defvar *instructions-by-name* NIL)
 (defun instruction-by-name (name)
   (second (assoc name *instructions-by-name* :test 'equal)))
 
@@ -128,7 +128,7 @@
              (not (some #'program-can-execute-p programs))))
     (loop
       :with *part2* = T
-      :with *programs* = (make-array 2 :initial-contents (list 
+      :with *programs* = (make-array 2 :initial-contents (list
                                                            (make-program 0 data)
                                                            (make-program 1 data)))
       :with *shared* = (make-array 2 :initial-element NIL)
@@ -143,7 +143,7 @@
                   *id* (program-id current)
                   *registers* (program-registers current))))))
 
-(define-problem (2017 18) (data parse-instructions)
+(define-problem (2017 18) (data)
   (setf *instructions-by-name* `(("snd" ,#'i-snd)
                                  ("set" ,#'i-set)
                                  ("add" ,#'i-add)
@@ -151,9 +151,10 @@
                                  ("mod" ,#'i-mod)
                                  ("rcv" ,#'i-rcv)
                                  ("jgz" ,#'i-jgz)))
-  (values
-    (solve-part1 data)
-    (solve-part2 data)))
+  (let ((instructions (parse-instructions data)))
+    (values
+      (solve-part1 instructions)
+      (solve-part2 instructions))))
 
 (1am:test test-2017/18
   (multiple-value-bind (part1 part2) (problem-run)
