@@ -313,6 +313,28 @@
   "Insert `content` right after `r`'s `current`"
   (setf (ring-current r) (dlink-insertf current content)))
 
+;;;; Poor's Heap Queue --------------------------------------------------------
+
+(defun make-hq (&rest items)
+  "Create an instance of Poor's Heap Queue pre-populateed with `ITEMS`.
+
+  Each element of `ITEMS` is expected to match: `(priority . rest)"
+  (sort (copy-seq items) #'< :key #'first))
+
+(defmacro hq-popf (hq)
+  "Pop the first element from the heap queue."
+  `(pop ,hq))
+
+(define-modify-macro hq-insertf (item)
+  (lambda (hq item)
+    (merge 'list hq (list item) #'< :key #'first))
+  "Add `item` to the heap queue.
+
+  Like for MAKE-HQ, `item` is expected to match: `(priority . rest).
+
+  Also, it internally uses MERGE, which means is not as bad as running
+  SORT on each insert, but still, we could make things run faster.")
+
 ;;;; Copy pasta ---------------------------------------------------------------
 
 (defmacro with-gensyms (names &body body)

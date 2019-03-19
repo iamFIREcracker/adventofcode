@@ -369,19 +369,6 @@
 ;; Day21-2
 ; (test 12333799 (day21-2))
 
-;; Day 22-1
-(test 4845 (parse-cave-depth "depth: 4845"))
-(test '(6 770) (parse-cave-target "target: 6,770"))
-(test 114 (solve-day22-1 510 '(10 10)))
-(test 5400 (day22-1))
-;; Day 22-2
-(setf *geologic-index-cache* (make-hash-table :test 'equal))
-(test '((0 1 1 torch)) (cave-change-area '(0 0 0 torch) '(0 1) '(10 10) 510)) 
-(test '((1 1 1 torch) (1 1 8 NIL)) (cave-change-area '(0 1 1 torch) '(1 1) '(10 10) 510)) 
-(test 45 (solve-day22-2 510 '(10 10)))
-(test 45 (solve-day22-2 3879 '(8 713)))
-; (test 1048 (day22-2))
-
 ;; Day23-1
 (test '(0 -12 33 4) (parse-nanobot "pos=<0,-12,33>, r=4"))
 (test 433 (day23-1))

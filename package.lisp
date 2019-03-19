@@ -56,6 +56,10 @@
     :ring-removef
     :ring-insertf
 
+    :make-hq
+    :hq-popf
+    :hq-insertf
+
     :with-gensyms
     :mkstr
     :mkstrc
