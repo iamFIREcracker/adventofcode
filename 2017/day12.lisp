@@ -17,7 +17,7 @@
   (flet ((init-groups (&aux (sets (make-hash-table)))
            (dolist (pipe data sets)
              (let ((from (program-links-from pipe)))
-               (setf (gethash from sets) (make-disjointset from)))))
+               (hash-table-insert sets from (make-disjointset from)))))
          (join-groups (groups from linked)
            (dolist (to linked)
              (disjointset-union (gethash from groups)

@@ -51,7 +51,7 @@
 (define-problem (2017 7) (data parse-programs)
   (flet ((index-by-name (programs &aux (index (make-hash-table :test 'equal)))
            (dolist (p programs index)
-             (setf (gethash (name p) index) p))))
+             (hash-table-insert index (name p) p))))
     (let ((bottom-program (find-bottom-program data)))
       (values
         bottom-program

@@ -41,7 +41,7 @@
           :for ids :being :the :hash-value :of fabric
           :do (when (> (length ids) 1)
                 (dolist (id ids)
-                  (setf (gethash id overlapping-ids) T))))
+                  (hash-table-insert overlapping-ids id T)))) ; XXX hash-set
         (dolist (claim claims)
           (unless (gethash (claim-id claim) overlapping-ids)
             (return (claim-id claim))))))))

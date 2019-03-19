@@ -21,7 +21,7 @@
 
 (defun make-turing-machine (states-list curr-state &aux (states (make-hash-table)))
   (dolist (s states-list)
-    (setf (gethash (st-name s) states) s))
+    (hash-table-insert states (st-name s) s))
   (make-turing-machine% :states states
                         :curr-state curr-state))
 

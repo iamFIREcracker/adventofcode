@@ -7,7 +7,7 @@
          (offset-x (truncate (length (first x)) 2)))
     (dorange (i 0 (length x))
       (dorange (j 0 (length (first x)))
-        (setf (gethash (complex (- j offset-x) (- offset-y i)) map) (aref (nth i x) j))))
+        (hash-table-insert map (complex (- j offset-x) (- offset-y i)) (aref (nth i x) j))))
     map))
 
 (defun cleanp (node)

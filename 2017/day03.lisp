@@ -24,7 +24,7 @@
   - `2` will be placed on `LAST-POS` + `DIR` (to the right of `1`)
   - `DIR` will be rotated counter-clockwise (facing the center)
   "
-  (setf (gethash #C(0 0) storage) 1)
+  (hash-table-insert storage #C(0 0) 1)
   (make-spiral-gen% :storage storage
                     :last 1
                     :last-pos #C(1 -1)
@@ -116,11 +116,11 @@
     (loop
       :with gen = (make-spiral-gen)
       :with grid = (make-hash-table)
-      :initially (setf (gethash #C(0 0) grid) 1)
+      :initially (hash-table-insert grid #C(0 0) 1)
       :for (pos) = (multiple-value-list (spiral-gen-next gen))
       :for value = (summation (adjacents pos) :key (curry #'gethash _ grid 0))
       :when (> value data) :return value
-      :do (setf (gethash pos grid) value))))
+      :do (hash-table-insert grid pos value))))
 
 (1am:test test-2017/03
   (multiple-value-bind (part1 part2) (problem-run)

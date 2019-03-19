@@ -40,9 +40,6 @@
 (defun make-state (pos tool)
   (make-state% :pos pos :tool tool))
 
-(defun hash-table-insert (ht key value)
-  (setf (gethash key ht) value)) ; XXX replace all setf..gethash occurrences
-
 ;; https://stackoverflow.com/a/25464689
 (defmacro match-bind (pattern object &body body)
   `(loop

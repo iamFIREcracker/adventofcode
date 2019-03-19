@@ -33,6 +33,7 @@
     :hash-table-find
     :hash-table-keys
     :hash-table-values
+    :hash-table-insert
     :print-hash-table
 
     :make-disjointset

@@ -75,7 +75,7 @@
       :for (from to) :in (mapcar #'parse-rule x)
       :do (loop
             :for p :in (generate-patterns from)
-            :do (setf (gethash p rules) to)))
+            :do (hash-table-insert rules p to)))
     rules))
 
 (defun break-up (pixels &aux (size (size pixels)))

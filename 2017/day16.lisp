@@ -15,8 +15,9 @@
     (loop
       :for pos :below size
       :for char :in (alphabet)
-      :do (setf (gethash pos position-to-name) char
-                (gethash char name-to-position) pos))
+      :do (progn
+            (hash-table-insert position-to-name pos char)
+            (hash-table-insert name-to-position char pos)))
     (make-dancefloor% :size size
                       :spun 0
                       :name-to-position name-to-position
@@ -91,7 +92,7 @@
                  (loops (truncate remaining loop-size)))
             (setf n (+ n (* loop-size loops))
                   not-in-loop NIL)))
-    :do (setf (gethash current seen) n)
+    :do (hash-table-insert seen current n)
     :finally (return (values part1 current))))
 
 (1am:test test-2017/16

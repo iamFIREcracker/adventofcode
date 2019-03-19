@@ -69,7 +69,7 @@
   (loop :with freqs = (make-hash-table)
         :for c :across s
         :do (if (not (gethash c freqs))
-              (setf (gethash c freqs) 1)
+              (hash-table-insert freqs c 1)
               (incf (gethash c freqs)))
         :finally (return freqs)))
 
@@ -96,7 +96,7 @@
     :for k :being :the :elements :of x
     :for v = (funcall key k)
     :do (push k (gethash v groups))
-    :unless (gethash v keys) :do (setf (gethash v keys) T) :and :collect v :into sorted-keys
+    :unless (gethash v keys) :do (hash-table-insert keys v T) :and :collect v :into sorted-keys ; XXX hash-set
     :finally (return (loop
                        :for k :in sorted-keys
                        :for group = (gethash k groups)
@@ -220,6 +220,9 @@
     :for key :being :the :hash-keys :of h
     :do (when (funcall test elem (gethash key h))
           (return key))))
+
+(defmacro hash-table-insert (ht key value)
+  `(setf (gethash ,key ,ht) ,value))
 
 (defun print-hash-table (h)
   (progn

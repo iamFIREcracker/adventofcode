@@ -25,7 +25,7 @@
     :do (setf banks (reallocate-blocks banks))
     :do (if (gethash banks cache)
           (return (values cycles (- cycles (gethash banks cache))))
-          (setf (gethash banks cache) cycles))))
+          (hash-table-insert cache banks cycles))))
 
 (1am:test test-2017/06
   (multiple-value-bind (part1 part2) (problem-run)

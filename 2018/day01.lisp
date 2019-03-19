@@ -13,7 +13,7 @@
         :summing number :into frequency
         :do (if (gethash frequency seen)
               (return frequency)
-              (setf (gethash frequency seen) T))))))
+              (hash-table-insert seen frequency T)))))) ; XXX hash-set
 
 (1am:test test-2018/01
   (multiple-value-bind (part1 part2) (problem-run)
