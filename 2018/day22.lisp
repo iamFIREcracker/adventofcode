@@ -40,13 +40,6 @@
 (defun make-state (pos tool)
   (make-state% :pos pos :tool tool))
 
-;; https://stackoverflow.com/a/25464689
-(defmacro match-bind (pattern object &body body)
-  `(loop
-     :with ,pattern = ,object
-     :while nil
-     :finally (return (progn ,@body))))
-
 (defun change-tool (current-tool area)
   (case area
     (0 (ecase current-tool
@@ -113,7 +106,7 @@
           :for (priority state time) = (hq-popf frontier)
           :when (equalp state target-state) :return time
           :do (dolist (next (cave-possible-moves cave state time))
-                (match-bind (state-next time-next) next
+                (destructuring-bind (state-next time-next) next
                   (when (< time-next (gethash state-next cost-so-far (1+ time-next)))
                     (let ((priority (+ time-next (manhattan-distance (pos state-next)
                                                                      (pos target-state)))))
