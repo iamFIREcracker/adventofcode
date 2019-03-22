@@ -338,6 +338,34 @@
   Also, it internally uses MERGE, which means is not as bad as running
   SORT on each insert, but still, we could make things run faster.")
 
+;;;; Search -------------------------------------------------------------------
+
+(defun a-star (init-state init-cost target-state neighbors heuristic
+                          &aux (cost-so-far (make-hash-table :test 'equalp))
+                          (come-from (make-hash-table :test 'equalp)))
+  (flet ((calc-priority (state &aux (cost (gethash state cost-so-far)))
+           (+ cost (funcall heuristic state))))
+    (hash-table-insert cost-so-far init-state init-cost)
+    (loop
+      :with frontier = (make-hq (list (calc-priority init-state) init-state init-cost))
+      :while frontier
+      :for (priority state) = (hq-popf frontier)
+      :for cost = (gethash state cost-so-far)
+      :when (equalp state target-state) :return NIL
+      :do (dolist (next (funcall neighbors state cost))
+            (destructuring-bind (next-state next-cost) next
+              (when (< next-cost (gethash next-state cost-so-far (1+ next-cost)))
+                (hash-table-insert cost-so-far next-state next-cost)
+                (hash-table-insert come-from next-state state)
+                (hq-insertf frontier (list (calc-priority next-state)
+                                           next-state))))))
+    (values cost-so-far come-from)))
+
+(defun a-star-backtrack (come-from curr)
+  (nreverse (recursively ((curr curr))
+              (when curr
+                (cons curr (recur (gethash curr come-from)))))))
+
 ;;;; Copy pasta ---------------------------------------------------------------
 
 (defmacro with-gensyms (names &body body)

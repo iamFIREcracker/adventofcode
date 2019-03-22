@@ -80,11 +80,6 @@
         :when (member tool adj-tools) :collect (list (make-state adj tool)
                                                      (1+ time))))))
 
-(defun backtrack (come-from curr)
-  (reverse (recursively ((curr curr))
-             (when curr
-               (cons curr (recur (gethash curr come-from)))))))
-
 (define-problem (2018 22) (data)
   (multiple-value-bind (depth target) (parse-depth-target data)
     (let ((cave (make-cave target depth)))
@@ -95,24 +90,15 @@
               (doirange (j 0 (realpart target))
                 (gather (gethash (complex j i) cave)))))
           :key #'area-type)
-        (loop ;; XXX this is a-star
-          :with init-state = (make-state #C(0 0) 'torch)
-          :with target-state = (make-state target 'torch)
-          :with frontier = (make-hq (list 0 init-state 0)) ; priority state time
-          :with cost-so-far = (make-hash-table :test 'equalp)
-          :with come-from = (make-hash-table :test 'equalp)
-          :initially (hash-table-insert cost-so-far init-state 35)
-          :while frontier
-          :for (priority state time) = (hq-popf frontier)
-          :when (equalp state target-state) :return time
-          :do (dolist (next (cave-possible-moves cave state time))
-                (destructuring-bind (state-next time-next) next
-                  (when (< time-next (gethash state-next cost-so-far (1+ time-next)))
-                    (let ((priority (+ time-next (manhattan-distance (pos state-next)
-                                                                     (pos target-state)))))
-                      (hash-table-insert cost-so-far state-next time-next)
-                      (hash-table-insert come-from state-next (cons time state))
-                      (hq-insertf frontier (list priority state-next time-next)))))))))))
+        (let* ((init-state (make-state #C(0 0) 'torch))
+               (target-state (make-state target 'torch))
+               (cost-so-far (a-star init-state 0 target-state
+                                    #'(lambda (state cost)
+                                        (cave-possible-moves cave state cost))
+                                    #'(lambda (state)
+                                        (manhattan-distance (pos state)
+                                                            (pos target-state))))))
+          (gethash target-state cost-so-far))))))
 
 (1am:test test-2018/22
   (multiple-value-bind (part1 part2) (problem-run)

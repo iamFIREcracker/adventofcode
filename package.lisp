@@ -61,6 +61,9 @@
     :hq-popf
     :hq-insertf
 
+    :a-star
+    :a-star-backtrack
+
     :with-gensyms
     :mkstr
     :mkstrc
