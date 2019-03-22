@@ -16,7 +16,8 @@
     :unique-only
     :hamming-distance
     :manhattan-distance
-    :curry
+
+    :partial-1
 
     :complex-rotate-cw
     :complex-rotate-ccw

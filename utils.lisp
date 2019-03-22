@@ -130,13 +130,15 @@
                (imagpart b))))
     (reduce #'+ (mapcar #'abs (mapcar #'- a b)))))
 
-(defmacro curry (function &rest args)
+;;;; Functional --------------------------------------------------------------
+
+(defmacro partial-1 (fn &rest args)
   (let* ((i (position '_ args :test 'string=))
          (before (if i (subseq args 0 i) args))
          (after (and i (subseq args (1+ i)))))
     (with-gensyms (more-arg)
       `(lambda (,more-arg)
-         (funcall ,function ,@before ,more-arg ,@after)))))
+         (funcall (function ,fn) ,@before ,more-arg ,@after)))))
 
 ;;;; Math --------------------------------------------------------------------
 

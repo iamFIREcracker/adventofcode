@@ -12,7 +12,7 @@
 (defun evenly-divisible-values (x)
   (loop
     :for (a . remaining) :on (sort x #'<)
-    :for b = (find T remaining :key (curry #'dividesp a))
+    :for b = (find T remaining :key (partial-1 dividesp a))
     :when b
     :do (return (values a b))))
 

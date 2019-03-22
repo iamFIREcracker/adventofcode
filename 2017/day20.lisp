@@ -15,7 +15,7 @@
 
 (defun parse-particles (x &aux (id -1))
   (labels ((parse-xyz (s &aux (splits (split-sequence:split-sequence #\, s)))
-             (mapcar (curry #'parse-integer _ :junk-allowed T)
+             (mapcar (partial-1 parse-integer _ :junk-allowed T)
                      (subseq splits 0 3)))
            (parse-particle (s &aux (splits (split-sequence:split-sequence #\< s)))
              (let ((position (parse-xyz (second splits)))
