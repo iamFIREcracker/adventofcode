@@ -93,11 +93,10 @@
         (let* ((init-state (make-state #C(0 0) 'torch))
                (target-state (make-state target 'torch))
                (cost-so-far (a-star init-state 0 target-state
-                                    #'(lambda (state cost)
-                                        (cave-possible-moves cave state cost))
-                                    #'(lambda (state)
-                                        (manhattan-distance (pos state)
-                                                            (pos target-state))))))
+                                    (partial-2 cave-possible-moves cave)
+                                    (partial-1 manhattan-distance
+                                               (pos _)
+                                               (pos target-state)))))
           (gethash target-state cost-so-far))))))
 
 (1am:test test-2018/22

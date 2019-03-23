@@ -132,13 +132,52 @@
 
 ;;;; Functional --------------------------------------------------------------
 
+(defun args-contain-placeholder-p (args placeholder)
+  (recursively ((args args))
+    (if (atom args)
+        (string= args placeholder)
+        (or (recur (car args))
+            (recur (cdr args))))))
+
+(defun args-replace-placeholder (args placeholder name)
+  (if (args-contain-placeholder-p args placeholder)
+    (subst name placeholder args)
+    (append args (list name))))
+
 (defmacro partial-1 (fn &rest args)
-  (let* ((i (position '_ args :test 'string=))
-         (before (if i (subseq args 0 i) args))
-         (after (and i (subseq args (1+ i)))))
-    (with-gensyms (more-arg)
+  "Returns a function that invokes `fn` with `args` prepended to the argument it
+  receives.  The symbol _ may be used as a placeholder for where the received
+  argument should be placed in the argument list.
+
+  Example:
+    (defun greet (greeting name)
+      (pr greeting name))
+
+    (funcall (partial-1 greet 'hello) 'fred)
+    ; =>
+    HELLO FRED
+    HELLO
+
+    (funcall (partial-1 greet _ 'fred) 'hi)
+    ; =>
+    HI FRED
+    HI
+  "
+  (with-gensyms (more-arg)
+    (let ((actual-args (args-replace-placeholder args '_ more-arg)))
       `(lambda (,more-arg)
-         (funcall (function ,fn) ,@before ,more-arg ,@after)))))
+          (funcall (function ,fn) ,@actual-args)))))
+
+(defmacro partial-2 (fn &rest args)
+  "Similar to PARTIAL-1, but the returned function eccepts two arguments instead
+  of one.  Also, the symbols _1 and _2 can be used to place the arguments in the
+  final argument list."
+  (with-gensyms (more-arg moar-arg)
+    (let* ((actual-args args)
+           (actual-args (args-replace-placeholder actual-args '_1 more-arg))
+           (actual-args (args-replace-placeholder actual-args '_2 moar-arg)))
+      `(lambda (,more-arg ,moar-arg)
+          (funcall (function ,fn) ,@actual-args)))))
 
 ;;;; Math --------------------------------------------------------------------
 

@@ -17,7 +17,11 @@
     :hamming-distance
     :manhattan-distance
 
+    :_
     :partial-1
+    :_1
+    :_2
+    :partial-2
 
     :complex-rotate-cw
     :complex-rotate-ccw
