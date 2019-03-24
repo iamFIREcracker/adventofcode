@@ -151,17 +151,15 @@
 
   Example:
     (defun greet (greeting name)
-      (pr greeting name))
+      (list greeting name))
 
     (funcall (partial-1 greet 'hello) 'fred)
     ; =>
-    HELLO FRED
-    HELLO
+    (HELLO FRED)
 
     (funcall (partial-1 greet _ 'fred) 'hi)
     ; =>
-    HI FRED
-    HI
+    (HI FRED)
   "
   (with-gensyms (more-arg)
     (let ((actual-args (args-replace-placeholder args '_ more-arg)))
