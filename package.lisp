@@ -28,8 +28,6 @@
 
     :recursively
     :recur
-    :gathering
-    :gather
 
     :dorange
     :doirange
@@ -74,6 +72,8 @@
     :mkstrc
     :pr
     :prl
+    :gathering
+    :gather
 
     :read-all
     :parse-integers

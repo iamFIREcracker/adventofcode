@@ -203,44 +203,6 @@
                 ,@body))
       (recur ,@values))))
 
-(defmacro gathering (&body body)
-  "Run `body` to gather some things and return a fresh list of them.
-
-  `body` will be executed with the symbol `gather` bound to a
-  function of one argument.  Once `body` has finished, a list of
-  everything `gather` was called on will be returned.
-
-  It's handy for pulling results out of code that executes
-  procedurally and doesn't return anything, like `maphash` or
-  Alexandria's `map-permutations`.
-
-  The `gather` function can be passed to other functions, but should
-  not be retained once the `gathering` form has returned (it would
-  be useless to do so anyway).
-
-  Examples:
-
-    (gathering
-      (dotimes (i 5)
-        (gather i))
-    =>
-    (0 1 2 3 4)
-
-    (gathering
-      (mapc #'gather '(1 2 3))
-      (mapc #'gather '(a b)))
-    =>
-    (1 2 3 a b)
-
-  "
-  (with-gensyms (result)
-    `(let ((,result nil))
-       (flet ((gather (item)
-                (push item ,result)
-                item))
-         ,@body)
-       (nreverse ,result))))
-
 ;;;; Hash keys ---------------------------------------------------------------
 
 (defun hash-table-keys (h)
@@ -474,6 +436,45 @@
      (progn ,@(mapcar (lambda (arg) `(pr ',arg ,arg)) args))
      (terpri)
      (finish-output)))
+
+(defmacro gathering (&body body)
+  "Run `body` to gather some things and return a fresh list of them.
+
+  `body` will be executed with the symbol `gather` bound to a
+  function of one argument.  Once `body` has finished, a list of
+  everything `gather` was called on will be returned.
+
+  It's handy for pulling results out of code that executes
+  procedurally and doesn't return anything, like `maphash` or
+  Alexandria's `map-permutations`.
+
+  The `gather` function can be passed to other functions, but should
+  not be retained once the `gathering` form has returned (it would
+  be useless to do so anyway).
+
+  Examples:
+
+    (gathering
+      (dotimes (i 5)
+        (gather i))
+    =>
+    (0 1 2 3 4)
+
+    (gathering
+      (mapc #'gather '(1 2 3))
+      (mapc #'gather '(a b)))
+    =>
+    (1 2 3 a b)
+
+  https://github.com/sjl/cl-losh/blob/master/DOCUMENTATION.markdown#gathering-macro
+  "
+  (with-gensyms (result)
+    `(let ((,result nil))
+       (flet ((gather (item)
+                (push item ,result)
+                item))
+         ,@body)
+       (nreverse ,result))))
 
 ;;;; Iterators ----------------------------------------------------------------
 
