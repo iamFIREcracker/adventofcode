@@ -22,6 +22,7 @@
     :_1
     :_2
     :partial-2
+    :defun/memo
 
     :complex-rotate-cw
     :complex-rotate-ccw

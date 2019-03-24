@@ -179,6 +179,55 @@
       `(lambda (,more-arg ,moar-arg)
           (funcall (function ,fn) ,@actual-args)))))
 
+
+;;;; Memoization --------------------------------------------------------------
+
+(defmacro defun/memo (name args &body body)
+  "Defines a function (named `name`, with `args` as arguments, and `body` as body)
+  whose return values are cached so that when invoked a second time with the same
+  arguments, the cache will be used.
+
+  Example:
+
+    (defun fib(n)
+      (if (<= n 1)
+        n
+        (+ (fib (- n 1)) (fib (- n 2)))))
+
+    (time (fib 40))
+    Evaluation took:
+      3.513 seconds of real time
+      3.504912 seconds of total run time (3.490136 user, 0.014776 system)
+      99.77% CPU
+      8,078,115,737 processor cycles
+      0 bytes consed
+
+    102334155
+
+    (defun/memo fib(n)
+      (if (<= n 1)
+        n
+        (+ (fib (- n 1)) (fib (- n 2)))))
+
+    (time (fib 40))
+    Evaluation took:
+      0.000 seconds of real time
+      0.000019 seconds of total run time (0.000018 user, 0.000001 system)
+      100.00% CPU
+      39,090 processor cycles
+      0 bytes consed
+
+    102334155
+  "
+  (with-gensyms (memo result result-exists-p)
+    `(let ((,memo (make-hash-table :test 'equalp)))
+       (defun ,name ,args
+         (multiple-value-bind (,result ,result-exists-p)
+             (gethash ,(first args) ,memo)
+           (if ,result-exists-p
+             ,result
+             (setf (gethash ,(first args) ,memo) (progn ,@body))))))))
+
 ;;;; Math --------------------------------------------------------------------
 
 (defun complex-rotate-cw (c)

@@ -11,23 +11,16 @@
     (values (parse-depth (first list))
             (parse-target (second list)))))
 
-(defun geologic-index (cave pos target)
+(defun geologic-index (pos target depth)
   (cond ((zerop pos) 0)
         ((= pos target) 0)
         ((zerop (imagpart pos)) (* (realpart pos) 16807))
         ((zerop (realpart pos)) (* (imagpart pos) 48271))
-        (T (* (gethash (- pos #C(1 0)) cave)
-              (gethash (- pos #C(0 1)) cave)))))
+        (T (* (erosion-level (- pos #C(1 0)) target depth)
+              (erosion-level (- pos #C(0 1)) target depth)))))
 
-(defun erosion-level (cave pos target depth)
-  (mod (+ (geologic-index cave pos target) depth) 20183))
-
-(defun make-cave (target depth &aux (cave (make-hash-table)))
-  (doirange (i 0 1000)
-    (doirange (j 0 300)
-      (setf (gethash (complex j i) cave)
-            (erosion-level cave (complex j i) target depth))))
-  cave)
+(defun/memo erosion-level (pos target depth)
+  (mod (+ (geologic-index pos target depth) depth) 20183))
 
 (defun area-type (erosion-level) (mod erosion-level 3))
 
@@ -67,37 +60,36 @@
     (1 '(climbing-gear none))
     (2 '(torch none))))
 
-(defun cave-possible-moves (cave state time)
+(defun cave-possible-moves (target depth state time)
   (let* ((pos (pos state))
          (tool (tool state))
-         (area (area-type (gethash pos cave))))
+         (area (area-type (erosion-level pos target depth))))
     (cons
       (list (make-state pos (change-tool tool area)) (+ time 7))
       (loop
         :for adj :in (adjacents pos)
-        :for adj-area = (area-type (gethash adj cave))
+        :for adj-area = (area-type (erosion-level adj target depth))
         :for adj-tools = (tools-by-area adj-area)
         :when (member tool adj-tools) :collect (list (make-state adj tool)
                                                      (1+ time))))))
 
 (define-problem (2018 22) (data)
   (multiple-value-bind (depth target) (parse-depth-target data)
-    (let ((cave (make-cave target depth)))
-      (values
-        (summation
-          (gathering
-            (doirange (i 0 (imagpart target))
-              (doirange (j 0 (realpart target))
-                (gather (gethash (complex j i) cave)))))
-          :key #'area-type)
-        (let* ((init-state (make-state #C(0 0) 'torch))
-               (target-state (make-state target 'torch))
-               (cost-so-far (a-star init-state 0 target-state
-                                    (partial-2 cave-possible-moves cave)
-                                    (partial-1 manhattan-distance
-                                               (pos _)
-                                               (pos target-state)))))
-          (gethash target-state cost-so-far))))))
+    (values
+      (summation
+        (gathering
+          (doirange (i 0 (imagpart target))
+            (doirange (j 0 (realpart target))
+              (gather (erosion-level (complex j i) target depth)))))
+        :key #'area-type)
+      (let* ((init-state (make-state #C(0 0) 'torch))
+             (target-state (make-state target 'torch))
+             (cost-so-far (a-star init-state 0 target-state
+                                  (partial-2 cave-possible-moves target depth)
+                                  (partial-1 manhattan-distance
+                                             (pos _)
+                                             (pos target-state)))))
+        (gethash target-state cost-so-far)))))
 
 (1am:test test-2018/22
   (multiple-value-bind (part1 part2) (problem-run)
