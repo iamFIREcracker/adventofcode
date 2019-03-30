@@ -538,15 +538,20 @@
     6
     7
   "
-  `(loop
-     :for ,var = ,from :then (+ ,var ,delta)
-     :while (< ,var ,to)
-     :do (progn ,@body)))
+  (with-gensyms (lto ldelta comp)
+    `(let* ((,lto ,to)
+            (,ldelta ,delta)
+            (,comp (if (> ,ldelta 0) '< '>)))
+        (loop
+          :for ,var = ,from :then (+ ,var ,ldelta)
+          :while (funcall ,comp ,var ,lto)
+          :do (progn ,@body)))))
 
 (defmacro doirange ((var from to &optional (delta 1)) &body body)
   "Similar to `DORANGE`, but `TO` is now included in the range."
-  `(dorange (,var ,from (1+ ,to) ,delta)
-     ,@body))
+  (let ((to-form (list (if (> delta 0) '1+ '1-) to)))
+    `(dorange (,var ,from ,to-form ,delta)
+      ,@body)))
 
 (defmacro dovector ((var vector &optional ret) &body body)
   "Perform `body` on all the elements of `vector`."
