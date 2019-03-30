@@ -174,7 +174,7 @@
       :with part1
       :for iteration :from 1 :upto 18
       :for sub-grids = (break-up pixels)
-      :for expansions = (mapcar (partial-1 gethash _ data) sub-grids)
+      :for expansions = (mapcar (partial-1 #'gethash _ data) sub-grids)
       :do (setf pixels (combine expansions))
       :when (= iteration 5) :do (setf part1 (pixels-on pixels))
       :finally (return (values part1 (pixels-on pixels))))))

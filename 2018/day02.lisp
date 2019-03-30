@@ -14,7 +14,7 @@
     (multiple-value-bind (a b)
         (loop
           :for (a . remaining) :on data
-          :for b = (find 1 remaining :key (partial-1 hamming-distance a))
+          :for b = (find 1 remaining :key (partial-1 #'hamming-distance a))
           :do (when b
                 (return (values a b))))
       (let ((i (mismatch a b)))

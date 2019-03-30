@@ -8,7 +8,7 @@
 (defun parse-program-links (x)
   (flet ((parse-program-links (s &aux (splits (split-sequence:split-sequence #\Space s)))
            (let ((from (parse-integer (first splits)))
-                 (linked (mapcar (partial-1 parse-integer _ :junk-allowed T) (rest (rest splits)))))
+                 (linked (mapcar (partial-1 #'parse-integer _ :junk-allowed T) (rest (rest splits)))))
              (make-program-links :from from
                                  :linked linked))))
     (mapcar #'parse-program-links x)))

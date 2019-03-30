@@ -153,18 +153,18 @@
     (defun greet (greeting name)
       (list greeting name))
 
-    (funcall (partial-1 greet 'hello) 'fred)
+    (funcall (partial-1 #'greet 'hello) 'fred)
     ; =>
     (HELLO FRED)
 
-    (funcall (partial-1 greet _ 'fred) 'hi)
+    (funcall (partial-1 #'greet _ 'fred) 'hi)
     ; =>
     (HI FRED)
   "
   (with-gensyms (more-arg)
     (let ((actual-args (args-replace-placeholder args '_ more-arg)))
       `(lambda (,more-arg)
-          (funcall (function ,fn) ,@actual-args)))))
+          (funcall ,fn ,@actual-args)))))
 
 (defmacro partial-2 (fn &rest args)
   "Similar to PARTIAL-1, but the returned function eccepts two arguments instead
@@ -175,7 +175,7 @@
            (actual-args (args-replace-placeholder actual-args '_1 more-arg))
            (actual-args (args-replace-placeholder actual-args '_2 moar-arg)))
       `(lambda (,more-arg ,moar-arg)
-          (funcall (function ,fn) ,@actual-args)))))
+          (funcall ,fn ,@actual-args)))))
 
 
 ;;;; Memoization --------------------------------------------------------------

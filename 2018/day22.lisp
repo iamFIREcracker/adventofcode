@@ -85,8 +85,8 @@
       (let* ((init-state (make-state #C(0 0) 'torch))
              (target-state (make-state target 'torch))
              (cost-so-far (a-star init-state 0 target-state
-                                  (partial-2 cave-possible-moves target depth)
-                                  (partial-1 manhattan-distance
+                                  (partial-2 #'cave-possible-moves target depth)
+                                  (partial-1 #'manhattan-distance
                                              (pos _)
                                              (pos target-state)))))
         (gethash target-state cost-so-far)))))

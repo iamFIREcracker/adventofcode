@@ -28,7 +28,7 @@
             :for b :in outputs
             :for id = (id a b)
             :for rest = (recur b (cons id visited))
-            :append (mapcar (partial-1 cons id) rest)))))))
+            :append (mapcar (partial-1 #'cons id) rest)))))))
 
 (defun solve-part1 (bridges)
   (labels ((strength (bridge)
@@ -47,7 +47,7 @@
                (loop
                  :for bridge :in bridges
                  :maximize (length bridge) :into longest
-                 :finally (return (remove-if-not (partial-1 = longest) bridges :key #'length)))))
+                 :finally (return (remove-if-not (partial-1 #'= longest) bridges :key #'length)))))
         (solve-part1 (longest bridges))))))
 
 (1am:test test-2017/24
