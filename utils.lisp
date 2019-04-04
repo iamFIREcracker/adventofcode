@@ -388,6 +388,53 @@
   Also, it internally uses MERGE, which means is not as bad as running
   SORT on each insert, but still, we could make things run faster.")
 
+;;;; Summed-area Table (or Integral image) ------------------------------------
+
+(defun aref-or (default array &rest subscripts)
+  "Similar to AREF, but `DEFAULT` is returned if `SUBSCRIPTS` are not valid
+  indices of `ARRAY`."
+  (if (apply #'array-in-bounds-p array subscripts)
+    (apply #'aref array subscripts)
+    default))
+
+(defun make-summedarea-table (grid &aux (st (make-array (array-dimensions grid))))
+  "Creates a Summed-area Table.
+
+  For additional information, visit:
+  https://en.wikipedia.org/wiki/Summed-area_table.
+
+  Example:
+
+    (defvar *grid* (make-array '(2 2) :initial-contents '((0 1)
+                                                          (2 3))))
+    =>
+    *GRID*
+
+    (defparameter *st* (make-summedarea-table *original*))
+    =>
+    *ST*
+
+    *st*
+    =>
+    #2A((0 1 3) (3 8 15) (9 21 36))
+  "
+  (dotimes (y (array-dimension st 0))
+    (dotimes (x (array-dimension st 1))
+      (setf (aref st y x)
+            (->< (aref grid y x)
+              (+ >< (aref-or 0 st (1- y) x))
+              (+ >< (aref-or 0 st y (1- x)))
+              (- >< (aref-or 0 st (1- y) (1- x)))))))
+  st)
+
+(defun st-area-of (st top left bottom right)
+  "Calculates the sum of the values contained in the rectangle delimited by
+  `TOP`, `LEFT`, `BOTTOM`, and `RIGHT`."
+  (->< (aref-or 0 st bottom right)
+    (- >< (aref-or 0 st (1- top) right))
+    (- >< (aref-or 0 st bottom (1- left)))
+    (+ >< (aref-or 0 st (1- top) (1- left)))))
+
 ;;;; Search -------------------------------------------------------------------
 
 (defun a-star (init-state init-cost target-state neighbors heuristic

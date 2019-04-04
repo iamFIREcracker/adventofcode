@@ -65,6 +65,9 @@
     :hq-popf
     :hq-insertf
 
+    :make-summedarea-table
+    :st-area-of
+
     :a-star
     :a-star-backtrack
 
