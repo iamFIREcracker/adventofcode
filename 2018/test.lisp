@@ -53,14 +53,6 @@
 ;; Day10-2
 (test 10831 (day10-2))
 
-;; Day11-1
-(test 4 (cell-power-level 3 5 8))
-(test -5 (cell-power-level 122 79 57))
-(test 0 (cell-power-level 217 196 39))
-(test "21,41" (day11-1))
-;; Day11-2
-; (test "227,199,19" (day11-2))
-
 ;; Day12-1
 (test 4386 (day12-1))
 ;; Day12-2

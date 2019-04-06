@@ -458,69 +458,6 @@
     result))
 
 
-(defun cell-power-level (x y serial-number)
-  (let* ((rack-id (+ x 10))
-         (power (* (+ (* rack-id y) serial-number) rack-id)))
-    (- (mod (floor power 100) 10) 5)))
-
-
-(defun create-power-grid (size serial-number)
-  (let ((power-grid (make-array (list (+ size 2) (+ size 2)))))
-    (loop :for y :from 1 :to size
-          :do (loop :for x :from 1 :to size
-                    :do (setf (aref power-grid y x) (cell-power-level x y serial-number))))
-    power-grid))
-
-(defun square-power (x y size power-grid)
-  (loop :for yy :from y :below (+ y size)
-        :summing (loop :for xx :from x :below (+ x size)
-                       :summing (aref power-grid yy xx))))
-
-(defun max-square-of-energy (size grid-size power-grid)
-  (let (largest-power largest-power-square)
-    (loop :for y :from 1 :to (+ (- grid-size size) 1)
-          :do (loop :for x :from 1 :to (+ (- grid-size size) 1)
-                    :do (let ((power (square-power x y size power-grid)))
-                          (if (or (not largest-power)
-                                  (> power largest-power))
-                            (setf largest-power-square (list x y size)
-                                  largest-power power)))))
-    (list largest-power-square largest-power)))
-
-(defun solve-day11-1 (serial-number)
-  (let* ((power-grid (create-power-grid 300 serial-number))
-         (largest-square (first (max-square-of-energy 3 300 power-grid))))
-    (format NIL "~d,~d" (first largest-square) (second largest-square))))
-
-(defun day11-1 ()
-  (let* ((in (open "./day11.input"))
-         (lst (read-by-line in))
-         (result (solve-day11-1 (parse-integer (first lst)))))
-    (close in)
-    result))
-
-(defun maximize-square-of-energy (grid-size power-grid)
-  (let (largest-power largest-power-square)
-    (loop :for size :from 1 :to grid-size
-          :do (let* ((best (max-square-of-energy size grid-size power-grid))
-                     (square (first best))
-                     (power (second best)))
-                (if (or (not largest-power)
-                        (> power largest-power))
-                  (setf largest-power-square square
-                        largest-power power))))
-    largest-power-square))
-
-(defun solve-day11-2 (serial-number)
-  (let* ((power-grid (create-power-grid 300 serial-number))
-         (largest-square (maximize-square-of-energy 300 power-grid)))
-    (format t "~S~%" largest-square)
-    (format NIL "~d,~d,~d" (first largest-square) (second largest-square) (third largest-square))))
-
-(defun day11-2 ()
-  (solve-day11-2 1308))
-
-
 (defun parse-pots (str)
   (let* ((parts (split-sequence:split-sequence #\Space str)))
     (third parts)))
