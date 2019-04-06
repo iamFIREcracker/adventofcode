@@ -29,6 +29,8 @@
 
     :recursively
     :recur
+    :><
+    :-><
 
     :dorange
     :doirange

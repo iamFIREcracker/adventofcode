@@ -139,10 +139,19 @@
         (or (recur (car args))
             (recur (cdr args))))))
 
-(defun args-replace-placeholder (args placeholder name)
+(defun args-replace (placeholder args name)
+  (subst name placeholder args))
+
+(defun args-prepend (args name)
+  (cons name args))
+
+(defun args-append (args name)
+  (append args (list name)))
+
+(defun args-replace-placeholder-or-append (args placeholder name)
   (if (args-contain-placeholder-p args placeholder)
-    (subst name placeholder args)
-    (append args (list name))))
+    (args-replace placeholder args name)
+    (args-append args name)))
 
 (defmacro partial-1 (fn &rest args)
   "Returns a function that invokes `fn` with `args` prepended to the argument it
@@ -162,7 +171,7 @@
     (HI FRED)
   "
   (with-gensyms (more-arg)
-    (let ((actual-args (args-replace-placeholder args '_ more-arg)))
+    (let ((actual-args (args-replace-placeholder-or-append args '_ more-arg)))
       `(lambda (,more-arg)
           (funcall ,fn ,@actual-args)))))
 
@@ -172,8 +181,8 @@
   final argument list."
   (with-gensyms (more-arg moar-arg)
     (let* ((actual-args args)
-           (actual-args (args-replace-placeholder actual-args '_1 more-arg))
-           (actual-args (args-replace-placeholder actual-args '_2 moar-arg)))
+           (actual-args (args-replace-placeholder-or-append actual-args '_1 more-arg))
+           (actual-args (args-replace-placeholder-or-append actual-args '_2 moar-arg)))
       `(lambda (,more-arg ,moar-arg)
           (funcall ,fn ,@actual-args)))))
 
@@ -250,7 +259,44 @@
                 ,@body))
       (recur ,@values))))
 
-;;;; Hash keys ---------------------------------------------------------------
+(defmacro ->< (x &rest forms)
+  "Threads the expr through the forms, like Clojure's `->`.
+
+  While threadingg, for each element of `FORMS`:
+
+  - if a SYMBOL, it's converted into a LIST and the accumulated value is appended to it
+  - if a LIST already, the accumulated value is appended to it unless the list contains
+  the placeholder `><` (in which case `><` is replaced with the accumulated value)
+
+  Examples:
+  (->< 'World
+    (list 'Hello)
+  =>
+  (HELLO WORLD)
+
+  (->< 'World
+    (list >< 'Hello))
+  =>
+  (WORLD HELLO)
+
+  (->< 'World
+    (list >< 'Hello)
+    reverse)
+  =>
+  (HELLO WORLD)
+  "
+  (with-gensyms (result)
+    `(let* ((,result ,x)
+            ,@(mapcar (lambda (form)
+                        (if (symbolp form)
+                          `(,result (,form ,result))
+                          `(,result ,(args-replace-placeholder-or-append form
+                                                                         '><
+                                                                         result))))
+                      forms))
+       ,result)))
+
+;;;; Hash tables --------------------------------------------------------------
 
 (defun hash-table-keys (h)
   "Return the hash keys of `h`"
