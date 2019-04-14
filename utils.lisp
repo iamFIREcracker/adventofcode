@@ -320,6 +320,17 @@
 (defmacro hash-table-insert (ht key value)
   `(setf (gethash ,key ,ht) ,value))
 
+(defun copy-hash-table (hash-table)
+  (let ((ht (make-hash-table
+             :test (hash-table-test hash-table)
+             :rehash-size (hash-table-rehash-size hash-table)
+             :rehash-threshold (hash-table-rehash-threshold hash-table)
+             :size (hash-table-size hash-table))))
+    (loop for key being each hash-key of hash-table
+       using (hash-value value)
+       do (setf (gethash key ht) value)
+       finally (return ht))))
+
 (defun print-hash-table (h)
   (progn
     (dolist (k (hash-table-keys h))
@@ -508,6 +519,35 @@
   (nreverse (recursively ((curr curr))
               (when curr
                 (cons curr (recur (gethash curr come-from)))))))
+
+(defun floyd (next init-state &key (copier 'identity) (key 'identity) (test 'eql))
+  (let* (tortoise-state hare-state cycles-at cycle-size)
+    (loop
+      :initially (setf tortoise-state (funcall next (funcall copier init-state))
+                       hare-state (funcall next (funcall copier tortoise-state)))
+      :for tortoise = (funcall key tortoise-state)
+      :for hare = (funcall key hare-state)
+      :while (not (funcall test tortoise hare))
+      :do (setf tortoise-state (funcall next tortoise-state)
+                hare-state (funcall next (funcall next hare-state))))
+    (loop
+      :initially (setf tortoise-state (funcall copier init-state)
+                       cycles-at 0)
+      :for tortoise = (funcall key tortoise-state)
+      :for hare = (funcall key hare-state)
+      :while (not (funcall test tortoise hare))
+      :do (setf tortoise-state (funcall next tortoise-state)
+                hare-state (funcall next hare-state)
+                cycles-at (1+ cycles-at)))
+    (loop
+      :with tortoise = (funcall key tortoise-state)
+      :initially (setf hare-state (funcall next (funcall copier tortoise-state))
+                       cycle-size 1)
+      :for hare = (funcall key hare-state)
+      :while (not (funcall test tortoise hare))
+      :do (setf hare-state (funcall next hare-state)
+                cycle-size (1+ cycle-size)))
+    (list cycles-at cycle-size tortoise-state)))
 
 ;;;; Copy pasta ---------------------------------------------------------------
 

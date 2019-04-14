@@ -40,6 +40,7 @@
     :hash-table-keys
     :hash-table-values
     :hash-table-insert
+    :copy-hash-table
     :print-hash-table
 
     :make-disjointset
@@ -72,6 +73,7 @@
 
     :a-star
     :a-star-backtrack
+    :floyd
 
     :with-gensyms
     :mkstr

@@ -3,6 +3,7 @@
 
 (defstruct (dancefloor
              (:constructor make-dancefloor%)
+             (:copier NIL)
              (:conc-name df-))
   size
   spun
@@ -20,6 +21,14 @@
             (hash-table-insert name-to-position char pos)))
     (make-dancefloor% :size size
                       :spun 0
+                      :name-to-position name-to-position
+                      :position-to-name position-to-name)))
+
+(defun copy-dancefloor (df)
+  (let ((name-to-position (copy-hash-table (df-name-to-position df)))
+        (position-to-name (copy-hash-table (df-position-to-name df))))
+    (make-dancefloor% :size (df-size df)
+                      :spun (df-spun df)
                       :name-to-position name-to-position
                       :position-to-name position-to-name)))
 
@@ -72,28 +81,21 @@
   (loop
     :for m :in moves
     :do (funcall m df)
-    :finally (return (print-dancefloor df))))
+    :finally (return df)))
 
 (define-problem (2017 16) (data parse-moves)
-  (loop
-    :with limit = 1000000000
-    :with seen = (make-hash-table :test 'equal)
-    :with df = (make-dancefloor)
-    :with part1
-    :for n :from 1 :upto limit
-    :for not-in-loop = T
-    :for current = (do-the-dance df data)
-    :for already-seen = (gethash current seen)
-    :do (when (= 1 n)
-          (setf part1 current))
-    :do (when (and not-in-loop already-seen)
-          (let* ((remaining (- limit n))
-                 (loop-size (- n already-seen))
-                 (loops (truncate remaining loop-size)))
-            (setf n (+ n (* loop-size loops))
-                  not-in-loop NIL)))
-    :do (hash-table-insert seen current n)
-    :finally (return (values part1 current))))
+  (values
+    (let ((df (make-dancefloor)))
+      (print-dancefloor (do-the-dance df data)))
+    (let ((df (make-dancefloor)))
+      (destructuring-bind (cycles-at cycle-size df)
+          (floyd (partial-1 #'do-the-dance _ data) df
+                 :copier #'copy-dancefloor
+                 :key #'print-dancefloor
+                 :test 'string=)
+        (let ((remaining (mod (- 1000000000 cycles-at) cycle-size)))
+          (dotimes (n remaining (print-dancefloor df))
+            (do-the-dance df data)))))))
 
 (1am:test test-2017/16
   (multiple-value-bind (part1 part2) (problem-run)
