@@ -328,6 +328,7 @@
   `(setf (gethash ,key ,ht) ,value))
 
 (defun copy-hash-table (hash-table)
+  "Borrowed from: https://stackoverflow.com/a/26061176"
   (let ((ht (make-hash-table
              :test (hash-table-test hash-table)
              :rehash-size (hash-table-rehash-size hash-table)
@@ -528,7 +529,8 @@
                 (cons curr (recur (gethash curr come-from)))))))
 
 (defun floyd (next init-state &key (copier 'identity) (key 'identity) (test 'eql))
-  (let* (tortoise-state hare-state cycles-at cycle-size)
+  "Also called the 'tortoise and the hare algorithm',"
+  (let (tortoise-state hare-state cycles-at cycle-size)
     (loop
       :initially (setf tortoise-state (funcall next (funcall copier init-state))
                        hare-state (funcall next (funcall copier tortoise-state)))
