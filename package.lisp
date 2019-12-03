@@ -1,5 +1,5 @@
 (defpackage :aoc
-  (:use :cl :1am :split-sequence)
+  (:use :cl :pmdb :1am :split-sequence)
   (:export
     :summation
     :maximization
