@@ -19,13 +19,12 @@
     (loop
       :with ip = 0
       :for curr = (aref program ip)
+      :for left = (read-from (read-from (+ ip 1)))
+      :for right = (read-from (read-from (+ ip 2)))
+      :for result = (read-from (+ ip 3))
       :when (= curr 99) :return (aref program 0)
-      :when (= curr 1) :do (let ((v1 (read-from (read-from (+ ip 1))))
-                                 (v2 (read-from (read-from (+ ip 2)))))
-                             (write-at (read-from (+ ip 3)) (+ v1 v2)))
-      :when (= curr 2) :do (let ((v1 (read-from (read-from (+ ip 1))))
-                                 (v2 (read-from (read-from (+ ip 2)))))
-                             (write-at (read-from (+ ip 3)) (* v1 v2)))
+      :when (= curr 1) :do (write-at result (+ left right))
+      :when (= curr 2) :do (write-at result (* left right))
       :do (setf ip (+ ip 4)))))
 
 (define-problem (2019 2) (program read-program)
