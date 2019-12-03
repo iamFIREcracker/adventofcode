@@ -2,13 +2,13 @@
 (in-package :aoc/2019/01)
 
 (defun fuel-req (mass)
-  (->< mass
-    (floor >< 3)
-    (- >< 2)))
+  (- (floor mass 3) 2))
 
-(defun fuel-req-recursive (mass &aux (fuel (fuel-req mass)))
-  (cond ((<= fuel 0) 0)
-        (T (+ fuel (fuel-req-recursive fuel)))))
+(defun fuel-req-recursive (mass)
+  (loop
+    :for fuel = (fuel-req mass) :then (fuel-req fuel)
+    :while (> fuel 0)
+    :summing fuel))
 
 (define-problem (2019 1) (data parse-integers)
   (values
