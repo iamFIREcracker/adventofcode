@@ -237,6 +237,13 @@
 
 ;;;; Math --------------------------------------------------------------------
 
+(defmacro with-complex-parts ((real img) c &body body)
+  (with-gensyms (complex)
+    `(let* ((,complex ,c)
+            (,real (realpart ,complex))
+            (,img (imagpart ,complex)))
+        ,@body)))
+
 (defun complex-rotate-cw (c)
   "Rotate `c`, cloclwise."
   (complex (imagpart c) (- (realpart c))))
