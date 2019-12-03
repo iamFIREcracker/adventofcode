@@ -43,4 +43,5 @@
                (:file "2018/day22")
                (:file "2018/day25")
                (:file "2019/day01")
-               (:file "2019/day02")))
+               (:file "2019/day02")
+               (:file "2019/day03")))
