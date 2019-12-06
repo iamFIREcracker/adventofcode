@@ -18,7 +18,7 @@
                :for child :in (gethash curr orbits)
                :summing (recur child (+ 1 total))))))
 
-(defun find-planet (orbits target)
+(defun find-planet-path (orbits target)
   (recursively ((curr "COM")
                 path)
     (cond ((equal curr target) (reverse (cons target path)))
@@ -29,8 +29,8 @@
 
 (defun you-to-santa (orbits)
   (loop
-    :with path1 = (find-planet orbits "YOU")
-    :with path2 = (find-planet orbits "SAN")
+    :with path1 = (find-planet-path orbits "YOU")
+    :with path2 = (find-planet-path orbits "SAN")
     :for (s1 . rest1) :on path1
     :for (s2 . rest2) :on path2
     :while (equal s1 s2)
