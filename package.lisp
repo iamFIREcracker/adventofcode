@@ -16,6 +16,7 @@
     :unique-only
     :hamming-distance
     :manhattan-distance
+    :all-permutations
 
     :_
     :partial-1
@@ -68,6 +69,11 @@
     :make-hq
     :hq-popf
     :hq-insertf
+
+    :make-queue
+    :queue-empty-p
+    :enqueue
+    :dequeue
 
     :make-summedarea-table
     :st-area-of

@@ -130,6 +130,16 @@
                (imagpart b))))
     (reduce #'+ (mapcar #'abs (mapcar #'- a b)))))
 
+;;; https://stackoverflow.com/a/8448611/348524
+(defun all-permutations (lst &optional (remain lst))
+  (cond ((null remain) nil)
+        ((null (rest lst)) (list lst))
+        (t (append
+            (mapcar (lambda (l) (cons (first lst) l))
+                    (all-permutations (rest lst)))
+            (all-permutations (append (rest lst) (list (first lst))) (rest remain))))))
+
+
 ;;;; Functional --------------------------------------------------------------
 
 (defun args-contain-placeholder-p (args placeholder)
@@ -452,6 +462,36 @@
 
   Also, it internally uses MERGE, which means is not as bad as running
   SORT on each insert, but still, we could make things run faster.")
+
+;;;; Deque --------------------------------------------------------------------
+
+;;;https://rosettacode.org/wiki/FIFO#Common_Lisp
+(defstruct (queue (:constructor %make-queue))
+  (items '() :type list)
+  (tail '() :type list))
+
+(defun make-queue ()
+  "Returns an empty queue."
+  (%make-queue))
+
+(defun queue-empty-p (queue)
+  "Returns true if the queue is empty."
+  (endp (queue-items queue)))
+
+(defun enqueue (item queue)
+  "Enqueue item in queue. Returns the queue."
+  (prog1 queue
+    (if (queue-empty-p queue)
+      (setf (queue-items queue) (list item)
+            (queue-tail queue) (queue-items queue))
+      (setf (cdr (queue-tail queue)) (list item)
+            (queue-tail queue) (cdr (queue-tail queue))))))
+
+(defun dequeue (queue)
+  "Dequeues an item from queue. Signals an error if queue is empty."
+  (if (queue-empty-p queue)
+    (error "Cannot dequeue from empty queue.")
+    (pop (queue-items queue))))
 
 ;;;; Summed-area Table (or Integral image) ------------------------------------
 
