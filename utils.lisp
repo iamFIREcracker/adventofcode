@@ -32,6 +32,22 @@
     :for v = (funcall key e)
     :minimizing v))
 
+(defun maximizing (x &key (key 'identity))
+  "Returns the element which is the max of all the elements of `x`, or NIL if
+  `x` is _empty_.
+
+  If `key` is specified, this function will return the element that
+  maximizes `x`."
+  (loop
+    :with best-e
+    :with best-v
+    :for e :being :the :elements :of x
+    :for v = (funcall key e)
+    :when (or (not best-e) (< v best-v))
+    :do (setf best-e e
+              best-v v)
+    :finally (return best-e)))
+
 (defun dividesp (divisor number)
   "Returns `T` if `DIVISOR` divies `NUMBER`."
   (zerop (rem number divisor)))

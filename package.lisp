@@ -4,6 +4,7 @@
     :summation
     :maximization
     :minimization
+    :maximizing
     :dividesp
     :alphabet
     :aesthetic-string
