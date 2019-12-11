@@ -26,7 +26,6 @@
 (defun write-value (memory pos value mode)
   (ecase mode
     (2 (write-value-relative memory pos value))
-    (1 (write-value-position memory pos value))
     (0 (write-value-position memory pos value))))
 
 (defun get-value-relative (memory pos)
