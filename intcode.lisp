@@ -5,70 +5,88 @@
     :make-program
     :program-memory
     :program-in
-    :program-run))
+    :program-run
+    :program-rb))
 (in-package :intcode)
 
-(defun immediatep (meta n)
+(defparameter *relative-base-index* -1)
+
+(defun mode (meta n)
   (let* ((mask (expt 10 (1- n)))
          (bit (mod (floor meta mask) 10)))
-    (= bit 1)))
+    bit))
 
-(defun write-value (memory position value)
-  (setf (aref memory position) value))
+(defun write-value-relative (memory pos value)
+  (let* ((offset (gethash *relative-base-index* memory 0)))
+    (setf (gethash (+ offset pos) memory) value)))
+
+(defun write-value-position (memory pos value)
+  (setf (gethash pos memory) value))
+
+(defun write-value (memory pos value mode)
+  (ecase mode
+    (2 (write-value-relative memory pos value))
+    (1 (write-value-position memory pos value))
+    (0 (write-value-position memory pos value))))
+
+(defun get-value-relative (memory pos)
+  (let* ((offset (gethash *relative-base-index* memory 0)))
+    (gethash (+ offset (gethash pos memory 0)) memory 0)))
 
 (defun get-value-immediate (memory pos)
-  (aref memory pos))
+  (gethash pos memory 0))
 
 (defun get-value-position (memory pos)
-  (aref memory (aref memory pos)))
+  (gethash (gethash pos memory 0) memory 0))
 
-(defun get-value (memory pos &optional immediatep)
-  (if immediatep
-    (get-value-immediate memory pos)
-    (get-value-position memory pos)))
+(defun get-value (memory pos mode)
+  (ecase mode
+    (2 (get-value-relative memory pos))
+    (1 (get-value-immediate memory pos))
+    (0 (get-value-position memory pos))))
 
 (defun op-add (meta)
   (lambda (memory ip in out)
     (declare (ignore in out))
-    (let* ((left (get-value memory (+ ip 1) (immediatep meta 1)))
-           (right (get-value memory (+ ip 2) (immediatep meta 2)))
+    (let* ((left (get-value memory (+ ip 1) (mode meta 1)))
+           (right (get-value memory (+ ip 2) (mode meta 2)))
            (value (+ left right))
            (pos (get-value-immediate memory (+ ip 3))))
-      (write-value memory pos value)
+      (write-value memory pos value (mode meta 3))
       (+ ip 4))))
 
 (defun op-mul (meta)
   (lambda (memory ip in out)
     (declare (ignore in out))
-    (let* ((left (get-value memory (+ ip 1) (immediatep meta 1)))
-           (right (get-value memory (+ ip 2) (immediatep meta 2)))
+    (let* ((left (get-value memory (+ ip 1) (mode meta 1)))
+           (right (get-value memory (+ ip 2) (mode meta 2)))
            (value (* left right))
            (pos (get-value-immediate memory (+ ip 3))))
-      (write-value memory pos value)
+      (write-value memory pos value (mode meta 3))
       (+ ip 4))))
 
-(defun op-in ()
+(defun op-in (meta)
   (lambda (memory ip in out)
     (declare (ignore out))
     (if (queue-empty-p in)
       'wait
       (let ((value (dequeue in))
             (pos (get-value-immediate memory (+ ip 1))))
-        (write-value memory pos value)
+        (write-value memory pos value (mode meta 1))
         (+ ip 2)))))
 
 (defun op-out (meta)
   (lambda (memory ip in out)
     (declare (ignore in))
-    (let* ((value (get-value memory (+ ip 1) (immediatep meta 1))))
+    (let* ((value (get-value memory (+ ip 1) (mode meta 1))))
       (enqueue value out)
       (+ ip 2))))
 
 (defun op-jump-if-true (meta)
   (lambda (memory ip in out)
     (declare (ignore in out))
-    (let* ((left (get-value memory (+ ip 1) (immediatep meta 1)))
-           (right (get-value memory (+ ip 2) (immediatep meta 2))))
+    (let* ((left (get-value memory (+ ip 1) (mode meta 1)))
+           (right (get-value memory (+ ip 2) (mode meta 2))))
       (if (not (zerop left))
         right
         (+ ip 3)))))
@@ -76,8 +94,8 @@
 (defun op-jump-if-false (meta)
   (lambda (memory ip in out)
     (declare (ignore in out))
-    (let* ((left (get-value memory (+ ip 1) (immediatep meta 1)))
-           (right (get-value memory (+ ip 2) (immediatep meta 2))))
+    (let* ((left (get-value memory (+ ip 1) (mode meta 1)))
+           (right (get-value memory (+ ip 2) (mode meta 2))))
       (if (zerop left)
         right
         (+ ip 3)))))
@@ -85,32 +103,43 @@
 (defun op-lt (meta)
   (lambda (memory ip in out)
     (declare (ignore in out))
-    (let* ((left (get-value memory (+ ip 1) (immediatep meta 1)))
-           (right (get-value memory (+ ip 2) (immediatep meta 2)))
+    (let* ((left (get-value memory (+ ip 1) (mode meta 1)))
+           (right (get-value memory (+ ip 2) (mode meta 2)))
            (pos (get-value-immediate memory (+ ip 3))))
-      (write-value memory pos (if (< left right) 1 0))
+      (write-value memory pos (if (< left right) 1 0) (mode meta 3))
       (+ ip 4))))
 
 (defun op-eq (meta)
   (lambda (memory ip in out)
     (declare (ignore in out))
-    (let* ((left (get-value memory (+ ip 1) (immediatep meta 1)))
-           (right (get-value memory (+ ip 2) (immediatep meta 2)))
+    (let* ((left (get-value memory (+ ip 1) (mode meta 1)))
+           (right (get-value memory (+ ip 2) (mode meta 2)))
            (pos (get-value-immediate memory (+ ip 3))))
-      (write-value memory pos (if (= left right) 1 0))
+      (write-value memory pos (if (= left right) 1 0) (mode meta 3))
       (+ ip 4))))
+
+(defun op-rb-add (meta)
+  (lambda (memory ip in out)
+    (declare (ignore in out))
+    (let* ((left (get-value memory (+ ip 1) (mode meta 1)))
+           (right (get-value-immediate memory *relative-base-index*))
+           (value (+ left right))
+           (pos *relative-base-index*))
+      (write-value memory pos value (mode meta 3))
+      (+ ip 2))))
 
 (defun parse-op (memory ip &aux (value (get-value-immediate memory ip)))
   (multiple-value-bind (meta code) (floor value 100)
     (case code
       (1 (op-add meta))
       (2 (op-mul meta))
-      (3 (op-in))
+      (3 (op-in meta))
       (4 (op-out meta))
       (5 (op-jump-if-true meta))
       (6 (op-jump-if-false meta))
       (7 (op-lt meta))
       (8 (op-eq meta))
+      (9 (op-rb-add meta))
       (99 'exit))))
 
 (defstruct (program (:constructor make-program%))
@@ -147,7 +176,16 @@
     :until (eql status 'exit)
     :when (eql status 'wait) :return T))
 
+(defun program-rb (p)
+  (gethash *relative-base-index* (program-memory p) 0))
+
 (defun read-program (data &aux (str (first data)))
   (let* ((list (split-sequence:split-sequence #\, str))
          (list (mapcar #'parse-integer list)))
-    (make-program (make-array (length list) :initial-contents list))))
+    (loop
+      :with memory = (make-hash-table)
+      :for instruction :in list
+      :for ip = 0 :then (+ ip 1)
+      :do (hash-table-insert memory ip instruction)
+      :finally (return (make-program memory)))))
+    

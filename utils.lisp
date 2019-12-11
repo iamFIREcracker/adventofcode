@@ -32,6 +32,22 @@
     :for v = (funcall key e)
     :minimizing v))
 
+(defun minimizing (x &key (key 'identity))
+  "Returns the element which is the min of all the elements of `x`, or NIL if
+  `x` is _empty_.
+
+  If `key` is specified, this function will return the element that
+  minimizes `x`."
+  (loop
+    :with best-e
+    :with best-v
+    :for e :being :the :elements :of x
+    :for v = (funcall key e)
+    :when (or (not best-e) (< v best-v))
+    :do (setf best-e e
+              best-v v)
+    :finally (return best-e)))
+
 (defun maximizing (x &key (key 'identity))
   "Returns the element which is the max of all the elements of `x`, or NIL if
   `x` is _empty_.
@@ -43,7 +59,7 @@
     :with best-v
     :for e :being :the :elements :of x
     :for v = (funcall key e)
-    :when (or (not best-e) (< v best-v))
+    :when (or (not best-e) (> v best-v))
     :do (setf best-e e
               best-v v)
     :finally (return best-e)))
@@ -364,6 +380,12 @@
        using (hash-value value)
        do (setf (gethash key ht) value)
        finally (return ht))))
+
+(defun hash-table-contains-key-p (h key)
+  (multiple-value-bind (v containsp)
+      (gethash key h)
+    (declare (ignore v))
+    containsp))
 
 (defun print-hash-table (h)
   (progn
