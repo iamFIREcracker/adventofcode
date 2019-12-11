@@ -12,7 +12,7 @@
         (gather (subseq str (* n layer-size) (* (1+ n) layer-size)))))))
 
 (defun solve-part1 (image)
-  (let ((best (maximizing image :key (partial-1 #'count #\0))))
+  (let ((best (minimizing image :key (partial-1 #'count #\0))))
     (* (count #\1 best) (count #\2 best))))
 
 (defun reduce-layers (image)
@@ -50,5 +50,5 @@
 
 (1am:test test-2019/08
   (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 2684 part1))
-    (declare (ignore part2)))) ; XXX figure out a way to test for: YGRYZ
+    (declare (ignore part2)) ; XXX figure out a way to test for: YGRYZ
+    (1am:is (= 2684 part1))))

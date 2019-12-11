@@ -46,7 +46,7 @@
     :counting (and
                 (not-decreasing digits)
                 (at-least-one-digit-repeated digits)
-                (at-least-one-digit-with-frequency-2 digits))))
+                (at-least-digit-with-frequency-2 digits))))
 
 (define-problem (2019 4) (range read-range)
   (destructuring-bind (from to) range
