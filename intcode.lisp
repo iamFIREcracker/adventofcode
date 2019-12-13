@@ -5,6 +5,7 @@
     :make-program
     :program-memory
     :program-in
+    :program-out
     :program-run
     :program-rb))
 (in-package :intcode)
