@@ -16,66 +16,83 @@
               :vel (copy-list (m-vel m))))
 
 (defun read-moon (str &aux (parts (split-sequence:split-sequence #\= str)))
-  (list
-    (parse-integer (nth 1 parts) :junk-allowed T)
-    (parse-integer (nth 2 parts) :junk-allowed T)
-    (parse-integer (nth 3 parts) :junk-allowed T)))
+  (make-moon (list
+               (parse-integer (nth 1 parts) :junk-allowed T)
+               (parse-integer (nth 2 parts) :junk-allowed T)
+               (parse-integer (nth 3 parts) :junk-allowed T))))
 
-(defun read-moons(data)
-  (mapcar #'read-moon data))
+(defun moon-update-velf (m o)
+  (let ((vel-update (mapcar #'(lambda (v1 v2)
+                                (if (< v1 v2)
+                                  1
+                                  (if (> v1 v2)
+                                    -1
+                                    0)))
+                            (m-pos m)
+                            (m-pos o))))
+    (prog1 m
+      (setf (m-vel o) (mapcar #'- (m-vel o) vel-update)
+            (m-vel m) (mapcar #'+ (m-vel m) vel-update)))))
 
-(defun create-velocities ()
-  (list (list 0 0 0) (list 0 0 0) (list 0 0 0) (list 0 0 0)))
+(defun moon-apply-velf (m)
+  (setf (m-pos m) (mapcar #'+ (m-pos m) (m-vel m))))
 
-(defun update-velocities (moons velocities)
-  (prog1 velocities
+(defun moon-energy (m)
+  (let* ((pot (summation (m-pos m) :key #'abs))
+         (kit (summation (m-vel m) :key #'abs)))
+    (* pot kit)))
+
+(defstruct (universe
+             (:copier NIL)
+             (:conc-name u-))
+  moons)
+
+(defun copy-universe (u)
+  (make-universe :moons (mapcar #'copy-moon (u-moons u))))
+
+(defun read-universe (data)
+  (make-universe :moons (mapcar #'read-moon data)))
+
+(defun universe-tick (u)
+  (prog1 u
     (loop
-       :with max = (1- (length moons))
-       :for i :upto max
-       :for (ix iy iz) = (nth i moons)
-       :for iv = (nth i velocities)
-       :do (loop
-             :for j :from (1+ i) :upto max
-             :for (jx jy jz) = (nth j moons)
-             :for jv = (nth j velocities)
-             :when (< ix jx) :do (progn (incf (nth 0 iv)) (decf (nth 0 jv)))
-             :when (> ix jx) :do (progn (decf (nth 0 iv)) (incf (nth 0 jv)))
-             :when (< iy jy) :do (progn (incf (nth 1 iv)) (decf (nth 1 jv)))
-             :when (> iy jy) :do (progn (decf (nth 1 iv)) (incf (nth 1 jv)))
-             :when (< iz jz) :do (progn (incf (nth 2 iv)) (decf (nth 2 jv)))
-             :when (> iz jz) :do (progn (decf (nth 2 iv)) (incf (nth 2 jv)))))))
+      :for (moon . remaining) :on (u-moons u)
+      :do (loop
+            :for other :in remaining
+            :do (moon-update-velf moon other)))
+    (loop
+      :for moon :in (u-moons u)
+      :do (moon-apply-velf moon))))
 
-(defun apply-velocity (moons velocities)
-  (loop
-    :for moon :in moons
-    :for velocity :in velocities
-    :collecting (mapcar #'+ moon velocity)))
+(defun universe-energy (u)
+  (summation (u-moons u) :key #'moon-energy))
 
-(defun total-energy (moons velocities)
-  (loop
-    :for moon :in moons
-    :for velocity :in velocities
-    :for pot = (summation moon :key #'abs)
-    :for kit = (summation velocity :key 'abs)
-    :for total = (* pot kit)
-    :summing total))
+(defun find-cycle-on-axis (axis u)
+  (flet ((by-axis ()
+           (gathering
+             (dolist (m (u-moons u))
+               (gather (nth axis (m-pos m)))
+               (gather (nth axis (m-vel m)))))))
+    (destructuring-bind (cycles-at cycle-size u)
+        (floyd #'universe-tick
+               u
+               :copier #'copy-universe
+               :key (lambda (u) (universe-by-axis u axis))
+               :test 'equal)
+      (declare (ignore cycles-at u))
+      cycle-size)))
 
-(define-problem (2019 12) (moons read-moons)
+(define-problem (2019 12) (data)
   (values
-    (loop
-      :for step = 0 :then (1+ step)
-      :for velocities = (create-velocities) :then (update-velocities positions velocities)
-      :for positions = moons :then (apply-velocity positions velocities)
-      :until (= step 1000)
-      :finally (return (total-energy positions velocities)))
-    (loop
-      :for step = 0 :then (1+ step)
-      :for velocities = (create-velocities) :then (update-velocities positions velocities)
-      :for positions = moons :then (apply-velocity positions velocities)
-      :do (if (zerop (mod step 10000)) (prl step))
-      :until (and (plusp step) (equal positions moons))
-      :finally (return (1+ step)))))
+    (let ((u (read-universe data)))
+      (dotimes (step 1000)
+        (universe-tick u))
+      (universe-energy u))
+    (lcm (find-cycle-on-axis 0 (read-universe data))
+         (find-cycle-on-axis 1 (read-universe data))
+         (find-cycle-on-axis 2 (read-universe data)))))
 
 (1am:test test-2019/12
   (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 8310 part1))))
+    (1am:is (= 8310 part1))
+    (1am:is (= 319290382980408 part1))))
