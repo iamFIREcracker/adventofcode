@@ -44,7 +44,11 @@
 (defun game-guess-move (game ball bar)
   (let ((ball-x (realpart ball))
         (bar-x (realpart bar)))
-    (- ball-x bar-x)))
+    (if (< ball-x bar-x)
+      -1
+      (if (> ball-x bar-x)
+        1
+        0))))
 
 (defun game-run (game)
   (loop
