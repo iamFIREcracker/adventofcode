@@ -95,4 +95,4 @@
 (1am:test test-2019/12
   (multiple-value-bind (part1 part2) (problem-run)
     (1am:is (= 8310 part1))
-    (1am:is (= 319290382980408 part1))))
+    (1am:is (= 319290382980408 part2))))
