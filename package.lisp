@@ -19,6 +19,7 @@
     :hamming-distance
     :manhattan-distance
     :all-permutations
+    :circularf
 
     :_
     :partial-1
@@ -47,6 +48,7 @@
     :hash-table-contains-key-p
     :copy-hash-table
     :print-hash-table
+    :print-hash-table-map
 
     :make-disjointset
     :disjointset-value

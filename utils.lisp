@@ -172,6 +172,9 @@
             (all-permutations (append (rest lst) (list (first lst))) (rest remain))))))
 
 
+(defun circularf (list)
+  (setf (cdr (last list)) list))
+
 ;;;; Functional --------------------------------------------------------------
 
 (defun args-contain-placeholder-p (args placeholder)
@@ -393,6 +396,21 @@
       (format T "~a -> ~a~%" k (gethash k h)))
     (terpri)
     (finish-output)))
+
+(defun print-map-char (val &optional key)
+  (declare (ignore key))
+  val)
+
+(defun print-hash-table-map (h &optional (key #'print-map-char))
+  (let ((min-x (minimization (hash-table-keys h) :key #'realpart))
+        (max-x (maximization (hash-table-keys h) :key #'realpart))
+        (min-y (minimization (hash-table-keys h) :key #'imagpart))
+        (max-y (maximization (hash-table-keys h) :key #'imagpart)))
+    (doirange (y max-y min-y -1)
+      (doirange (x min-x max-x)
+        (let ((pos (complex x y)))
+          (format T "~a" (funcall key (gethash pos h) pos))))
+      (format T "~&"))))
 
 ;;;; Disjoint-set (Union/find) ------------------------------------------------
 
