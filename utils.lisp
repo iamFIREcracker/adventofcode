@@ -322,7 +322,7 @@
 
   Examples:
   (->< 'World
-    (list 'Hello)
+    (list 'Hello))
   =>
   (HELLO WORLD)
 
@@ -653,6 +653,18 @@
       :do (setf hare-state (funcall next hare-state)
                 cycle-size (1+ cycle-size)))
     (list cycles-at cycle-size tortoise-state)))
+
+(defun binary-search (min-state max-state fun)
+  "XXX"
+  (recursively ((min-state min-state)
+                (max-state max-state))
+    (let ((mid-state (floor (+ max-state min-state) 2)))
+      (if (= min-state mid-state)
+        (values mid-state NIL)
+        (case (funcall fun mid-state)
+          (-1 (recur  mid-state max-state))
+          (0 (return-from binary-search (values mid-state T)))
+          (1 (recur min-state mid-state)))))))
 
 ;;;; Copy pasta ---------------------------------------------------------------
 

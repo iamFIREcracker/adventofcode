@@ -86,6 +86,7 @@
     :a-star
     :a-star-backtrack
     :floyd
+    :binary-search
 
     :with-gensyms
     :mkstr
