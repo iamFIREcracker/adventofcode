@@ -68,7 +68,7 @@
   (summation (u-moons u) :key #'moon-energy))
 
 (defun find-cycle-on-axis (axis u)
-  (flet ((by-axis ()
+  (flet ((by-axis (u)
            (gathering
              (dolist (m (u-moons u))
                (gather (nth axis (m-pos m)))
@@ -77,7 +77,7 @@
         (floyd #'universe-tick
                u
                :copier #'copy-universe
-               :key (lambda (u) (universe-by-axis u axis))
+               :key (partial-1 #'by-axis)
                :test 'equal)
       (declare (ignore cycles-at u))
       cycle-size)))
