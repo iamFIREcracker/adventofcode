@@ -31,6 +31,7 @@
     :with-complex-parts
     :complex-rotate-cw
     :complex-rotate-ccw
+    :modn
 
     :recursively
     :recur
@@ -85,6 +86,9 @@
 
     :a-star
     :a-star-backtrack
+    :a-star-neighbors-cost-auto-increment
+    :bfs
+    :dijkstra
     :floyd
     :binary-search
 

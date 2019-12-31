@@ -297,6 +297,11 @@
   "Rotate `c`, counter-clockwise."
   (complex (- (imagpart c)) (realpart c)))
 
+(defun modn (number divisor)
+  (if (>= number 0)
+    (mod number divisor)
+    (- (mod number divisor) divisor)))
+
 ;;;; Control flow ------------------------------------------------------------
 
 (defmacro recursively (bindings &body body)
@@ -362,12 +367,12 @@
     :for v :being :the :hash-value :of h
     :collecting v))
 
-(defun hash-table-find (elem h &key (test 'eql))
-  "Returns the first key in `h`, whose value is equal to `elem`"
+(defun hash-table-find (value h &key (key 'identity) (test 'eql))
+  "Returns the first key in `h`, whose value is equal to `value`"
   (loop
-    :for key :being :the :hash-keys :of h
-    :do (when (funcall test elem (gethash key h))
-          (return key))))
+    :for k :being :the :hash-keys :of h
+    :for v = (gethash k h)
+    :when (funcall test value (funcall key v)) :return (values k v)))
 
 (defmacro hash-table-insert (ht key value)
   `(setf (gethash ,key ,ht) ,value))
@@ -599,30 +604,67 @@
 ;;;; Search -------------------------------------------------------------------
 
 (defun a-star (init-state init-cost target-state neighbors heuristic
+                          &key (key 'identity) (test 'equalp)
                           &aux (cost-so-far (make-hash-table :test 'equalp))
                           (come-from (make-hash-table :test 'equalp)))
   (flet ((calc-priority (state &aux (cost (gethash state cost-so-far)))
            (+ cost (funcall heuristic state))))
     (hash-table-insert cost-so-far init-state init-cost)
-    (loop
-      :with frontier = (make-hq (list (calc-priority init-state) init-state init-cost))
-      :while frontier
-      :for (priority state) = (hq-popf frontier)
-      :for cost = (gethash state cost-so-far)
-      :when (equalp state target-state) :return NIL
-      :do (dolist (next (funcall neighbors state cost))
-            (destructuring-bind (next-state next-cost) next
-              (when (< next-cost (gethash next-state cost-so-far (1+ next-cost)))
-                (hash-table-insert cost-so-far next-state next-cost)
-                (hash-table-insert come-from next-state state)
-                (hq-insertf frontier (list (calc-priority next-state)
-                                           next-state))))))
-    (values cost-so-far come-from)))
+    (values
+      cost-so-far
+      come-from
+      (loop
+        :with frontier = (make-hq (list (calc-priority init-state) init-state))
+        :with target-value = (funcall key target-state)
+        :while frontier
+        :for (priority state) = (hq-popf frontier)
+        :for state-value = (funcall key state)
+        :for cost = (gethash state cost-so-far)
+        :when (funcall test state-value target-value) :return state
+        :do (dolist (next (funcall neighbors state cost))
+              (destructuring-bind (next-state next-cost) next
+                (multiple-value-bind (existing-cost present-p) (gethash next-state cost-so-far)
+                  (when (or (not present-p) (< next-cost existing-cost))
+                    (hash-table-insert cost-so-far next-state next-cost)
+                    (hash-table-insert come-from next-state state)
+                    (hq-insertf frontier (list
+                                           (calc-priority next-state)
+                                           next-state))))))))))
 
 (defun a-star-backtrack (come-from curr)
   (nreverse (recursively ((curr curr))
               (when curr
                 (cons curr (recur (gethash curr come-from)))))))
+
+(defun a-star-neighbors-cost-auto-increment (neighbors)
+  (lambda (state cost)
+    (mapcar
+      (lambda (next-state)
+        (list next-state (1+ cost)))
+      (funcall neighbors state))))
+
+(defun bfs (init-state init-cost target-state neighbors
+                       &key (heuristic (constantly 0)) (key 'identity) (test 'equalp))
+  (a-star
+    init-state
+    init-cost
+    target-state
+    (lambda (state cost)
+      (mapcar
+        (lambda (next-state)
+          (list next-state (1+ cost)))
+        (funcall neighbors state)))
+    heuristic
+    :key key
+    :test test))
+
+(defun dijkstra (init-state init-cost target-state neighbors)
+  (a-star
+    init-state
+    init-cost
+    target-state
+    neighbors
+    (lambda (state) (declare (ignore state)) 0)))
 
 (defun floyd (next init-state &key (copier 'identity) (key 'identity) (test 'eql))
   "Also called the 'tortoise and the hare algorithm',"
