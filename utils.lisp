@@ -177,15 +177,17 @@
 
 ;;;; Functional --------------------------------------------------------------
 
-(defun args-contain-placeholder-p (args placeholder)
-  (recursively ((args args))
-    (if (atom args)
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defun args-contain-placeholder-p (args placeholder)
+    (recursively ((args args))
+      (if (atom args)
         (string= args placeholder)
         (or (recur (car args))
-            (recur (cdr args))))))
+            (recur (cdr args)))))))
 
-(defun args-replace (placeholder args name)
-  (subst name placeholder args))
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defun args-replace (placeholder args name)
+    (subst name placeholder args)))
 
 (defun args-prepend (args name)
   (cons name args))
@@ -193,10 +195,11 @@
 (defun args-append (args name)
   (append args (list name)))
 
-(defun args-replace-placeholder-or-append (args placeholder name)
-  (if (args-contain-placeholder-p args placeholder)
-    (args-replace placeholder args name)
-    (args-append args name)))
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defun args-replace-placeholder-or-append (args placeholder name)
+    (if (args-contain-placeholder-p args placeholder)
+      (args-replace placeholder args name)
+      (args-append args name))))
 
 (defmacro partial-1 (fn &rest args)
   "Returns a function that invokes `fn` with `args` prepended to the argument it
