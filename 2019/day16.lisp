@@ -72,5 +72,5 @@
 
 (1am:test test-2019/16
   (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= "63483758" part1))
-    (1am:is (= "96099551" part2))))
+    (1am:is (string= "63483758" part1))
+    (1am:is (string= "96099551" part2))))
