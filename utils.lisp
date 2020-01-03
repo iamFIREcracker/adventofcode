@@ -713,39 +713,10 @@
 
 ;;;; Copy pasta ---------------------------------------------------------------
 
-(defmacro with-gensyms (names &body body)
-  "In fact, you've already seen one such pattern--many macros will, like the
-  last version of do-primes, start with a LET that introduces a few variables
-  holding gensymed symbols to be used in the macro's expansion. Since this is
-  such a common pattern, why not abstract it away with its own macro?
-
-  Borrowed from: http://www.gigamonkeys.com/book/macros-defining-your-own.html
-  but tweaked (the signature)"
-  `(let ,(loop :for n :in names :collecting `(,n (gensym)))
-     ,@body))
-
-(defun mkstr (&rest args)
-  "Receives any number of objects (string, symbol, keyword, char, number),
-  extracts all printed representations, and concatenates them all into one
-  string.
-
-  Extracted from _On Lisp_, chapter 4."
-  (with-output-to-string (s)
-    (dolist (a args) (princ a s))))
-
 (defun mkstrc (&rest args)
   "Like `mkstr`, but concatenates with commas."
   (with-output-to-string (s)
     (format s "~{~a~^,~}" args)))
-
-(defun symb (&rest args)
-  "Receives any number of objects, concatenates all into one string with
-  `#'mkstr` and converts them to symbol.
-
-  Extracted from _On Lisp_, chapter 4.
-
-  See also: `symbolicate`"
-  (values (intern (apply #'mkstr args))))
 
 (defmacro gathering (&body body)
   "Run `body` to gather some things and return a fresh list of them.

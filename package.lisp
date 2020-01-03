@@ -1,5 +1,5 @@
 (defpackage :aoc
-  (:use :cl :pmdb :1am :split-sequence)
+  (:use :cl :pmdb :1am :split-sequence :aoc.quickutils)
   (:export
     :summation
     :maximization
@@ -92,8 +92,6 @@
     :floyd
     :binary-search
 
-    :with-gensyms
-    :mkstr
     :mkstrc
     :pr
     :prl
@@ -107,4 +105,4 @@
     :define-problem))
 
 
-(defparameter *aoc-use* '(:use :cl :1am :split-sequence :aoc))
+(defparameter *aoc-use* '(:use :cl :1am :split-sequence :aoc :aoc.quickutils))
