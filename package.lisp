@@ -19,7 +19,6 @@
     :hamming-distance
     :manhattan-distance
     :all-permutations
-    :circularf
 
     :_
     :partial-1

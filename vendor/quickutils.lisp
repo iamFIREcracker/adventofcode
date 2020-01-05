@@ -2,7 +2,7 @@
 ;;;; See http://quickutil.org for details.
 
 ;;;; To regenerate:
-;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:MKSTR :SYMB :VOID :WITH-GENSYMS) :ensure-package T :package "AOC.QUICKUTILS")
+;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:MKSTR :NCYCLE :SYMB :VOID :WITH-GENSYMS) :ensure-package T :package "AOC.QUICKUTILS")
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (unless (find-package "AOC.QUICKUTILS")
@@ -13,7 +13,7 @@
 (in-package "AOC.QUICKUTILS")
 
 (when (boundp '*utilities*)
-  (setf *utilities* (union *utilities* '(:MKSTR :SYMB :VOID
+  (setf *utilities* (union *utilities* '(:MKSTR :NCYCLE :SYMB :VOID
                                          :STRING-DESIGNATOR :WITH-GENSYMS))))
 
   (defun mkstr (&rest args)
@@ -22,6 +22,11 @@
 Extracted from _On Lisp_, chapter 4."
     (with-output-to-string (s)
       (dolist (a args) (princ a s))))
+  
+
+  (defun ncycle (list)
+    "Mutate `list` into a circlular list."
+    (nconc list list))
   
 
   (defun symb (&rest args)
@@ -83,6 +88,6 @@ unique symbol the named variable will be bound to."
     `(with-gensyms ,names ,@forms))
   
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (export '(mkstr symb void with-gensyms with-unique-names)))
+  (export '(mkstr ncycle symb void with-gensyms with-unique-names)))
 
 ;;;; END OF quickutils.lisp ;;;;

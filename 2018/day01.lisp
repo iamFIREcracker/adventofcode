@@ -5,15 +5,14 @@
 (define-problem (2018 1) (data parse-integers)
   (values
     (summation data)
-    (progn
-      (setf (cdr (last data)) data) ; make data a circular list for easy looping
-      (loop
-        :with seen = (make-hash-table)
-        :for number :in data
-        :summing number :into frequency
-        :do (if (gethash frequency seen)
-              (return frequency)
-              (hash-table-insert seen frequency T)))))) ; XXX hash-set
+    (loop
+      :initially (ncycle data) ; make data a circular list for easy looping
+      :with seen = (make-hash-table)
+      :for number :in data
+      :summing number :into frequency
+      :do (if (gethash frequency seen)
+            (return frequency)
+            (hash-table-insert seen frequency T))))) ; XXX hash-set
 
 (1am:test test-2018/01
   (multiple-value-bind (part1 part2) (problem-run)

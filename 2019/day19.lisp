@@ -22,7 +22,7 @@
   ;; XXX figure out a way to calculate deltas
   (declare (ignore map))
   (let ((pos #C(4 -3))
-        (deltas (circularf (list #C(1 -1) #C(1 -1) #C(1 -1) #C(1 0)))))
+        (deltas (ncycle (list #C(1 -1) #C(1 -1) #C(1 -1) #C(1 0)))))
     (lambda ()
       (let ((next-pos (+ pos (first deltas))))
         (setf deltas (cdr deltas)

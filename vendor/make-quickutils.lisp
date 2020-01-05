@@ -4,6 +4,7 @@
   "quickutils.lisp"
   :utilities '(
                :mkstr
+               :ncycle
                :symb
                :void
                :with-gensyms)

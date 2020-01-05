@@ -172,9 +172,6 @@
             (all-permutations (append (rest lst) (list (first lst))) (rest remain))))))
 
 
-(defun circularf (list)
-  (setf (cdr (last list)) list))
-
 ;;;; Functional --------------------------------------------------------------
 
 (eval-when (:compile-toplevel :load-toplevel :execute)

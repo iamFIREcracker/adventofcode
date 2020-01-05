@@ -10,7 +10,7 @@
          (third (make-list n :initial-element 0))
          (fourth (make-list n :initial-element -1))
          (pattern (nconc first second third fourth)))
-    (circularf pattern)
+    (ncycle pattern)
     (cdr pattern)))
 
 ;; XXX 2019/04
