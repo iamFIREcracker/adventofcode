@@ -41,7 +41,7 @@
                  :for layer :in image
                  :for pixel = (aref layer i)
                  :when (eql #\0 pixel) :return #\Space
-                 :when (eql #\1 pixel) :return #\X))))
+                 :when (eql #\1 pixel) :return #\#))))
 
 (define-problem (2019 8) (image read-image)
   (values
@@ -54,11 +54,11 @@
     (1am:is (string=
 
 "
-X   X XX  XXX  X   XXXXX 
-X   XX  X X  X X   X   X 
- X X X    X  X  X X   X  
-  X  X XX XXX    X   X   
-  X  X  X X X    X  X    
-  X   XXX X  X   X  XXXX 
+#   # ##  ###  #   ##### 
+#   ##  # #  # #   #   # 
+ # # #    #  #  # #   #  
+  #  # ## ###    #   #   
+  #  #  # # #    #  #    
+  #   ### #  #   #  #### 
 "
 part2))))
