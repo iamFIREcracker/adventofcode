@@ -41,16 +41,12 @@
 
 
 (defun print-registration-identifier (panels)
-  (let ((min-x (minimization (hash-table-keys panels) :key #'realpart))
-        (max-x (maximization (hash-table-keys panels) :key #'realpart))
-        (min-y (minimization (hash-table-keys panels) :key #'imagpart))
-        (max-y (maximization (hash-table-keys panels) :key #'imagpart)))
-    (doirange (y max-y min-y -1)
-      (doirange (x min-x max-x)
-        (format T "~a" (if (eql 1 (gethash (complex x y) panels))
-                         #\#
-                         #\Space)))
-      (format T "~&"))))
+  (with-output-to-string (s)
+    (format s "~%") ;; add a leading new-line, to make testing easier/nicer
+    (print-hash-table-map panels (lambda (value key)
+                                   (declare (ignore key))
+                                   (if (eql 1 value) #\# #\Space))
+                          s)))
 
 (define-problem (2019 11) (program intcode:read-program)
   (values
@@ -59,5 +55,15 @@
 
 (1am:test test-2019/11
   (multiple-value-bind (part1 part2) (problem-run)
-    (declare (ignore part2)) ; XXX figure out a way to test for: ZCGRHKLB
-    (1am:is (= 1747 part1))))
+    (1am:is (= 1747 part1))
+    (1am:is (string=
+
+"
+ ####  ##   ##  ###  #  # #  # #    ###    
+    # #  # #  # #  # #  # # #  #    #  #   
+   #  #    #    #  # #### ##   #    ###    
+  #   #    # ## ###  #  # # #  #    #  #   
+ #    #  # #  # # #  #  # # #  #    #  #   
+ ####  ##   ### #  # #  # #  # #### ###    
+"
+part2))))

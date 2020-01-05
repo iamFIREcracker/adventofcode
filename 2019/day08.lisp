@@ -26,6 +26,7 @@
 
 (defun print-layer (layer)
   (with-output-to-string (s)
+    (format s "~%") ;; add a leading new-line, to make testing easier/nicer
     (loop
       :for pixel :in layer
       :for i = 0 :then (1+ i)
@@ -52,11 +53,12 @@
     (1am:is (= 2684 part1))
     (1am:is (string=
 
-"X   X XX  XXX  X   XXXXX 
+"
+X   X XX  XXX  X   XXXXX 
 X   XX  X X  X X   X   X 
  X X X    X  X  X X   X  
   X  X XX XXX    X   X   
   X  X  X X X    X  X    
   X   XXX X  X   X  XXXX 
 "
-              part2))))
+part2))))

@@ -419,7 +419,7 @@ By default, it will store the result into a list, but `type` can be tweaked to c
   (declare (ignore key))
   val)
 
-(defun print-hash-table-map (h &optional (key #'print-map-char))
+(defun print-hash-table-map (h &optional (key #'print-map-char) (stream T))
   (let ((min-x (minimization (hash-table-keys h) :key #'realpart))
         (max-x (maximization (hash-table-keys h) :key #'realpart))
         (min-y (minimization (hash-table-keys h) :key #'imagpart))
@@ -427,8 +427,8 @@ By default, it will store the result into a list, but `type` can be tweaked to c
     (doirange (y max-y min-y -1)
       (doirange (x min-x max-x)
         (let ((pos (complex x y)))
-          (format T "~a" (funcall key (gethash pos h) pos))))
-      (format T "~&"))))
+          (format stream "~a" (funcall key (gethash pos h) pos))))
+      (format stream "~&"))))
 
 ;;;; Disjoint-set (Union/find) ------------------------------------------------
 
