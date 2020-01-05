@@ -56,16 +56,32 @@
       :when (and passage (every #'labelp 2-below)) :do (push pos (gethash 2-below labels))
       :when (and passage (every #'labelp 2-left)) :do (push pos (gethash 2-left labels)))))
 
+(defstruct (state (:conc-name s-))
+  pos
+  level)
+
 (defstruct (donut (:constructor make-donut%)
                   (:conc-name d-))
   map
-  portals)
+  portals
+  outer-boundary-min-x
+  outer-boundary-max-x
+  outer-boundary-min-y
+  outer-boundary-max-y)
 
 (defun make-donut (data)
   (let* ((map (read-map data))
-         (portals (read-portals map)))
+         (portals (read-portals map))
+         (walls (loop
+                  :for k :being :the :hash-keys :of map
+                  :for v = (gethash k map)
+                  :when (wallp v) :collect k)))
     (make-donut% :map map
-                 :portals portals)))
+                 :portals portals
+                 :outer-boundary-min-x (minimization walls :key #'realpart)
+                 :outer-boundary-max-x (maximization walls :key #'realpart)
+                 :outer-boundary-min-y (minimization walls :key #'imagpart)
+                 :outer-boundary-max-y (maximization walls :key #'imagpart))))
 
 (defun d-start (d)
   (first (gethash "AA" (d-portals d))))
@@ -84,65 +100,50 @@
     :when (and door2 (= pos door1)) :return door2
     :when (and door2 (= pos door2)) :return door1))
 
+(defun d-neighbors (d pos)
+  (loop
+    :for next-pos :in (adjacents pos)
+    :when (passagep (d-cell d next-pos)) :collect next-pos))
+
 (defun d-neighbors-part1 (d pos)
-  (gathering
+  (append
+    (d-neighbors d pos)
     (let ((other-side (d-other-side d pos)))
       (when other-side
-        (gather other-side)))
-    (loop
-      :for delta :in (list #C(0 1) #C(1 0) #C(0 -1) #C(-1 0))
-      :for next-pos = (+ pos delta)
-      :when (passagep (d-cell d next-pos)) :do (gather next-pos))))
+        (list other-side)))))
 
-(defstruct (state (:conc-name s-))
-  pos
-  level)
+(defun d-outer-boundary-p (d pos)
+  (or (= (d-outer-boundary-min-x d) (realpart pos))
+      (= (d-outer-boundary-max-x d) (realpart pos))
+      (= (d-outer-boundary-min-y d) (imagpart pos))
+      (= (d-outer-boundary-max-y d) (imagpart pos))))
 
-(defun d-outerp (d pos)
-  (or (= 2 (realpart pos))
-      (= 110 (realpart pos))
-      (= 2 (imagpart pos))
-      (= 112 (imagpart pos))))
+(defun d-portal-active-p (d level pos)
+  (or (not (= 0 level)) (not (d-outer-boundary-p d pos))))
 
-(defun d-neighbors-part2 (d state steps)
+(defun d-neighbors-part2 (d state)
   (let ((pos (s-pos state))
         (level (s-level state)))
-    (gathering
-      (progn
-        (when (or (not (zerop level)) (not (d-outerp d pos)))
-          (let* ((other-side (d-other-side d pos)))
-            (when other-side
-              (gather (list
-                        (make-state :pos other-side
-                                    :level (+ level (if (d-outerp d other-side) 1 -1)))
-                        (1+ steps))))))
-        (loop
-          :for delta :in (list #C(0 1) #C(1 0) #C(0 -1) #C(-1 0))
-          :for next-pos = (+ pos delta)
-          :when (passagep (d-cell d next-pos)) :do (gather (list
-                                                             (make-state :pos next-pos :level level)
-                                                             (1+ steps))))))))
+    (append
+      (mapcar (partial-1 #'make-state :pos _ :level level) (d-neighbors d pos))
+      (when (or (not (zerop level)) (not (d-outer-boundary-p d pos)))
+        (let ((other-side (d-other-side d pos)))
+          (when (and other-side (d-portal-active-p d level pos))
+            (list (make-state :pos other-side
+                              :level (+ level (if (d-outer-boundary-p d pos) -1 1))))))))))
 
 (define-problem (2019 20) (d make-donut)
   (values
-    (let ((cost-so-far (bfs (d-start d)
-                            0
-                            (d-end d)
-                            (partial-1 #'d-neighbors-part1 d))))
-      (gethash (d-end d) cost-so-far))
-    (let* ((init-state (make-state :pos (d-start d) :level 0))
-           (end-state (make-state :pos (d-end d) :level 0))
-           (cost-so-far (a-star init-state
-                                0
-                                end-state
-                                (partial-2 #'d-neighbors-part2 d)
-                                (lambda (state)
-                                  (let ((pos (s-pos state))
-                                        (level (s-level state))
-                                        (target-pos (s-pos end-state))
-                                        (target-level (s-level end-state)))
-                                    (manhattan-distance (list (realpart pos) (imagpart pos) (* 1000 level))
-                                                        (list (realpart target-pos) (imagpart target-pos) (* 1000 target-level))))))))
+    (multiple-value-bind (end-state cost-so-far)
+        (bfs (d-start d)
+             :goal-state (d-end d)
+             :neighbors (partial-1 #'d-neighbors-part1 d))
+      (gethash end-state cost-so-far))
+    (multiple-value-bind (end-state cost-so-far)
+        (bfs (make-state :pos (d-start d) :level 0)
+             :goal-state (make-state :pos (d-end d) :level 0)
+             :neighbors (partial-1 #'d-neighbors-part2 d)
+             :test 'equalp)
       (gethash end-state cost-so-far))))
 
 (1am:test test-2019/20

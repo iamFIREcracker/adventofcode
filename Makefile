@@ -7,7 +7,7 @@ all: test
 # Vendor ----------------------------------------------------------------------
 vendor: vendor/quickutils.lisp
 vendor/quickutils.lisp: vendor/make-quickutils.lisp
-	cd vendor && sbcl --load "make-quickutils.lisp"  --non-interactive
+	cd vendor && sbcl --noinform --load "make-quickutils.lisp"  --non-interactive
 
 # Tests -----------------------------------------------------------------------
 test-sbcl: $(lisps)

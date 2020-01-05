@@ -5,5 +5,6 @@
   :utilities '(
                :mkstr
                :symb
+               :void
                :with-gensyms)
   :package "AOC.QUICKUTILS")

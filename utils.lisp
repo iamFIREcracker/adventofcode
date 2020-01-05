@@ -192,8 +192,9 @@
 (defun args-prepend (args name)
   (cons name args))
 
-(defun args-append (args name)
-  (append args (list name)))
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defun args-append (args name)
+    (append args (list name))))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defun args-replace-placeholder-or-append (args placeholder name)
@@ -507,22 +508,25 @@
 
 ;;;; Poor's Heap Queue --------------------------------------------------------
 
-(defun make-hq (&rest items)
-  "Create an instance of Poor's Heap Queue pre-populateed with `ITEMS`.
+(defun make-hq ()
+  "Create an instance of Poor's Heap Queue."
+  NIL)
 
-  Each element of `ITEMS` is expected to match: `(priority . rest)"
-  (sort (copy-seq items) #'< :key #'first))
+(defun hq-empty-p (hq)
+  "Returns T if HQ is empty"
+  (not hq))
 
 (defmacro hq-popf (hq)
-  "Pop the first element from the heap queue."
-  `(pop ,hq))
+  "Pop the element with `HQ` with the lowest priority."
+  (with-gensyms (priority item)
+    `(destructuring-bind (,priority ,item)
+         (pop ,hq)
+       (values ,item ,priority))))
 
-(define-modify-macro hq-insertf (item)
-  (lambda (hq item)
-    (merge 'list hq (list item) #'< :key #'first))
-  "Add `item` to the heap queue.
-
-  Like for MAKE-HQ, `item` is expected to match: `(priority . rest).
+(define-modify-macro hq-insertf (item priority)
+  (lambda (hq item priority)
+    (merge 'list hq (list (list priority item)) #'< :key #'first))
+  "Add `ITEM` (with priority `PRIORITY`) to the heap queue.
 
   Also, it internally uses MERGE, which means is not as bad as running
   SORT on each insert, but still, we could make things run faster.")
@@ -606,33 +610,52 @@
 
 ;;;; Search -------------------------------------------------------------------
 
-(defun a-star (init-state init-cost target-state neighbors heuristic
-                          &key (key 'identity) (test 'equalp)
-                          &aux (cost-so-far (make-hash-table :test 'equalp))
-                          (come-from (make-hash-table :test 'equalp)))
+(defun adjacents (pos &key include-diagonal
+                      &aux (deltas (list #C(0 1) #C(1 0) #C(0 -1) #C(-1 0))))
+  "Return all the adjacents positions of POS.
+
+  By default, only the 4 immediate adjacents positions are returned
+  (i.e. top, right, bottom, and left), but INCLUDE-DIAGONAL can be used to
+  also return diagonal positions too."
+  (assert (or (complexp pos) (numberp pos)))
+  (when include-diagonal
+    (setf deltas (nconc deltas (list #C(1 1) #C(1 -1) #C(-1 -1) #C(-1 1)))))
+  (loop
+    :for d :in deltas
+    :collect (+ pos d)))
+
+(defun a-star (init-state &key (init-cost 0) goal-state goalp neighbors
+                          (heuristic (constantly 0)) (test 'eql) print-stats
+                          &aux (cost-so-far (make-hash-table :test test))
+                          (come-from (make-hash-table :test test)))
+  (when goal-state
+    (setf goalp (partial-1 test goal-state)))
   (flet ((calc-priority (state &aux (cost (gethash state cost-so-far)))
            (+ cost (funcall heuristic state))))
     (hash-table-insert cost-so-far init-state init-cost)
     (values
-      cost-so-far
-      come-from
       (loop
-        :with frontier = (make-hq (list (calc-priority init-state) init-state))
-        :with target-value = (funcall key target-state)
-        :while frontier
-        :for (priority state) = (hq-popf frontier)
-        :for state-value = (funcall key state)
-        :for cost = (gethash state cost-so-far)
-        :when (funcall test state-value target-value) :return state
-        :do (dolist (next (funcall neighbors state cost))
+        :with processed-states = 0
+        :with max-queued-states = 0
+        :with frontier = (make-hq)
+        :initially (hq-insertf frontier init-state (calc-priority init-state))
+        :until (hq-empty-p frontier)
+        :for state = (hq-popf frontier)
+        :for state-cost = (gethash state cost-so-far)
+        :when (funcall goalp state) :return (prog1 state
+                                              (when print-stats
+                                                (format t "Processed states: ~d~&Max queued states: ~d~%" processed-states max-queued-states)))
+        :do (dolist (next (funcall neighbors state state-cost))
               (destructuring-bind (next-state next-cost) next
                 (multiple-value-bind (existing-cost present-p) (gethash next-state cost-so-far)
                   (when (or (not present-p) (< next-cost existing-cost))
                     (hash-table-insert cost-so-far next-state next-cost)
                     (hash-table-insert come-from next-state state)
-                    (hq-insertf frontier (list
-                                           (calc-priority next-state)
-                                           next-state))))))))))
+                    (hq-insertf frontier next-state (calc-priority next-state))))))
+        :when print-stats :do (setf processed-states (1+ processed-states)
+                                    max-queued-states (max max-queued-states (length frontier))))
+      cost-so-far
+      come-from)))
 
 (defun a-star-backtrack (come-from curr)
   (nreverse (recursively ((curr curr))
@@ -646,20 +669,34 @@
         (list next-state (1+ cost)))
       (funcall neighbors state))))
 
-(defun bfs (init-state init-cost target-state neighbors
-                       &key (heuristic (constantly 0)) (key 'identity) (test 'equalp))
-  (a-star
-    init-state
-    init-cost
-    target-state
-    (lambda (state cost)
-      (mapcar
-        (lambda (next-state)
-          (list next-state (1+ cost)))
-        (funcall neighbors state)))
-    heuristic
-    :key key
-    :test test))
+(defun bfs (init-state &key (init-cost 0) goal-state (goalp #'void) neighbors
+                       (test 'eql) print-stats
+                       &aux (cost-so-far (make-hash-table :test test))
+                       (come-from (make-hash-table :test test)))
+  "XXX"
+  (when goal-state
+    (setf goalp (partial-1 test goal-state)))
+  (hash-table-insert cost-so-far init-state init-cost)
+  (values
+    (loop
+      :with frontier = (enqueue init-state (make-queue))
+      :with processed-states = 0
+      :with max-queued-states = 0
+      :until (queue-empty-p frontier)
+      :for state = (dequeue frontier)
+      :for state-cost = (gethash state cost-so-far)
+      :when (funcall goalp state) :return (prog1 state
+                                            (when print-stats
+                                              (format t "Processed states: ~d~&Max queued states: ~d~%" processed-states max-queued-states)))
+      :do (dolist (next-state (funcall neighbors state))
+            (unless (gethash next-state cost-so-far)
+              (hash-table-insert cost-so-far next-state (1+ state-cost))
+              (hash-table-insert come-from next-state state)
+              (enqueue next-state frontier)))
+      :when print-stats :do (setf processed-states (1+ processed-states)
+                                  max-queued-states (max max-queued-states (length (queue-items frontier)))))
+    cost-so-far
+    come-from))
 
 (defun dijkstra (init-state init-cost target-state neighbors)
   (a-star

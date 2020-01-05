@@ -45,20 +45,16 @@
          (torch 'none)
          (none 'torch)))))
 
-(defun adjacents (pos) ;; XXX there is another ADJACENTS function
-  (remove-if-not #'(lambda (c)
-                     (and (>= (realpart c) 0) (>= (imagpart c) 0)))
-                 (list
-                   (- pos #C(0 1))
-                   (- pos #C(1 0))
-                   (+ pos #C(1 0))
-                   (+ pos #C(0 1)))))
-
 (defun tools-by-area (area)
   (case area
     (0 '(climbing-gear torch))
     (1 '(climbing-gear none))
     (2 '(torch none))))
+
+(defun complex-negp (n)
+  (assert (or (complexp n) (numberp n)))
+  (or (< (realpart n) 0)
+      (< (imagpart n) 0)))
 
 (defun cave-possible-moves (target depth state time)
   (let* ((pos (pos state))
@@ -67,7 +63,7 @@
     (cons
       (list (make-state pos (change-tool tool area)) (+ time 7))
       (loop
-        :for adj :in (adjacents pos)
+        :for adj :in (remove-if #'complex-negp (adjacents pos))
         :for adj-area = (area-type (erosion-level adj target depth))
         :for adj-tools = (tools-by-area adj-area)
         :when (member tool adj-tools) :collect (list (make-state adj tool)
@@ -83,13 +79,16 @@
               (gather (erosion-level (complex j i) target depth)))))
         :key #'area-type)
       (let* ((init-state (make-state #C(0 0) 'torch))
-             (target-state (make-state target 'torch))
-             (cost-so-far (a-star init-state 0 target-state
-                                  (partial-2 #'cave-possible-moves target depth)
-                                  (partial-1 #'manhattan-distance
-                                             (pos _)
-                                             (pos target-state)))))
-        (gethash target-state cost-so-far)))))
+             (goal-state (make-state target 'torch)))
+        (multiple-value-bind (end-state cost-so-far)
+            (a-star init-state
+                    :goal-state goal-state
+                    :heuristic (partial-1 #'manhattan-distance
+                                          (pos _)
+                                          (pos goal-state))
+                    :neighbors (partial-2 #'cave-possible-moves target depth)
+                    :test 'equalp)
+          (gethash end-state cost-so-far))))))
 
 (1am:test test-2018/22
   (multiple-value-bind (part1 part2) (problem-run)

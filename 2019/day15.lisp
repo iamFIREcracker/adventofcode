@@ -59,7 +59,7 @@
         (next-dir (opposite-dir dir))
         (left-of dir)))))
 
-(defun print-map (start oxygen h)
+(defun print-map (start oxygen h) ;; XXX remove this
   (flet ((print-char (value pos)
            (cond ((= start pos) #\S)
                  ((= oxygen pos) #\O)
@@ -121,14 +121,18 @@
   (let ((droid (make-droid program)))
     (multiple-value-bind (start oxygen map)
         (explore droid)
-      (print-map start oxygen map)
       (values
-        (let ((cost-so-far (bfs start 0 oxygen
-                                (partial-1 #'neighbors map))))
-          (1+ (gethash oxygen cost-so-far)))
-        (let ((cost-so-far (bfs oxygen 0 NIL
-                                (partial-1 #'neighbors map))))
-          (1+ (maximization (hash-table-values cost-so-far))))))))
+        (multiple-value-bind (end-state cost-so-far)
+            (a-star start
+                    :goal-state oxygen
+                    :neighbors (a-star-neighbors-cost-auto-increment (partial-1 #'neighbors map))
+                    :heuristic (partial-1 #'manhattan-distance _ oxygen))
+          (1+ (gethash end-state cost-so-far))) ;; XXX why 1+?
+        (multiple-value-bind (end-state cost-so-far)
+            (bfs oxygen
+                 :neighbors (partial-1 #'neighbors map))
+          (declare (ignore end-state))
+          (1+ (maximization (hash-table-values cost-so-far)))))))) ;; XXX why 1+?
 
 (1am:test test-2019/15
   (multiple-value-bind (part1 part2) (problem-run)

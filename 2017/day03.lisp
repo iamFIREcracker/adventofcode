@@ -100,13 +100,6 @@
   (values (spiral-gen-last-pos gen)
           (spiral-gen-last gen)))
 
-(defun adjacents (p)
-  (gathering
-    (doirange (y -1 1)
-      (doirange (x -1 1)
-        (unless (= 0 x y)
-          (gather (+ p (complex x y))))))))
-
 (define-problem (2017 3) (data read-integer)
   (values
     (loop
@@ -118,7 +111,8 @@
       :with grid = (make-hash-table)
       :initially (hash-table-insert grid #C(0 0) 1)
       :for (pos) = (multiple-value-list (spiral-gen-next gen))
-      :for value = (summation (adjacents pos) :key (partial-1 #'gethash _ grid 0))
+      :for value = (summation (adjacents pos :include-diagonal T)
+                              :key (partial-1 #'gethash _ grid 0))
       :when (> value data) :return value
       :do (hash-table-insert grid pos value))))
 

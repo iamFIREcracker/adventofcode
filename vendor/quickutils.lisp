@@ -2,7 +2,7 @@
 ;;;; See http://quickutil.org for details.
 
 ;;;; To regenerate:
-;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:MKSTR :SYMB :WITH-GENSYMS) :ensure-package T :package "AOC.QUICKUTILS")
+;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:MKSTR :SYMB :VOID :WITH-GENSYMS) :ensure-package T :package "AOC.QUICKUTILS")
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (unless (find-package "AOC.QUICKUTILS")
@@ -13,8 +13,8 @@
 (in-package "AOC.QUICKUTILS")
 
 (when (boundp '*utilities*)
-  (setf *utilities* (union *utilities* '(:MKSTR :SYMB :STRING-DESIGNATOR
-                                         :WITH-GENSYMS))))
+  (setf *utilities* (union *utilities* '(:MKSTR :SYMB :VOID
+                                         :STRING-DESIGNATOR :WITH-GENSYMS))))
 
   (defun mkstr (&rest args)
     "Receives any number of objects (string, symbol, keyword, char, number), extracts all printed representations, and concatenates them all into one string.
@@ -31,6 +31,12 @@ Extracted from _On Lisp_, chapter 4.
 
 See also: `symbolicate`"
     (values (intern (apply #'mkstr args))))
+  
+
+  (defun void (&rest args)
+    "Do absolutely nothing, and return absolutely nothing."
+    (declare (ignore args))
+    (values))
   
 
   (deftype string-designator ()
@@ -77,6 +83,6 @@ unique symbol the named variable will be bound to."
     `(with-gensyms ,names ,@forms))
   
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (export '(mkstr symb with-gensyms with-unique-names)))
+  (export '(mkstr symb void with-gensyms with-unique-names)))
 
 ;;;; END OF quickutils.lisp ;;;;

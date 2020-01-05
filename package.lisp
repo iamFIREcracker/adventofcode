@@ -84,6 +84,7 @@
     :make-summedarea-table
     :st-area-of
 
+    :adjacents
     :a-star
     :a-star-backtrack
     :a-star-neighbors-cost-auto-increment

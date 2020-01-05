@@ -73,12 +73,11 @@
     :when (passagep c) :collect next-pos))
 
 (defun v-key-reachable-p (v init-pos target-pos)
-  (multiple-value-bind (cost-so-far come-from end-state)
+  (multiple-value-bind (end-state cost-so-far come-from)
       (a-star init-pos
-              0
-              target-pos
-              (a-star-neighbors-cost-auto-increment (partial-1 #'v-neighbors v))
-              (partial-1 #'manhattan-distance _ target-pos))
+              :goal-state target-pos
+              :neighbors (a-star-neighbors-cost-auto-increment (partial-1 #'v-neighbors v))
+              :heuristic (partial-1 #'manhattan-distance _ target-pos))
     (values
       (gethash end-state cost-so-far)
       (a-star-backtrack come-from end-state))))
@@ -141,31 +140,30 @@
                          steps))))
 
 (define-problem (2019 18) (v make-vault)
-  (values
+  (let ((num-keys (length (v-keys-sorted v))))
+    (values
+      (progn
+        (init-reachable-map)
+        (multiple-value-bind (end-state cost-so-far)
+            (a-star (make-state (first (v-start v)) NIL)
+                    :goalp (partial-1 #'= num-keys (length (s-keys _))) 
+                    :neighbors (partial-2 #'v-reachable-keys v)
+                    :test 'equalp)
+          (gethash end-state cost-so-far))))))
     ; (progn
     ;   (init-reachable-map)
     ;   (multiple-value-bind (cost-so-far come-from end-state)
-    ;       (a-star (make-state (first (v-start v)) NIL)
+    ;       (a-star (loop
+    ;                 :for pos :in (v-start v)
+    ;                 :collect (make-state pos NIL))
     ;               0
-    ;               (make-state NIL (v-keys-sorted v))
-    ;               (partial-2 #'v-reachable-keys v)
+    ;               (list (make-state 0 (v-keys-sorted v)))
+    ;               (partial-2 #'v-reachable-keys-part2 v)
     ;               (constantly 0)
-    ;               :key (partial-1 #'length (s-keys _)))
-    ;     (gethash end-state cost-so-far)))
-    (progn
-      (init-reachable-map)
-      (multiple-value-bind (cost-so-far come-from end-state)
-          (a-star (loop
-                    :for pos :in (v-start v)
-                    :collect (make-state pos NIL))
-                  0
-                  (list (make-state 0 (v-keys-sorted v)))
-                  (partial-2 #'v-reachable-keys-part2 v)
-                  (constantly 0)
-                  :key (lambda (s) (summation s :key (lambda (ss) ss (length (s-keys ss))))))
-        (gethash end-state cost-so-far)))))
+    ;               :key (lambda (s) (summation s :key (lambda (ss) ss (length (s-keys ss))))))
+    ;     (gethash end-state cost-so-far)))))
 
 (1am:test test-2019/18
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 5068 part1))
-    (1am:is (= 1966 part2))))
+  (multiple-value-bind (part1) (problem-run)
+    (1am:is (= 5068 part1))))
+    ; (1am:is (= 1966 part2))))
