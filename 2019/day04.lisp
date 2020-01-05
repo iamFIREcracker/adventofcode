@@ -5,14 +5,6 @@
   (let* ((parts (split-sequence:split-sequence #\- str)))
     (mapcar #'parse-integer parts)))
 
-(defun digits (number)
-  (loop
-    :for rest = number :then (floor rest 10)
-    :for d = (mod rest 10)
-    :while (> rest 0)
-    :collect d :into digits
-    :finally (return (reverse digits))))
-
 (defun not-decreasing (digits)
   (loop
     :for (d . (next . remaining)) :on digits
@@ -29,7 +21,7 @@
 (defun solve-part1 (from to)
   (loop
     :for password :from from :upto (1+ to)
-    :for digits = (digits password)
+    :for digits = (digits-reverse password)
     :counting (and
                 (not-decreasing digits)
                 (at-least-one-digit-repeated digits))))
@@ -42,7 +34,7 @@
 (defun solve-part2 (from to)
   (loop
     :for password :from from :upto (1+ to)
-    :for digits = (digits password)
+    :for digits = (digits-reverse password)
     :counting (and
                 (not-decreasing digits)
                 (at-least-one-digit-repeated digits)

@@ -31,6 +31,8 @@
     :complex-rotate-cw
     :complex-rotate-ccw
     :modn
+    :digits-reverse
+    :str-digits
 
     :recursively
     :recur

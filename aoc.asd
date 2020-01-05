@@ -14,8 +14,12 @@
   :license  "MIT"
   :version "0.0.1"
   :serial t
-  :depends-on(#:1am
-              #:split-sequence)
+  :depends-on (
+
+              #:1am
+              #:split-sequence
+
+              )
   :components
   ((:module "vendor"
     :serial t

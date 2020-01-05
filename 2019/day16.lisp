@@ -13,15 +13,6 @@
     (ncycle pattern)
     (cdr pattern)))
 
-;; XXX 2019/04
-(defun digits (number)
-  (loop
-    :for rest = number :then (floor rest 10)
-    :for d = (mod rest 10)
-    :while (> rest 0)
-    :collect d :into digits
-    :finally (return (reverse digits))))
-
 (defun fft (digits)
   (loop
     :for i :from 1 :upto (length digits)
@@ -37,7 +28,7 @@
 (defun solve-part1 (message)
   (loop
     :for n = 0 :then (1+ n)
-    :for digits = (digits message) :then (fft digits)
+    :for digits = (digits-reverse message) :then (fft digits)
     :when (= n 100)
     :return (firt-8-digits digits)))
 
@@ -57,7 +48,7 @@
     :collecting (rem sum 10) into output
     :finally (return (nreverse output))))
 
-(defun solve-part2 (message &aux (message-digits (repeat (digits message) 10000)))
+(defun solve-part2 (message &aux (message-digits (repeat (digits-reverse message) 10000)))
   (loop
     :with offset = (firt-7-digits-as-integer message-digits)
     :for n = 0 :then (1+ n)

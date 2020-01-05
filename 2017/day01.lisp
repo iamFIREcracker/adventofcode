@@ -1,14 +1,8 @@
 (defpackage :aoc/2017/01 #.cl-user::*aoc-use*)
 (in-package :aoc/2017/01)
 
-(defun char-to-int (char)
-  (- (char-int char) (char-int #\0)))
-
-(defun explode-digits (str)
-  (map 'vector #'char-to-int str))
-
 (define-problem (2017 1) (data first)
-  (let* ((digits (explode-digits data))
+  (let* ((digits (str-digits data 'vector))
          (size (length digits)))
     (values
       (loop
