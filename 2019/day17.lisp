@@ -13,18 +13,8 @@
                  :out (intcode:program-out program))))
 
 (defun print-map (h)
-  (flet ((print-char (value pos)
-           (cond ((null value) #\Space)
-                 (T value))))
-    (let ((min-x (minimization (hash-table-keys h) :key #'realpart))
-          (max-x (maximization (hash-table-keys h) :key #'realpart))
-          (min-y (minimization (hash-table-keys h) :key #'imagpart))
-          (max-y (maximization (hash-table-keys h) :key #'imagpart)))
-      (doirange (y max-y min-y -1)
-        (doirange (x min-x max-x)
-          (let ((pos (complex x y)))
-            (format T "~a" (print-char (gethash pos h) pos))))
-        (format T "~&")))))
+  (print-hash-table-map h (lambda (value &optional)
+                            (if (null value) #\Space value))))
 
 (defun explore (robot)
   (loop
@@ -45,11 +35,12 @@
 (defun explore-1 (robot)
   (loop
     :with program = (robot-program robot)
-    :for running = (intcode:program-run program)
-    :for code = (dequeue (robot-out robot))
-    :for char = (code-char code)
-    :do (format T "~a~&" code)
-    :until (queue-empty-p (robot-out robot))))
+    :with last
+    :until (queue-empty-p (robot-out robot))
+    :do (progn
+          (intcode:program-run program)
+          (setf last (dequeue (robot-out robot))))
+    :finally (return last)))
 
 (defun neighbors (pos)
   (loop
@@ -94,8 +85,7 @@
     (dolist (char (input-video-feed))
       (enqueue (char-code char) (robot-in robot)))
     (intcode:program-run (robot-program robot))
-    (explore-1 robot)
-    (dequeue (robot-out robot))))
+    (explore-1 robot)))
 
 (define-problem (2019 17) (program intcode:read-program)
   (values
@@ -109,7 +99,7 @@
     (let* ((robot (make-robot program)))
       (robot-clean robot))))
 
-; (1am:test test-2019/17
-;   (multiple-value-bind (part1 part2) (problem-run)
-;     (1am:is (= 11140 part1))
-;     (1am:is (= 1113108 part2))))
+(1am:test test-2019/17
+  (multiple-value-bind (part1 part2) (problem-run)
+    (1am:is (= 11140 part1))
+    (1am:is (= 1113108 part2))))

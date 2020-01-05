@@ -59,21 +59,12 @@
         (next-dir (opposite-dir dir))
         (left-of dir)))))
 
-(defun print-map (start oxygen h) ;; XXX remove this
-  (flet ((print-char (value pos)
-           (cond ((= start pos) #\S)
-                 ((= oxygen pos) #\O)
-                 ((null value) #\#)
-                 (T value))))
-    (let ((min-x (minimization (hash-table-keys h) :key #'realpart))
-          (max-x (maximization (hash-table-keys h) :key #'realpart))
-          (min-y (minimization (hash-table-keys h) :key #'imagpart))
-          (max-y (maximization (hash-table-keys h) :key #'imagpart)))
-      (doirange (y max-y min-y -1)
-        (doirange (x min-x max-x)
-          (let ((pos (complex x y)))
-            (format T "~a" (print-char (gethash pos h) pos))))
-        (format T "~&")))))
+(defun print-map (start oxygen h)
+  (print-hash-table-map h (lambda (value pos)
+                            (cond ((= start pos) #\S)
+                                  ((= oxygen pos) #\O)
+                                  ((null value) #\#)
+                                  (T value)))))
 
 (defun explore (droid)
   (loop
