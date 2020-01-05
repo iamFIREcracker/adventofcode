@@ -122,10 +122,6 @@
                            (make-state key-pos (merge 'list (copy-seq keys) (list key) #'char<))
                            (+ steps-so-far steps))))
 
-(defun flatten (ls)
-  (labels ((mklist (x) (if (listp x) x (list x))))
-    (mapcan #'(lambda (x) (if (atom x) (mklist x) (flatten x))) ls)))
-
 (defun v-reachable-keys-part2 (v states steps-so-far)
   (loop
     :with all-keys = (nsorted (flatten (mapcar #'s-keys states)))

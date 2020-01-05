@@ -2,7 +2,7 @@
 ;;;; See http://quickutil.org for details.
 
 ;;;; To regenerate:
-;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:DIGITS :MKSTR :NCYCLE :SYMB :VOID :WITH-GENSYMS) :ensure-package T :package "AOC.QUICKUTILS")
+;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:DIGITS :FLATTEN :MKSTR :NCYCLE :SYMB :VOID :WITH-GENSYMS) :ensure-package T :package "AOC.QUICKUTILS")
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (unless (find-package "AOC.QUICKUTILS")
@@ -13,7 +13,7 @@
 (in-package "AOC.QUICKUTILS")
 
 (when (boundp '*utilities*)
-  (setf *utilities* (union *utilities* '(:DIGITS :MKSTR :NCYCLE :SYMB :VOID
+  (setf *utilities* (union *utilities* '(:DIGITS :FLATTEN :MKSTR :NCYCLE :SYMB :VOID
                                          :STRING-DESIGNATOR :WITH-GENSYMS))))
 
   (defun digits (n &optional (base 10))
@@ -33,6 +33,15 @@ the following identity holds:
           :do (setf (values n remainder) (truncate n base))
           :collect remainder
           :until (zerop n)))
+  
+
+  (defun flatten (&rest xs)
+    "Flatten (and append) all lists `xs` completely."
+    (labels ((rec (xs acc)
+               (cond ((null xs)  acc)
+                     ((consp xs) (rec (car xs) (rec (cdr xs) acc)))
+                     (t          (cons xs acc)))))
+      (rec xs nil)))
   
 
   (defun mkstr (&rest args)
@@ -107,6 +116,6 @@ unique symbol the named variable will be bound to."
     `(with-gensyms ,names ,@forms))
   
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (export '(digits mkstr ncycle symb void with-gensyms with-unique-names)))
+  (export '(digits flatten mkstr ncycle symb void with-gensyms with-unique-names)))
 
 ;;;; END OF quickutils.lisp ;;;;

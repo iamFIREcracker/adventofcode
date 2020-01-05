@@ -3,6 +3,8 @@
 (qtlc:save-utils-as
   "quickutils.lisp"
   :utilities '(
+               :digits
+               :flatten
                :mkstr
                :ncycle
                :symb
