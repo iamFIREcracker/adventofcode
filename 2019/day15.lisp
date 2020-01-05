@@ -97,7 +97,7 @@
                              (setf (gethash pos map) #\.
                                    pos next-pos
                                    dir next-dir))
-    :while (< time 50000) :do (enqueue dir (droid-in droid))
+    :while (< time 5000) :do (enqueue dir (droid-in droid))
     :finally (return (values start oxygen map))))
 
 (defun neighbors (map pos)

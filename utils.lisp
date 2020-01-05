@@ -662,7 +662,9 @@ By default, it will store the result into a list, but `type` can be tweaked to c
                     (hash-table-insert come-from next-state state)
                     (hq-insertf frontier next-state (calc-priority next-state))))))
         :when print-stats :do (setf processed-states (1+ processed-states)
-                                    max-queued-states (max max-queued-states (length frontier))))
+                                    max-queued-states (max max-queued-states (length frontier)))
+        :finally (when print-stats
+                   (format t "Processed states: ~d~&Max queued states: ~d~%" processed-states max-queued-states)))
       cost-so-far
       come-from)))
 
@@ -703,7 +705,9 @@ By default, it will store the result into a list, but `type` can be tweaked to c
               (hash-table-insert come-from next-state state)
               (enqueue next-state frontier)))
       :when print-stats :do (setf processed-states (1+ processed-states)
-                                  max-queued-states (max max-queued-states (length (queue-items frontier)))))
+                                  max-queued-states (max max-queued-states (length (queue-items frontier))))
+      :finally (when print-stats
+                 (format t "Processed states: ~d~&Max queued states: ~d~%" processed-states max-queued-states)))
     cost-so-far
     come-from))
 

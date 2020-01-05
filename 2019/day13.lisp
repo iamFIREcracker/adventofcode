@@ -18,14 +18,15 @@
                 :screen (make-hash-table)
                 :score 0)))
 
-(defun game-print (game &aux (screen (game-screen game)))
-  (print-hash-table-map screen (lambda (value &optional key)
-                                 (case value
-                                   (0 #\Space)
-                                   (1 #\|)
-                                   (2 #\#)
-                                   (3 #\-)
-                                   (4 #\o))))
+(defun game-print (game)
+  (print-hash-table-map (game-screen game) (lambda (value &optional key)
+                                             (declare (ignore key))
+                                             (case value
+                                               (0 #\Space)
+                                               (1 #\|)
+                                               (2 #\#)
+                                               (3 #\-)
+                                               (4 #\o))))
   (format T "~a~%" (game-score game)))
 
 (defun game-play (game &key (interactive T))
