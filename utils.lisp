@@ -368,18 +368,6 @@ By default, it will store the result into a list, but `type` can be tweaked to c
 
 ;;;; Hash tables --------------------------------------------------------------
 
-(defun hash-table-keys (h)
-  "Return the hash keys of `h`"
-  (loop
-    :for k :being :the :hash-key :of h
-    :collecting k))
-
-(defun hash-table-values (h)
-  "Return the hash values of `h`"
-  (loop
-    :for v :being :the :hash-value :of h
-    :collecting v))
-
 (defun hash-table-find (value h &key (key 'identity) (test 'eql))
   "Returns the first key in `h`, whose value is equal to `value`"
   (loop
@@ -389,18 +377,6 @@ By default, it will store the result into a list, but `type` can be tweaked to c
 
 (defmacro hash-table-insert (ht key value)
   `(setf (gethash ,key ,ht) ,value))
-
-(defun copy-hash-table (hash-table)
-  "Borrowed from: https://stackoverflow.com/a/26061176"
-  (let ((ht (make-hash-table
-             :test (hash-table-test hash-table)
-             :rehash-size (hash-table-rehash-size hash-table)
-             :rehash-threshold (hash-table-rehash-threshold hash-table)
-             :size (hash-table-size hash-table))))
-    (loop for key being each hash-key of hash-table
-       using (hash-value value)
-       do (setf (gethash key ht) value)
-       finally (return ht))))
 
 (defun hash-table-contains-key-p (h key)
   (multiple-value-bind (v containsp)

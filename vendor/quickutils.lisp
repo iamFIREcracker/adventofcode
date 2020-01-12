@@ -2,7 +2,7 @@
 ;;;; See http://quickutil.org for details.
 
 ;;;; To regenerate:
-;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:DIGITS :FLATTEN :MKSTR :NCYCLE :SYMB :VOID :WITH-GENSYMS) :ensure-package T :package "AOC.QUICKUTILS")
+;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:COPY-HASH-TABLE :DIGITS :FLATTEN :HASH-TABLE-KEYS :HASH-TABLE-VALUES :MKSTR :NCYCLE :SYMB :VOID :WITH-GENSYMS) :ensure-package T :package "AOC.QUICKUTILS")
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (unless (find-package "AOC.QUICKUTILS")
@@ -13,8 +13,34 @@
 (in-package "AOC.QUICKUTILS")
 
 (when (boundp '*utilities*)
-  (setf *utilities* (union *utilities* '(:DIGITS :FLATTEN :MKSTR :NCYCLE :SYMB :VOID
+  (setf *utilities* (union *utilities* '(:COPY-HASH-TABLE :DIGITS :FLATTEN
+                                         :MAPHASH-KEYS :HASH-TABLE-KEYS
+                                         :MAPHASH-VALUES :HASH-TABLE-VALUES
+                                         :MKSTR :NCYCLE :SYMB :VOID
                                          :STRING-DESIGNATOR :WITH-GENSYMS))))
+
+  (defun copy-hash-table (table &key key test size
+                                     rehash-size rehash-threshold)
+    "Returns a copy of hash table `table`, with the same keys and values
+as the `table`. The copy has the same properties as the original, unless
+overridden by the keyword arguments.
+
+Before each of the original values is set into the new hash-table, `key`
+is invoked on the value. As `key` defaults to `cl:identity`, a shallow
+copy is returned by default."
+    (setf key (or key 'identity))
+    (setf test (or test (hash-table-test table)))
+    (setf size (or size (hash-table-size table)))
+    (setf rehash-size (or rehash-size (hash-table-rehash-size table)))
+    (setf rehash-threshold (or rehash-threshold (hash-table-rehash-threshold table)))
+    (let ((copy (make-hash-table :test test :size size
+                                 :rehash-size rehash-size
+                                 :rehash-threshold rehash-threshold)))
+      (maphash (lambda (k v)
+                 (setf (gethash k copy) (funcall key v)))
+               table)
+      copy))
+  
 
   (defun digits (n &optional (base 10))
     "Return a list of the digits of the non-negative integer `n` in base
@@ -42,6 +68,42 @@ the following identity holds:
                      ((consp xs) (rec (car xs) (rec (cdr xs) acc)))
                      (t          (cons xs acc)))))
       (rec xs nil)))
+  
+
+  (declaim (inline maphash-keys))
+  (defun maphash-keys (function table)
+    "Like `maphash`, but calls `function` with each key in the hash table `table`."
+    (maphash (lambda (k v)
+               (declare (ignore v))
+               (funcall function k))
+             table))
+  
+
+  (defun hash-table-keys (table)
+    "Returns a list containing the keys of hash table `table`."
+    (let ((keys nil))
+      (maphash-keys (lambda (k)
+                      (push k keys))
+                    table)
+      keys))
+  
+
+  (declaim (inline maphash-values))
+  (defun maphash-values (function table)
+    "Like `maphash`, but calls `function` with each value in the hash table `table`."
+    (maphash (lambda (k v)
+               (declare (ignore k))
+               (funcall function v))
+             table))
+  
+
+  (defun hash-table-values (table)
+    "Returns a list containing the values of hash table `table`."
+    (let ((values nil))
+      (maphash-values (lambda (v)
+                        (push v values))
+                      table)
+      values))
   
 
   (defun mkstr (&rest args)
@@ -116,6 +178,7 @@ unique symbol the named variable will be bound to."
     `(with-gensyms ,names ,@forms))
   
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (export '(digits flatten mkstr ncycle symb void with-gensyms with-unique-names)))
+  (export '(copy-hash-table digits flatten hash-table-keys hash-table-values
+            mkstr ncycle symb void with-gensyms with-unique-names)))
 
 ;;;; END OF quickutils.lisp ;;;;

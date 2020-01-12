@@ -44,11 +44,8 @@
     :dovector
 
     :hash-table-find
-    :hash-table-keys
-    :hash-table-values
     :hash-table-insert
     :hash-table-contains-key-p
-    :copy-hash-table
     :print-hash-table
     :print-hash-table-map
 
