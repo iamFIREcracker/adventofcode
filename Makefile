@@ -1,4 +1,4 @@
-.PHONY: vendor test test-sbcl test-ros
+.PHONY: pmdb vendor test test-sbcl test-ros
 
 lisps := $(shell find .  -type f \( -iname \*.asd -o -iname \*.lisp \) ! -name make-quickutils.lisp)
 
@@ -18,6 +18,11 @@ cl-test-args := --eval '\
 			(uiop:quit exit-code)))'
 
 all: test
+
+# PMDB ------------------------------------------------------------------------
+pmdb: pmdb.lisp
+pmdb.lisp:
+	cp ~/.lisp/pmdb.lisp pmdb.lisp
 
 # Vendor ----------------------------------------------------------------------
 vendor: vendor/quickutils.lisp
