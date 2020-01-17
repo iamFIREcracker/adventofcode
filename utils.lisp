@@ -623,22 +623,23 @@ By default, it will store the result into a list, but `type` can be tweaked to c
         :with processed-states = 0
         :with max-queued-states = 0
         :with frontier = (make-hq)
-        :initially (hq-insertf frontier init-state (calc-priority init-state))
+        :initially (hq-insertf frontier (list init-state init-cost) (calc-priority init-state))
         :until (hq-empty-p frontier)
-        :for state = (hq-popf frontier)
-        :for state-cost = (gethash state cost-so-far)
+        :for (state state-cost) = (hq-popf frontier)
         :when (funcall goalp state) :return (prog1 state
                                               (when print-stats
                                                 (format t "Processed states: ~d~&Max queued states: ~d~%" processed-states max-queued-states)))
-        :do (dolist (next (funcall neighbors state state-cost))
-              (destructuring-bind (next-state next-cost) next
-                (multiple-value-bind (existing-cost present-p) (gethash next-state cost-so-far)
-                  (when (or (not present-p) (< next-cost existing-cost))
-                    (hash-table-insert cost-so-far next-state next-cost)
-                    (hash-table-insert come-from next-state state)
-                    (hq-insertf frontier next-state (calc-priority next-state))))))
-        :when print-stats :do (setf processed-states (1+ processed-states)
-                                    max-queued-states (max max-queued-states (length frontier)))
+        :do (when (= state-cost (gethash state cost-so-far))
+              (dolist (next (funcall neighbors state state-cost))
+                (destructuring-bind (next-state next-cost) next
+                  (multiple-value-bind (existing-cost present-p) (gethash next-state cost-so-far)
+                    (when (or (not present-p) (< next-cost existing-cost))
+                      (hash-table-insert cost-so-far next-state next-cost)
+                      (hash-table-insert come-from next-state state)
+                      (hq-insertf frontier (list next-state next-cost) (calc-priority next-state))))))
+              (when print-stats
+                (setf processed-states (1+ processed-states)
+                      max-queued-states (max max-queued-states (length frontier)))))
         :finally (when print-stats
                    (format t "Processed states: ~d~&Max queued states: ~d~%" processed-states max-queued-states)))
       cost-so-far
