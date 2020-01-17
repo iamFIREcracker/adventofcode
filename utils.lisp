@@ -676,13 +676,15 @@ By default, it will store the result into a list, but `type` can be tweaked to c
       :when (funcall goalp state) :return (prog1 state
                                             (when print-stats
                                               (format t "Processed states: ~d~&Max queued states: ~d~%" processed-states max-queued-states)))
-      :do (dolist (next-state (funcall neighbors state))
-            (unless (gethash next-state cost-so-far)
-              (hash-table-insert cost-so-far next-state (1+ state-cost))
-              (hash-table-insert come-from next-state state)
-              (enqueue next-state frontier)))
-      :when print-stats :do (setf processed-states (1+ processed-states)
-                                  max-queued-states (max max-queued-states (length (queue-items frontier))))
+      :do (progn
+            (dolist (next-state (funcall neighbors state))
+              (unless (gethash next-state cost-so-far)
+                (hash-table-insert cost-so-far next-state (1+ state-cost))
+                (hash-table-insert come-from next-state state)
+                (enqueue next-state frontier)))
+            (when print-stats
+              (setf processed-states (1+ processed-states)
+                    max-queued-states (max max-queued-states (length (queue-items frontier))))))
       :finally (when print-stats
                  (format t "Processed states: ~d~&Max queued states: ~d~%" processed-states max-queued-states)))
     cost-so-far
