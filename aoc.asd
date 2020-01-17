@@ -38,4 +38,13 @@
                  (:file "day11")
                  (:file "day22")
                  (:file "day25")))
-   (:auto-module "2019")))
+   (:auto-module "2019"))
+  :in-order-to ((test-op (test-op :aoc/tests))))
+
+(asdf:defsystem :aoc/tests
+  :description "Advent of Code solutions, in Common Lisp"
+  :author "Matteo Landi <matteo@matteolandi.net>"
+  :license  "MIT"
+  :version "0.0.1"
+  :depends-on (#:aoc)
+  :perform (test-op (o c) (uiop:symbol-call :1am '#:run)))

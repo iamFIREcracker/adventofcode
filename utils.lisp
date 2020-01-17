@@ -172,7 +172,19 @@
             (all-permutations (append (rest lst) (list (first lst))) (rest remain))))))
 
 
-;;;; Functional --------------------------------------------------------------
+;;;; Control flow ------------------------------------------------------------
+
+(defmacro recursively (bindings &body body)
+  "Execute `body` recursively, like Clojure's `loop`/`recur`.
+
+  `bindings` should contain a list of symbols and (optional) starting values.
+
+  In `body` the symbol `recur` will be bound to the function for recurring."
+  (let ((names (mapcar #'(lambda (b) (if (atom b) b (first b))) bindings))
+        (values (mapcar #'(lambda (b) (if (atom b) nil (second b))) bindings)))
+    `(labels ((recur (,@names)
+                ,@body))
+        (recur ,@values))))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defun args-contain-placeholder-p (args placeholder)
@@ -186,9 +198,6 @@
   (defun args-replace (placeholder args name)
     (subst name placeholder args)))
 
-(defun args-prepend (args name)
-  (cons name args))
-
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defun args-append (args name)
     (append args (list name))))
@@ -199,22 +208,61 @@
       (args-replace placeholder args name)
       (args-append args name))))
 
+(defmacro ->< (x &rest forms)
+  "Threads the expr through the forms, like Clojure's `->`.
+
+  While threadingg, for each element of `FORMS`:
+
+  - if a SYMBOL, it's converted into a LIST and the accumulated value is appended to it
+  - if a LIST already, the accumulated value is appended to it unless the list contains
+  the placeholder `><` (in which case `><` is replaced with the accumulated value)
+
+  Examples:
+  (->< 'World
+    (list 'Hello))
+  =>
+  (HELLO WORLD)
+
+  (->< 'World
+    (list >< 'Hello))
+  =>
+  (WORLD HELLO)
+
+  (->< 'World
+    (list >< 'Hello)
+    reverse)
+  =>
+  (HELLO WORLD)
+  "
+  (with-gensyms (result)
+    `(let* ((,result ,x)
+            ,@(mapcar (lambda (form)
+                        (if (symbolp form)
+                          `(,result (,form ,result))
+                          `(,result ,(args-replace-placeholder-or-append form
+                                                                          '><
+                                                                          result))))
+                      forms))
+        ,result)))
+
+;;;; Functional --------------------------------------------------------------
+
 (defmacro partial-1 (fn &rest args)
   "Returns a function that invokes `fn` with `args` prepended to the argument it
   receives.  The symbol _ may be used as a placeholder for where the received
   argument should be placed in the argument list.
 
   Example:
-    (defun greet (greeting name)
-      (list greeting name))
+  (defun greet (greeting name)
+    (list greeting name))
 
-    (funcall (partial-1 #'greet 'hello) 'fred)
-    ; =>
-    (HELLO FRED)
+  (funcall (partial-1 #'greet 'hello) 'fred)
+  ; =>
+  (HELLO FRED)
 
-    (funcall (partial-1 #'greet _ 'fred) 'hi)
-    ; =>
-    (HI FRED)
+  (funcall (partial-1 #'greet _ 'fred) 'hi)
+  ; =>
+  (HI FRED)
   "
   (with-gensyms (more-arg)
     (let ((actual-args (args-replace-placeholder-or-append args '_ more-arg)))
@@ -315,56 +363,41 @@ For example, where (digits 123) would return (3 2 1), DIGITS-REVERSE would retur
 By default, it will store the result into a list, but `type` can be tweaked to change that"
   (map type #'(lambda (c) (- (char-code c) (char-code #\0))) string))
 
-;;;; Control flow ------------------------------------------------------------
+;;;; Iterators ----------------------------------------------------------------
 
-(defmacro recursively (bindings &body body)
-  "Execute `body` recursively, like Clojure's `loop`/`recur`.
+(defmacro dorange ((var from to &optional (delta 1)) &body body)
+  "Perform `body` on the given range of values.
+  During iteration `body` will be executed with `var` bound to successive values
+  in the range [`from`, `to`).
 
-  `bindings` should contain a list of symbols and (optional) starting values.
-
-  In `body` the symbol `recur` will be bound to the function for recurring."
-  (let ((names (mapcar #'(lambda (b) (if (atom b) b (first b))) bindings))
-        (values (mapcar #'(lambda (b) (if (atom b) nil (second b))) bindings)))
-    `(labels ((recur (,@names)
-                ,@body))
-      (recur ,@values))))
-
-(defmacro ->< (x &rest forms)
-  "Threads the expr through the forms, like Clojure's `->`.
-
-  While threadingg, for each element of `FORMS`:
-
-  - if a SYMBOL, it's converted into a LIST and the accumulated value is appended to it
-  - if a LIST already, the accumulated value is appended to it unless the list contains
-  the placeholder `><` (in which case `><` is replaced with the accumulated value)
-
-  Examples:
-  (->< 'World
-    (list 'Hello))
-  =>
-  (HELLO WORLD)
-
-  (->< 'World
-    (list >< 'Hello))
-  =>
-  (WORLD HELLO)
-
-  (->< 'World
-    (list >< 'Hello)
-    reverse)
-  =>
-  (HELLO WORLD)
+  Example:
+    (dorange (x 5 8)
+      (pr x))
+    ; =>
+    5
+    6
+    7
   "
-  (with-gensyms (result)
-    `(let* ((,result ,x)
-            ,@(mapcar (lambda (form)
-                        (if (symbolp form)
-                          `(,result (,form ,result))
-                          `(,result ,(args-replace-placeholder-or-append form
-                                                                         '><
-                                                                         result))))
-                      forms))
-       ,result)))
+  (with-gensyms (lto ldelta comp)
+    `(let* ((,lto ,to)
+            (,ldelta ,delta)
+            (,comp (if (> ,ldelta 0) '< '>)))
+        (loop
+          :for ,var = ,from :then (+ ,var ,ldelta)
+          :while (funcall ,comp ,var ,lto)
+          :do (progn ,@body)))))
+
+(defmacro doirange ((var from to &optional (delta 1)) &body body)
+  "Similar to `DORANGE`, but `TO` is now included in the range."
+  (let ((to-form (list (if (> delta 0) '1+ '1-) to)))
+    `(dorange (,var ,from ,to-form ,delta)
+      ,@body)))
+
+(defmacro dovector ((var vector &optional ret) &body body)
+  "Perform `body` on all the elements of `vector`."
+  `(loop :for ,var :across ,vector
+         :do ,@body
+         :finally (return ,ret)))
 
 ;;;; Hash tables --------------------------------------------------------------
 
@@ -375,8 +408,8 @@ By default, it will store the result into a list, but `type` can be tweaked to c
     :for v = (gethash k h)
     :when (funcall test value (funcall key v)) :return (values k v)))
 
-(defmacro hash-table-insert (ht key value)
-  `(setf (gethash ,key ,ht) ,value))
+(defun hash-table-insert (ht key value) ;; XXX this cannot be defined as macro, somehow..
+  (setf (gethash key ht) value))
 
 (defun hash-table-contains-key-p (h key)
   (multiple-value-bind (v containsp)
@@ -785,42 +818,6 @@ By default, it will store the result into a list, but `type` can be tweaked to c
                 item))
          ,@body)
        (nreverse ,result))))
-
-;;;; Iterators ----------------------------------------------------------------
-
-(defmacro dorange ((var from to &optional (delta 1)) &body body)
-  "Perform `body` on the given range of values.
-  During iteration `body` will be executed with `var` bound to successive values
-  in the range [`from`, `to`).
-
-  Example:
-    (dorange (x 5 8)
-      (pr x))
-    ; =>
-    5
-    6
-    7
-  "
-  (with-gensyms (lto ldelta comp)
-    `(let* ((,lto ,to)
-            (,ldelta ,delta)
-            (,comp (if (> ,ldelta 0) '< '>)))
-        (loop
-          :for ,var = ,from :then (+ ,var ,ldelta)
-          :while (funcall ,comp ,var ,lto)
-          :do (progn ,@body)))))
-
-(defmacro doirange ((var from to &optional (delta 1)) &body body)
-  "Similar to `DORANGE`, but `TO` is now included in the range."
-  (let ((to-form (list (if (> delta 0) '1+ '1-) to)))
-    `(dorange (,var ,from ,to-form ,delta)
-      ,@body)))
-
-(defmacro dovector ((var vector &optional ret) &body body)
-  "Perform `body` on all the elements of `vector`."
-  `(loop :for ,var :across ,vector
-         :do ,@body
-         :finally (return ,ret)))
 
 ;;;; Streams ------------------------------------------------------------------
 (defun read-all (file)
