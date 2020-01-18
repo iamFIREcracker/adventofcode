@@ -68,7 +68,7 @@
          (min-fuel (floor cargo-limit ore-per-fuel)))
     (values
       ore-per-fuel
-      (binary-search min-fuel (* 1000 min-fuel) ;; Find a better heuristic
+      (binary-search min-fuel cargo-limit
                      (lambda (fuel)
                        (let ((ore (rl-generate-fuel rl fuel)))
                          (<=> ore cargo-limit)))))))
