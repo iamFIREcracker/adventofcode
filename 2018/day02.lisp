@@ -5,9 +5,8 @@
 (define-problem (2018 2) (data)
   (values
     (loop
-      :with freqs
       :for id :in data
-      :do (setf freqs (frequencies id))
+      :for freqs = (frequencies id)
       :counting (hash-table-find 2 freqs) :into twos
       :counting (hash-table-find 3 freqs) :into threes
       :finally (return (* twos threes)))
