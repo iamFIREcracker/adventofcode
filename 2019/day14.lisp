@@ -71,9 +71,7 @@
       (binary-search min-fuel (* 1000 min-fuel) ;; Find a better heuristic
                      (lambda (fuel)
                        (let ((ore (rl-generate-fuel rl fuel)))
-                         (if (<= ore cargo-limit)
-                           -1
-                           1)))))))
+                         (<=> ore cargo-limit)))))))
 
 (1am:test test-2019/14
   (multiple-value-bind (part1 part2) (problem-run)

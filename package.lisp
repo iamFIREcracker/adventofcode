@@ -33,6 +33,7 @@
     :modn
     :digits-reverse
     :str-digits
+    :<=>
 
     :recursively
     :recur

@@ -385,6 +385,16 @@ For example, where (digits 123) would return (3 2 1), DIGITS-REVERSE would retur
 By default, it will store the result into a list, but `type` can be tweaked to change that"
   (map type #'(lambda (c) (- (char-code c) (char-code #\0))) string))
 
+(defun <=> (n m)
+  "Three-way comparison operator, a.k.a. spaceship operator.
+
+  Returns:
+
+  -1 when n < m
+  0 when n = m
+  1 when n > m"
+  (signum (- n m)))
+
 ;;;; Iterators ----------------------------------------------------------------
 
 (defmacro dorange ((var from to &optional (delta 1)) &body body)

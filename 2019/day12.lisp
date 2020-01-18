@@ -23,11 +23,7 @@
 
 (defun moon-update-velf (m o)
   (let ((vel-update (mapcar #'(lambda (v1 v2)
-                                (if (< v1 v2)
-                                  1
-                                  (if (> v1 v2)
-                                    -1
-                                    0)))
+                                (<=> v2 v1))
                             (m-pos m)
                             (m-pos o))))
     (prog1 m
