@@ -2,12 +2,34 @@
 
 ;;;; General ------------------------------------------------------------------
 
+(defmacro loop1 (&rest forms)
+  "XXX document please"
+  (labels ((search-marker-pos (forms)
+            (search '(:being :the :elements :of)
+                    forms
+                    :test 'eql))
+           (skip-marker (pos) (+ pos 4))
+           (get-iteratee (forms marker-pos)
+             (nth (skip-marker marker-pos) forms)) ; skil :being :the :elements :of
+           (generate-body (forms marker-pos replacement)
+             (nconc
+               (subseq forms 0 marker-pos)
+               (list replacement)
+               (subseq forms (skip-marker marker-pos)))))
+    (let* ((pos (search-marker-pos forms))
+           (iter (get-iteratee forms pos))
+           (list-body (generate-body forms pos :in))
+           (seq-body (generate-body forms pos :across)))
+      `(typecase ,iter
+         (list (loop ,@list-body))
+         (sequence (loop ,@seq-body))))))
+
 (defun summation (x &key (key 'identity))
   "Returns the sum of all the elements of `x`, or 0 if `x` is _empty_.
 
   If `key` is specified, this function will return the sum of all
   the values of `x`, `map`-ed using `key`."
-  (loop
+  (loop1
     :for e :being :the :elements :of x
     :for v = (funcall key e)
     :summing v))
@@ -17,7 +39,7 @@
 
   If `key` is specified, this function will return the max of all
   the values of `x`, `map`-ed using `key`."
-  (loop
+  (loop1
     :for e :being :the :elements :of x
     :for v = (funcall key e)
     :maximizing v))
@@ -27,7 +49,7 @@
 
   If `key` is specified, this function will return the min of all
   the values of `x`, `map`-ed using `key`."
-  (loop
+  (loop1
     :for e :being :the :elements :of x
     :for v = (funcall key e)
     :minimizing v))
@@ -38,7 +60,7 @@
 
   If `key` is specified, this function will return the element that
   minimizes `x`."
-  (loop
+  (loop1
     :with best-e
     :with best-v
     :for e :being :the :elements :of x
@@ -54,7 +76,7 @@
 
   If `key` is specified, this function will return the element that
   maximizes `x`."
-  (loop
+  (loop1
     :with best-e
     :with best-v
     :for e :being :the :elements :of x
@@ -122,7 +144,7 @@
     =>
     (((5 3 1) T) ((6 4 2) NIL))
   "
-  (loop
+  (loop1
     :with groups = (make-hash-table :test test)
     :with keys = (make-hash-table :test test)
     :for k :being :the :elements :of x
