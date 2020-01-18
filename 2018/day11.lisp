@@ -36,7 +36,7 @@
          (st (make-summedarea-table grid)))
     (values
       (destructuring-bind (x y) (max-square-of-energy st 3)
-        (mkstr (1+ x) #\Comma (1+ y)))
+        (mkstrc (1+ x) (1+ y)))
       (loop
         :with best-pos
         :with best-value
@@ -48,7 +48,7 @@
                       best-value value
                       best-size size)))
         :finally (return (destructuring-bind (x y) best-pos
-                           (mkstr (1+ x) #\Comma (1+ y) #\Comma best-size)))))))
+                           (mkstrc (1+ x) (1+ y) best-size)))))))
 
 (1am:test test-2018/11
   (multiple-value-bind (part1 part2) (problem-run)

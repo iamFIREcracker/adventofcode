@@ -56,16 +56,16 @@
     :always (scaffoldp neighbor map)))
 
 (defun input-main-movement-routine-1()
-  (list #\A #\Comma #\A #\Comma #\B #\Comma #\B #\Comma #\C #\Comma #\B #\Comma #\C #\Comma #\B #\Comma #\C #\Comma #\A #\Newline))
+  (list #\A #\, #\A #\, #\B #\, #\B #\, #\C #\, #\B #\, #\C #\, #\B #\, #\C #\, #\A #\Newline))
 
 (defun input-movement-function-1()
-  (list #\L #\Comma #\1 #\0 #\Comma #\L #\Comma #\1 #\0 #\Comma #\R #\Comma #\6 #\Newline))
+  (list #\L #\, #\1 #\0 #\, #\L #\, #\1 #\0 #\, #\R #\, #\6 #\Newline))
 
 (defun input-movement-function-2()
-  (list #\R #\Comma #\1 #\2 #\Comma #\L #\Comma #\1 #\2 #\Comma #\L #\Comma #\1 #\2 #\Newline))
+  (list #\R #\, #\1 #\2 #\, #\L #\, #\1 #\2 #\, #\L #\, #\1 #\2 #\Newline))
 
 (defun input-movement-function-3()
-  (list #\L #\Comma #\6 #\Comma #\L #\Comma #\1 #\0 #\Comma #\R #\Comma #\1 #\2 #\Comma #\R #\Comma #\1 #\2 #\Newline))
+  (list #\L #\, #\6 #\, #\L #\, #\1 #\0 #\, #\R #\, #\1 #\2 #\, #\R #\, #\1 #\2 #\Newline))
 
 (defun input-video-feed ()
   (list #\n #\Newline))
