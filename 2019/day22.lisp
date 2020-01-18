@@ -74,6 +74,7 @@
 ;;
 (defun invmod (a m)
   (multiple-value-bind (r s k) (egcd a m)
+    (declare (ignore k))
     (unless (= 1 r) (error "invmod: Values ~a and ~a are not coprimes." a m))  
     s))
 

@@ -11,7 +11,6 @@
 (define-problem (2019 25) (program intcode:read-program)
   (values
     (loop
-      :with seen = (make-hash-table)
       :do (intcode:program-run program)
       :do (loop
             :until (queue-empty-p (intcode:program-out program))

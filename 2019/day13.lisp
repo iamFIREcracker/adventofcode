@@ -36,7 +36,7 @@
     (hash-table-insert memory 0 2)
     (game-run game)))
 
-(defun game-guess-move (game ball bar)
+(defun guess-move (ball bar)
   (let ((ball-x (realpart ball))
         (bar-x (realpart bar)))
     (if (< ball-x bar-x)
@@ -63,7 +63,7 @@
           :when (= x -1) :do (setf (game-score game) tile-id)
           :until (queue-empty-p (intcode:program-out program)))
     :while running
-    :do (enqueue (game-guess-move game ball bar) (game-in game)) 
+    :do (enqueue (guess-move ball bar) (game-in game))
     :when *interactive* :do (progn (game-print game) (sleep .2))
     :finally (return (game-score game))))
 
