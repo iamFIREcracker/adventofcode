@@ -17,6 +17,15 @@ env:
     - LISP=ecl
     - LISP=sbcl
 
+jobs:
+  allow_failures:
+    - env: LISP=abcl
+    - env: LISP=allegro
+    - env: LISP=ccl
+    - env: LISP=clisp
+    - env: LISP=cmucl
+    - env: LISP=ecl
+
 install:
   - curl -L $ROSWELL_URL | sh
 
