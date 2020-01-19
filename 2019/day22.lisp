@@ -17,7 +17,6 @@
   (mod (* (- position (d-offset d)) (invmod (d-jump d) (d-size d))) (d-size d)))
 
 (defun print-deck (d &aux (r (make-array (d-size d))))
-  (prl (d-offset d) (d-jump d))
   (dotimes (n (d-size d))
     (setf (aref r (deck-position n d)) n))
   (format t "~a~&" r))

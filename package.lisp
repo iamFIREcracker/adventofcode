@@ -104,4 +104,4 @@
     :define-problem))
 
 
-(defparameter *aoc-use* '(:use :cl :1am :split-sequence :aoc :aoc.quickutils))
+(defparameter *aoc-use* '(:use :cl :pmdb :1am :split-sequence :aoc :aoc.quickutils))

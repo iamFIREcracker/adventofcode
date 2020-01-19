@@ -5,9 +5,9 @@
 (defmacro loop1 (&rest forms)
   "XXX document please"
   (labels ((search-marker-pos (forms)
-            (search '(:being :the :elements :of)
-                    forms
-                    :test 'eql))
+             (search '(:being :the :elements :of)
+                     forms
+                     :test 'eql))
            (skip-marker (pos) (+ pos 4))
            (get-iteratee (forms marker-pos)
              (nth (skip-marker marker-pos) forms)) ; skil :being :the :elements :of
