@@ -267,6 +267,25 @@
                       forms))
         ,result)))
 
+(defmacro with-slots-as-list (slot-names instance-form)
+  "Extracts the values of the slots named `slot-names` from `instance-form`,
+  and return them as a LIST.
+
+  This might come in handy when using structs inside loops, and help you
+  replace:
+
+    :for foo = (foo instance)
+    :for bar = (bar instance)
+
+  with:
+
+    :for (foo bar) = (with-slots-as-list (foo bar) instance)
+
+  There is still some duplications unfortunately, but I like it more than the
+  multiple `:for name = (slot-fn instance)` approach."
+  `(with-slots ,slot-names ,instance-form
+       (list ,@slot-names)))
+
 ;;;; Functional --------------------------------------------------------------
 
 (defmacro partial-1 (fn &rest args)

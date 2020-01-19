@@ -44,13 +44,11 @@
              (maximization (hash-table-values registers))))
     (loop
       :with registers = (make-hash-table :test 'equal)
-      :for instruction :in data ; XXX isn't there a better way to handle this?
-      :for reg-inc = (reg-inc instruction)
-      :for inc-delta = (inc-delta instruction)
-      :for op = (comp-op instruction)
-      :for reg-comp-1 = (reg-comp-1 instruction)
-      :for value-comp = (value-comp instruction)
-      :when (funcall op (get-reg-value registers reg-comp-1) value-comp)
+      :for instruction :in data
+      :for (reg-inc inc-delta comp-op reg-comp-1 value-comp) = (with-slots-as-list
+                                                                 (reg-inc inc-delta comp-op reg-comp-1 value-comp)
+                                                                 instruction)
+      :when (funcall comp-op (get-reg-value registers reg-comp-1) value-comp)
       :maximizing (inc-reg registers reg-inc inc-delta) :into max
       :finally (return (values (max-reg-value registers)
                                max)))))

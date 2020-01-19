@@ -39,6 +39,7 @@
     :recur
     :><
     :-><
+    :with-slots-as-list
 
     :dorange
     :doirange
@@ -93,8 +94,6 @@
     :binary-search
 
     :mkstrc
-    :pr
-    :prl
     :gathering
     :gather
 

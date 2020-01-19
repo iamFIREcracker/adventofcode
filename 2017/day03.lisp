@@ -85,20 +85,17 @@
 
   And so on, and so forth.
   "
-  (let* ((storage (spiral-gen-storage gen)) ; XXX there should be a simple way to do stuff like this -- similar to `WITH-SLOTS`
-         (last (spiral-gen-last gen))
-         (last-pos (spiral-gen-last-pos gen))
-         (dir (spiral-gen-dir gen))
-         (next (1+ last))
-         (next-pos-busy (gethash (+ last-pos dir) storage))
-         (next-pos (+ last-pos (if next-pos-busy (complex-rotate-cw dir) dir)))
-         (next-dir (if next-pos-busy dir (complex-rotate-ccw dir))))
-    (setf (gethash next-pos storage) next
-          (spiral-gen-last gen) next
-          (spiral-gen-last-pos gen) next-pos
-          (spiral-gen-dir gen) next-dir))
-  (values (spiral-gen-last-pos gen)
-          (spiral-gen-last gen)))
+  (with-slots (storage last last-pos dir) gen
+    (let* ((next (1+ last))
+           (next-pos-busy (gethash (+ last-pos dir) storage))
+           (next-pos (+ last-pos (if next-pos-busy (complex-rotate-cw dir) dir)))
+           (next-dir (if next-pos-busy dir (complex-rotate-ccw dir))))
+      (setf (gethash next-pos storage) next
+            (spiral-gen-last gen) next
+            (spiral-gen-last-pos gen) next-pos
+            (spiral-gen-dir gen) next-dir)
+      (values (spiral-gen-last-pos gen)
+              (spiral-gen-last gen)))))
 
 (define-problem (2017 3) (data read-integer)
   (values
