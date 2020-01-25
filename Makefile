@@ -11,7 +11,7 @@ cl-test-args := --eval '\
 	(progn \
 		(ql:quickload :aoc/tests :verbose T) \
 		(let ((exit-code 0)) \
-			(handler-case (asdf:test-system :aoc) \
+			(handler-case (time (asdf:test-system :aoc)) \
 				(error (c) \
 					(format T "~&~A~%" c) \
 					(setf exit-code 1))) \
