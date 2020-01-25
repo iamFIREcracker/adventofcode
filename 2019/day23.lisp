@@ -4,7 +4,7 @@
 (defun make-network (program &aux (nics (make-array 50)))
   (prog1 nics
     (loop
-      :for n :from 0 :upto 49
+      :for n :from 0 :below 50
       :for nic = (intcode:make-program (copy-hash-table (intcode:program-memory program)))
       :do (enqueue n (intcode:program-in nic))
       :do (setf (aref nics n) nic))))

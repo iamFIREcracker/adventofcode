@@ -125,7 +125,7 @@
 (defun v-reachable-keys-part2 (v states steps-so-far)
   (loop
     :with all-keys = (nsorted (flatten (mapcar #'s-keys states)))
-    :for i :from 0 :upto (1- (length states))
+    :for i :from 0 :below (length states)
     :for state :in states
     :append (loop
               :for (next-state steps) :in (v-reachable-keys v state steps-so-far all-keys)

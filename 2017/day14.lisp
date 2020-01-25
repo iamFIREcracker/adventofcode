@@ -4,7 +4,7 @@
 
 (defun make-grid (data)
   (loop
-    :for i :upto 127
+    :for i :below 128
     :for string = (mkstr data #\- i)
     :for hash = (knot-hash string)
     :for binary = (hexadecimal-binary hash)
