@@ -25,17 +25,13 @@
       (char= c #\@)))
 
 (defun keyp (c)
-  (and (char>= c #\a)
-       (char<= c #\z)))
+  (lower-case-p c))
 
 (defun doorp (c)
-  (and (char>= c #\A)
-       (char<= c #\Z)))
+  (upper-case-p c))
 
-(defun passagep (c)
-  (or (emptyp c)
-      (keyp c)
-      (doorp c)))
+(defun wallp (c)
+  (char= c #\#))
 
 (defstruct (vault (:constructor make-vault%)
                   (:conc-name v-))
@@ -70,7 +66,7 @@
     :for delta :in (list #C(0 1) #C(1 0) #C(0 -1) #C(-1 0))
     :for next-pos = (+ pos delta)
     :for c = (v-cell v next-pos)
-    :when (passagep c) :collect next-pos))
+    :unless (wallp c) :collect next-pos))
 
 (defun v-key-reachable-p (v init-pos target-pos)
   (multiple-value-bind (end-state cost-so-far come-from)
