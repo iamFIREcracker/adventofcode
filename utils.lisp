@@ -693,10 +693,10 @@ By default, it will store the result into a list, but `type` can be tweaked to c
     :for d :in deltas
     :collect (+ pos d)))
 
-(defun a-star (init-state &key (init-cost 0) goal-state goalp neighbors
-                          (heuristic (constantly 0)) (test 'eql) print-stats
-                          &aux (cost-so-far (make-hash-table :test test))
-                          (come-from (make-hash-table :test test)))
+(defun a* (init-state &key (init-cost 0) goal-state goalp neighbors
+                      (heuristic (constantly 0)) (test 'eql)
+                      &aux (cost-so-far (make-hash-table :test test))
+                      (come-from (make-hash-table :test test)))
   (when goal-state
     (setf goalp (partial-1 test goal-state)))
   (flet ((calc-priority (state &aux (cost (gethash state cost-so-far)))
@@ -704,45 +704,34 @@ By default, it will store the result into a list, but `type` can be tweaked to c
     (hash-table-insert cost-so-far init-state init-cost)
     (values
       (loop
-        :with processed-states = 0
-        :with max-queued-states = 0
         :with frontier = (make-hq)
-        :initially (hq-insertf frontier (list init-state init-cost) (calc-priority init-state))
+        :initially (hq-insertf frontier (cons init-state init-cost) (calc-priority init-state))
         :until (hq-empty-p frontier)
-        :for (state state-cost) = (hq-popf frontier)
-        :when (funcall goalp state) :return (prog1 state
-                                              (when print-stats
-                                                (format t "Processed states: ~d~&Max queued states: ~d~%" processed-states max-queued-states)))
+        :for (state . state-cost) = (hq-popf frontier)
+        :when (funcall goalp state) :return state
         :do (when (= state-cost (gethash state cost-so-far))
-              (dolist (next (funcall neighbors state state-cost))
-                (destructuring-bind (next-state next-cost) next
-                  (multiple-value-bind (existing-cost present-p) (gethash next-state cost-so-far)
-                    (when (or (not present-p) (< next-cost existing-cost))
-                      (hash-table-insert cost-so-far next-state next-cost)
-                      (hash-table-insert come-from next-state state)
-                      (hq-insertf frontier (list next-state next-cost) (calc-priority next-state))))))
-              (when print-stats
-                (setf processed-states (1+ processed-states)
-                      max-queued-states (max max-queued-states (length frontier)))))
-        :finally (when print-stats
-                   (format t "Processed states: ~d~&Max queued states: ~d~%" processed-states max-queued-states)))
+              (loop
+                :for (next-state . cost) :in (funcall neighbors state)
+                :for next-cost = (+ state-cost cost)
+                :do (multiple-value-bind (existing-cost present-p) (gethash next-state cost-so-far)
+                      (when (or (not present-p) (< next-cost existing-cost))
+                        (hash-table-insert cost-so-far next-state next-cost)
+                        (hash-table-insert come-from next-state state)
+                        (hq-insertf frontier (cons next-state next-cost) (calc-priority next-state)))))))
       cost-so-far
       come-from)))
 
-(defun a-star-backtrack (come-from curr)
+(defun search-backtrack (come-from curr)
   (nreverse (recursively ((curr curr))
               (when curr
                 (cons curr (recur (gethash curr come-from)))))))
 
-(defun a-star-neighbors-cost-auto-increment (neighbors)
-  (lambda (state cost)
-    (mapcar
-      (lambda (next-state)
-        (list next-state (1+ cost)))
-      (funcall neighbors state))))
+(defun search-unit-cost (neighbors)
+  (lambda (state)
+    (mapcar (partial-1 #'cons _ 1) (funcall neighbors state))))
 
 (defun bfs (init-state &key (init-cost 0) goal-state (goalp #'void) neighbors
-                       (test 'eql) print-stats
+                       (test 'eql)
                        &aux (cost-so-far (make-hash-table :test test))
                        (come-from (make-hash-table :test test)))
   "XXX"
@@ -752,30 +741,21 @@ By default, it will store the result into a list, but `type` can be tweaked to c
   (values
     (loop
       :with frontier = (enqueue init-state (make-queue))
-      :with processed-states = 0
-      :with max-queued-states = 0
       :until (queue-empty-p frontier)
       :for state = (dequeue frontier)
       :for state-cost = (gethash state cost-so-far)
-      :when (funcall goalp state) :return (prog1 state
-                                            (when print-stats
-                                              (format t "Processed states: ~d~&Max queued states: ~d~%" processed-states max-queued-states)))
-      :do (progn
-            (dolist (next-state (funcall neighbors state))
-              (unless (gethash next-state cost-so-far)
-                (hash-table-insert cost-so-far next-state (1+ state-cost))
-                (hash-table-insert come-from next-state state)
-                (enqueue next-state frontier)))
-            (when print-stats
-              (setf processed-states (1+ processed-states)
-                    max-queued-states (max max-queued-states (length (queue-items frontier))))))
-      :finally (when print-stats
-                 (format t "Processed states: ~d~&Max queued states: ~d~%" processed-states max-queued-states)))
+      :when (funcall goalp state) :return state
+      :do (loop
+            :for next-state :in (funcall neighbors state)
+            :do (unless (gethash next-state cost-so-far)
+                  (hash-table-insert cost-so-far next-state (1+ state-cost))
+                  (hash-table-insert come-from next-state state)
+                  (enqueue next-state frontier))))
     cost-so-far
     come-from))
 
 (defun dijkstra (init-state init-cost target-state neighbors)
-  (a-star
+  (a*
     init-state
     init-cost
     target-state

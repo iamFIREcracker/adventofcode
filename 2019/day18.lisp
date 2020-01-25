@@ -70,13 +70,13 @@
 
 (defun v-key-reachable-p (v init-pos target-pos)
   (multiple-value-bind (end-state cost-so-far come-from)
-      (a-star init-pos
-              :goal-state target-pos
-              :neighbors (a-star-neighbors-cost-auto-increment (partial-1 #'v-neighbors v))
-              :heuristic (partial-1 #'manhattan-distance _ target-pos))
+      (a* init-pos
+          :goal-state target-pos
+          :neighbors (search-unit-cost (partial-1 #'v-neighbors v))
+          :heuristic (partial-1 #'manhattan-distance _ target-pos))
     (values
       (gethash end-state cost-so-far)
-      (a-star-backtrack come-from end-state))))
+      (search-backtrack come-from end-state))))
 
 (defparameter *reachable-map* NIL)
 
@@ -108,26 +108,26 @@
         (unless (sorted-set-difference required-keys (or all-keys (s-keys init-state)))
           steps)))))
 
-(defun v-reachable-keys (v state steps-so-far &optional all-keys)
+(defun v-reachable-keys (v state &optional all-keys)
   (loop
     :with keys = (s-keys state)
     :for key :in (sorted-set-difference (v-keys-sorted v) (or all-keys keys))
     :for key-pos = (v-key-pos v key)
     :for steps = (v-key-reachable-p-memo v state key-pos all-keys)
-    :when steps :collect (list
+    :when steps :collect (cons
                            (make-state key-pos (merge 'list (copy-seq keys) (list key) #'char<))
-                           (+ steps-so-far steps))))
+                           steps)))
 
-(defun v-reachable-keys-part2 (v states steps-so-far)
+(defun v-reachable-keys-part2 (v states)
   (loop
     :with all-keys = (nsorted (flatten (mapcar #'s-keys states)))
     :for i :from 0 :below (length states)
     :for state :in states
     :append (loop
-              :for (next-state steps) :in (v-reachable-keys v state steps-so-far all-keys)
+              :for (next-state . steps) :in (v-reachable-keys v state all-keys)
               :for pre = (subseq states 0 i)
               :for post = (subseq states (1+ i))
-              :collect (list
+              :collect (cons
                          (concatenate 'list pre (list next-state) post)
                          steps))))
 
@@ -137,20 +137,20 @@
       (progn
         (init-reachable-map)
         (multiple-value-bind (end-state cost-so-far)
-            (a-star (make-state (first (v-start v)) NIL)
-                    :goalp (partial-1 #'= num-keys (length (s-keys _))) 
-                    :neighbors (partial-2 #'v-reachable-keys v)
-                    :test 'equalp)
+            (a* (make-state (first (v-start v)) NIL)
+                :goalp (partial-1 #'= num-keys (length (s-keys _)))
+                :neighbors (partial-1 #'v-reachable-keys v)
+                :test 'equalp)
           (gethash end-state cost-so-far))))))
     ; (progn
     ;   (init-reachable-map)
     ;   (multiple-value-bind (cost-so-far come-from end-state)
-    ;       (a-star (loop
+    ;       (a* (loop
     ;                 :for pos :in (v-start v)
     ;                 :collect (make-state pos NIL))
     ;               0
     ;               (list (make-state 0 (v-keys-sorted v)))
-    ;               (partial-2 #'v-reachable-keys-part2 v)
+    ;               (partial-1 #'v-reachable-keys-part2 v)
     ;               (constantly 0)
     ;               :key (lambda (s) (summation s :key (lambda (ss) ss (length (s-keys ss))))))
     ;     (gethash end-state cost-so-far)))))

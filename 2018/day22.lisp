@@ -56,18 +56,17 @@
   (or (< (realpart n) 0)
       (< (imagpart n) 0)))
 
-(defun cave-possible-moves (target depth state time)
+(defun cave-possible-moves (target depth state)
   (let* ((pos (pos state))
          (tool (tool state))
          (area (area-type (erosion-level pos target depth))))
     (cons
-      (list (make-state pos (change-tool tool area)) (+ time 7))
+      (cons (make-state pos (change-tool tool area)) 7)
       (loop
         :for adj :in (remove-if #'complex-negp (adjacents pos))
         :for adj-area = (area-type (erosion-level adj target depth))
         :for adj-tools = (tools-by-area adj-area)
-        :when (member tool adj-tools) :collect (list (make-state adj tool)
-                                                     (1+ time))))))
+        :when (member tool adj-tools) :collect (cons (make-state adj tool) 1)))))
 
 (define-problem (2018 22) (data)
   (multiple-value-bind (depth target) (parse-depth-target data)
@@ -81,13 +80,13 @@
       (let* ((init-state (make-state #C(0 0) 'torch))
              (goal-state (make-state target 'torch)))
         (multiple-value-bind (end-state cost-so-far)
-            (a-star init-state
-                    :goal-state goal-state
-                    :heuristic (partial-1 #'manhattan-distance
-                                          (pos _)
-                                          (pos goal-state))
-                    :neighbors (partial-2 #'cave-possible-moves target depth)
-                    :test 'equalp)
+            (a* init-state
+                :goal-state goal-state
+                :heuristic (partial-1 #'manhattan-distance
+                                      (pos _)
+                                      (pos goal-state))
+                :neighbors (partial-1 #'cave-possible-moves target depth)
+                :test 'equalp)
           (gethash end-state cost-so-far))))))
 
 (1am:test test-2018/22
