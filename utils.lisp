@@ -680,10 +680,9 @@ By default, it will store the result into a list, but `type` can be tweaked to c
 ;;;; Search -------------------------------------------------------------------
 
 (defparameter *nhood-d1* '(#C(0 1) #C(1 0) #C(0 -1) #C(-1 0)))
-(defparameter *nhood-diagonal* (concatenate
-                                 'list
-                                 *nhood-d1*
-                                 '(#C(1 1) #C(1 -1) #C(-1 -1) #C(-1 1))))
+(defparameter *nhood-diagonal* (concatenate 'list
+                                            *nhood-d1*
+                                            '(#C(1 1) #C(1 -1) #C(-1 -1) #C(-1 1))))
 
 (defun adjacents (pos &key include-diagonal
                       &aux (deltas *nhood-d1*))
@@ -692,12 +691,9 @@ By default, it will store the result into a list, but `type` can be tweaked to c
   By default, only the 4 immediate adjacents positions are returned
   (i.e. top, right, bottom, and left), but INCLUDE-DIAGONAL can be used to
   also return diagonal positions too."
-  (assert (or (complexp pos) (numberp pos)))
   (when include-diagonal
     (setf deltas *nhood-diagonal*))
-  (loop
-    :for d :in deltas
-    :collect (+ pos d)))
+  (mapcar (partial-1 #'+ pos) deltas))
 
 (defun a* (init-state &key (init-cost 0) goal-state goalp neighbors
                       (heuristic (constantly 0)) (test 'eql)
