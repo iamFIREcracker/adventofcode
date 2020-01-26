@@ -1,5 +1,5 @@
 (defpackage :aoc
-  (:use :cl :pmdb :1am :split-sequence :aoc.quickutils)
+  (:use :cl :pmdb :aoc.quickutils)
   (:export
     :summation
     :maximization
@@ -73,8 +73,8 @@
     :ring-insertf
 
     :make-hq
-    :hq-popf
-    :hq-insertf
+    :hq-pop
+    :hq-insert
 
     :make-queue
     :queue-empty-p
@@ -104,4 +104,4 @@
     :define-problem))
 
 
-(defparameter *aoc-use* '(:use :cl :pmdb :1am :split-sequence :aoc :aoc.quickutils))
+(defparameter *aoc-use* '(:use :cl :pmdb :aoc :aoc.quickutils))

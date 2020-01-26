@@ -194,7 +194,7 @@
             (all-permutations (append (rest lst) (list (first lst))) (rest remain))))))
 
 
-;;;; Control flow ------------------------------------------------------------
+;;;; Control flow -------------------------------------------------------------
 
 (defmacro recursively (bindings &body body)
   "Execute `body` recursively, like Clojure's `loop`/`recur`.
@@ -286,7 +286,7 @@
   `(with-slots ,slot-names ,instance-form
        (list ,@slot-names)))
 
-;;;; Functional --------------------------------------------------------------
+;;;; Functional ---------------------------------------------------------------
 
 (defmacro partial-1 (fn &rest args)
   "Returns a function that invokes `fn` with `args` prepended to the argument it
@@ -370,7 +370,7 @@
              ,result
              (setf (gethash ,(first args) ,memo) (progn ,@body))))))))
 
-;;;; Math --------------------------------------------------------------------
+;;;; Math ---------------------------------------------------------------------
 
 (defmacro with-complex-parts ((real img) c &body body)
   (with-gensyms (complex)
@@ -575,30 +575,23 @@ By default, it will store the result into a list, but `type` can be tweaked to c
   "Insert `content` right after `r`'s `current`"
   (setf (ring-current r) (dlink-insertf current content)))
 
-;;;; Poor's Heap Queue --------------------------------------------------------
+;;;; Heap Queue ---------------------------------------------------------------
 
 (defun make-hq ()
-  "Create an instance of Poor's Heap Queue."
-  NIL)
+  "Creates an heap queue."
+  (pileup:make-heap #'< :key #'cdr))
 
 (defun hq-empty-p (hq)
-  "Returns T if HQ is empty"
-  (not hq))
+  "Returns true if the heap is empty."
+  (pileup:heap-empty-p hq))
 
-(defmacro hq-popf (hq)
-  "Pop the element with `HQ` with the lowest priority."
-  (with-gensyms (priority item)
-    `(destructuring-bind (,priority ,item)
-         (pop ,hq)
-       (values ,item ,priority))))
+(defun hq-pop (hq)
+  "Pops the first element of the queue (i.e. the element with lowest priority)."
+  (car (pileup:heap-pop hq)))
 
-(define-modify-macro hq-insertf (item priority)
-  (lambda (hq item priority)
-    (merge 'list hq (list (list priority item)) #'< :key #'first))
-  "Add `ITEM` (with priority `PRIORITY`) to the heap queue.
-
-  Also, it internally uses MERGE, which means is not as bad as running
-  SORT on each insert, but still, we could make things run faster.")
+(defun hq-insert (hq item priority)
+  "Adds `item` to the queue, and assigns it priority `priority`."
+  (pileup:heap-insert (cons item priority ) hq))
 
 ;;;; Deque --------------------------------------------------------------------
 
@@ -707,9 +700,9 @@ By default, it will store the result into a list, but `type` can be tweaked to c
     (values
       (loop
         :with frontier = (make-hq)
-        :initially (hq-insertf frontier (cons init-state init-cost) (calc-priority init-state))
+        :initially (hq-insert frontier (cons init-state init-cost) (calc-priority init-state))
         :until (hq-empty-p frontier)
-        :for (state . state-cost) = (hq-popf frontier)
+        :for (state . state-cost) = (hq-pop frontier)
         :when (funcall goalp state) :return state
         :do (when (= state-cost (gethash state cost-so-far))
               (loop
@@ -719,7 +712,7 @@ By default, it will store the result into a list, but `type` can be tweaked to c
                       (when (or (not present-p) (< next-cost existing-cost))
                         (hash-table-insert cost-so-far next-state next-cost)
                         (hash-table-insert come-from next-state state)
-                        (hq-insertf frontier (cons next-state next-cost) (calc-priority next-state)))))))
+                        (hq-insert frontier (cons next-state next-cost) (calc-priority next-state)))))))
       cost-so-far
       come-from)))
 

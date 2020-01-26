@@ -17,6 +17,7 @@
   :depends-on (
 
               #:1am
+              #:pileup
               #:split-sequence
 
               )

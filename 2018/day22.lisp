@@ -2,10 +2,10 @@
 (in-package :aoc/2018/22)
 
 (defun parse-depth-target (list)
-  (flet ((parse-depth (s &aux (splits (split-sequence #\Space s)))
+  (flet ((parse-depth (s &aux (splits (split-sequence:split-sequence #\Space s)))
            (parse-integer (second splits)))
-         (parse-target (s &aux (splits (split-sequence #\Space s)))
-           (let ((coords (split-sequence #\, (second splits))))
+         (parse-target (s &aux (splits (split-sequence:split-sequence #\Space s)))
+           (let ((coords (split-sequence:split-sequence #\, (second splits))))
              (complex (parse-integer (first coords))
                       (parse-integer (second coords))))))
     (values (parse-depth (first list))
