@@ -63,8 +63,7 @@
 
 (defun v-neighbors (v pos)
   (loop
-    :for delta :in (list #C(0 1) #C(1 0) #C(0 -1) #C(-1 0))
-    :for next-pos = (+ pos delta)
+    :for next-pos :in (adjacents pos)
     :for c = (v-cell v next-pos)
     :unless (wallp c) :collect next-pos))
 

@@ -679,8 +679,14 @@ By default, it will store the result into a list, but `type` can be tweaked to c
 
 ;;;; Search -------------------------------------------------------------------
 
+(defparameter *nhood-d1* '(#C(0 1) #C(1 0) #C(0 -1) #C(-1 0)))
+(defparameter *nhood-diagonal* (concatenate
+                                 'list
+                                 *nhood-d1*
+                                 '(#C(1 1) #C(1 -1) #C(-1 -1) #C(-1 1))))
+
 (defun adjacents (pos &key include-diagonal
-                      &aux (deltas (list #C(0 1) #C(1 0) #C(0 -1) #C(-1 0))))
+                      &aux (deltas *nhood-d1*))
   "Return all the adjacents positions of POS.
 
   By default, only the 4 immediate adjacents positions are returned
@@ -688,7 +694,7 @@ By default, it will store the result into a list, but `type` can be tweaked to c
   also return diagonal positions too."
   (assert (or (complexp pos) (numberp pos)))
   (when include-diagonal
-    (setf deltas (nconc deltas (list #C(1 1) #C(1 -1) #C(-1 -1) #C(-1 1)))))
+    (setf deltas *nhood-diagonal*))
   (loop
     :for d :in deltas
     :collect (+ pos d)))
