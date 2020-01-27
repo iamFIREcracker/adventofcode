@@ -329,6 +329,9 @@
   whose return values are cached so that when invoked a second time with the same
   arguments, the cache will be used.
 
+  It also defines another function (named `name`/clear-memo) to use to clear
+  up the internal cache of results.
+
   Example:
 
     (defun fib(n)
@@ -361,14 +364,19 @@
 
     102334155
   "
-  (with-gensyms (memo result result-exists-p)
-    `(let ((,memo (make-hash-table :test 'equalp)))
-       (defun ,name ,args
-         (multiple-value-bind (,result ,result-exists-p)
-             (gethash ,(first args) ,memo)
-           (if ,result-exists-p
-             ,result
-             (setf (gethash ,(first args) ,memo) (progn ,@body))))))))
+  (let ((clear-memo-name (intern (mkstr name '/clear-memo))))
+    (with-gensyms (memo key result result-exists-p)
+      `(let ((,memo (make-hash-table :test 'equalp)))
+         (values
+           (defun ,name ,args
+             (let ((,key (list ,@args)))
+               (multiple-value-bind (,result ,result-exists-p)
+                   (gethash ,key ,memo)
+                 (if ,result-exists-p
+                   ,result
+                   (setf (gethash ,key ,memo) (progn ,@body))))))
+           (defun ,clear-memo-name ()
+             (clrhash ,memo)))))))
 
 ;;;; Math ---------------------------------------------------------------------
 
