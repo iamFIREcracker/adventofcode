@@ -67,23 +67,20 @@
     :for c = (v-cell v next-pos)
     :unless (wallp c) :collect next-pos))
 
-(defun v-key-reachable-p (v init-pos target-pos)
+(defun doors-along-the-way (v path)
+  (remove-if-not #'doorp (mapcar (partial-1 #'v-cell v _) path)))
+
+(defun/memo reach-key (v init-pos target-pos)
   (multiple-value-bind (end-state cost-so-far come-from)
       (a* init-pos
           :goal-state target-pos
           :neighbors (search-unit-cost (partial-1 #'v-neighbors v))
           :heuristic (partial-1 #'manhattan-distance _ target-pos))
-    (values
-      (gethash end-state cost-so-far)
-      (search-backtrack come-from end-state))))
-
-(defparameter *reachable-map* NIL)
-
-(defun init-reachable-map ()
-  (setf *reachable-map* (make-hash-table :test 'equal)))
-
-(defun doors-along-the-way (v path)
-  (remove-if-not #'doorp (mapcar (partial-1 #'v-cell v _) path)))
+    (let* ((path (search-backtrack come-from end-state))
+           (required-keys (mapcar #'char-downcase (doors-along-the-way v path))))
+      (list
+        (gethash end-state cost-so-far)
+        (nsorted required-keys)))))
 
 (defun sorted-set-difference (list1 list2)
   (let ((e1 (first list1))
@@ -95,17 +92,9 @@
           ((char< e1 e2) (cons e1 (sorted-set-difference (rest list1) list2))))))
 
 (defun v-key-reachable-p-memo (v init-state target-pos &optional all-keys)
-  (let ((key (list (s-pos init-state) target-pos)))
-    (unless (hash-table-contains-key-p *reachable-map* key)
-      (multiple-value-bind (steps path) (v-key-reachable-p v (s-pos init-state) target-pos)
-        (let* ((required-keys (mapcar #'char-downcase (doors-along-the-way v path))))
-          (hash-table-insert *reachable-map*
-                             key
-                             (list steps (nsorted required-keys))))))
-    (when (hash-table-contains-key-p *reachable-map* key)
-      (destructuring-bind (steps required-keys) (gethash key *reachable-map*)
-        (unless (sorted-set-difference required-keys (or all-keys (s-keys init-state)))
-          steps)))))
+  (destructuring-bind (steps required-keys) (reach-key v (s-pos init-state) target-pos)
+    (unless (sorted-set-difference required-keys (or all-keys (s-keys init-state)))
+      steps)))
 
 (defun v-reachable-keys (v state &optional all-keys)
   (loop
@@ -134,7 +123,7 @@
   (let ((num-keys (length (v-keys-sorted v))))
     (values
       (progn
-        (init-reachable-map)
+        (reach-key/clear-memo)
         (multiple-value-bind (end-state cost-so-far)
             (a* (make-state (first (v-start v)) NIL)
                 :goalp (partial-1 #'= num-keys (length (s-keys _)))
@@ -142,7 +131,7 @@
                 :test 'equalp)
           (gethash end-state cost-so-far))))))
     ; (progn
-    ;   (init-reachable-map)
+    ;   (reach-key/clear-memo)
     ;   (multiple-value-bind (cost-so-far come-from end-state)
     ;       (a* (loop
     ;                 :for pos :in (v-start v)
