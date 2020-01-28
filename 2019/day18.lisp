@@ -12,17 +12,9 @@
             :for pos = (complex j i)
             :do (hash-table-insert map pos c)))))
 
-(defstruct (state (:constructor make-state%)
-                  (:conc-name s-))
+(defstruct (state (:conc-name s-))
   pos
   keys)
-
-(defun make-state (pos keys)
-  (make-state% :pos pos :keys keys))
-
-(defun emptyp (c)
-  (or (char= c #\.)
-      (char= c #\@)))
 
 (defun keyp (c)
   (lower-case-p c))
@@ -67,8 +59,16 @@
     :for c = (v-cell v next-pos)
     :unless (wallp c) :collect next-pos))
 
+(defun char- (a b)
+  (- (char-code a) (char-code b)))
+
 (defun doors-along-the-way (v path)
-  (remove-if-not #'doorp (mapcar (partial-1 #'v-cell v _) path)))
+  (let ((doors 0))
+    (dolist (pos path)
+      (let ((c (v-cell v pos)))
+        (when (doorp c)
+          (setf doors (logior doors (ash 1 (char- c #\A)))))))
+    doors))
 
 (defun/memo reach-key (v init-pos target-pos)
   (multiple-value-bind (end-state cost-so-far come-from)
@@ -77,56 +77,51 @@
           :neighbors (search-unit-cost (partial-1 #'v-neighbors v))
           :heuristic (partial-1 #'manhattan-distance _ target-pos))
     (let* ((path (search-backtrack come-from end-state))
-           (required-keys (mapcar #'char-downcase (doors-along-the-way v path))))
+           (doors (doors-along-the-way v path)))
       (list
         (gethash end-state cost-so-far)
-        (nsorted required-keys)))))
+        doors))))
 
-(defun sorted-set-difference (list1 list2)
-  (let ((e1 (first list1))
-        (e2 (first list2)))
-    (cond ((not list2) list1)
-          ((not list1) NIL)
-          ((char> e1 e2) (sorted-set-difference list1 (rest list2)))
-          ((char= e1 e2) (sorted-set-difference (rest list1) (rest list2)))
-          ((char< e1 e2) (cons e1 (sorted-set-difference (rest list1) list2))))))
+(defun doors-unlocked-p (doors keys)
+  (= doors (logand doors keys)))
 
-(defun v-key-reachable-p-memo (v init-state target-pos &optional all-keys)
-  (destructuring-bind (steps required-keys) (reach-key v (s-pos init-state) target-pos)
-    (unless (sorted-set-difference required-keys (or all-keys (s-keys init-state)))
-      steps)))
+(defun v-reachable-keys (v state)
+  (with-slots (pos keys) state
+    (loop
+      :for key :in (v-keys-sorted v)
+      :for key-i :from 0
+      :for key-pos = (v-key-pos v key)
+      :for (steps doors) = (reach-key v pos key-pos)
+      :when (and steps (doors-unlocked-p doors keys)) :collect (cons
+                                                                 (make-state :pos key-pos
+                                                                             :keys (logior keys (ash 1 key-i)))
+                                                                 steps))))
 
-(defun v-reachable-keys (v state &optional all-keys)
-  (loop
-    :with keys = (s-keys state)
-    :for key :in (sorted-set-difference (v-keys-sorted v) (or all-keys keys))
-    :for key-pos = (v-key-pos v key)
-    :for steps = (v-key-reachable-p-memo v state key-pos all-keys)
-    :when steps :collect (cons
-                           (make-state key-pos (merge 'list (copy-seq keys) (list key) #'char<))
-                           steps)))
+(defun change (orig i value)
+  (let ((ret (copy-seq orig)))
+    (prog1 ret
+      (setf (nth i ret) value))))
 
-(defun v-reachable-keys-part2 (v states)
-  (loop
-    :with all-keys = (nsorted (flatten (mapcar #'s-keys states)))
-    :for i :from 0 :below (length states)
-    :for state :in states
-    :append (loop
-              :for (next-state . steps) :in (v-reachable-keys v state all-keys)
-              :for pre = (subseq states 0 i)
-              :for post = (subseq states (1+ i))
-              :collect (cons
-                         (concatenate 'list pre (list next-state) post)
-                         steps))))
+; (defun v-reachable-keys-part2 (v states)
+;   (loop
+;     :with all-keys = (nsorted (flatten (mapcar #'s-keys states)))
+;     :for i :from 0 :below (length states)
+;     :for state :in states
+;     :append (loop
+;               :for (next-state . steps) :in (v-reachable-keys v state all-keys)
+;               :collect (cons
+;                          (change states i next-state)
+;                          steps))))
 
 (define-problem (2019 18) (v make-vault)
-  (let ((num-keys (length (v-keys-sorted v))))
+  (let* ((num-keys (length (v-keys-sorted v)))
+         (all-keys (1- (ash 1 num-keys))))
     (values
       (progn
         (reach-key/clear-memo)
         (multiple-value-bind (end-state cost-so-far)
-            (a* (make-state (first (v-start v)) NIL)
-                :goalp (partial-1 #'= num-keys (length (s-keys _)))
+            (a* (make-state :pos (first (v-start v)) :keys 0)
+                :goalp (partial-1 #'= all-keys (s-keys _))
                 :neighbors (partial-1 #'v-reachable-keys v)
                 :test 'equalp)
           (gethash end-state cost-so-far))))))
