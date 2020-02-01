@@ -82,6 +82,9 @@
         (gethash end-state cost-so-far)
         doors))))
 
+(defun already-collected (keys i)
+  (plusp (logand keys (ash 1 i))))
+
 (defun doors-unlocked-p (doors keys)
   (= doors (logand doors keys)))
 
@@ -92,6 +95,7 @@
       :for key-i :from 0
       :for key-pos = (v-key-pos v key)
       :for (steps doors) = (reach-key v pos key-pos)
+      :unless (already-collected keys key-i)
       :when (and steps (doors-unlocked-p doors keys)) :collect (cons
                                                                  (make-state :pos key-pos
                                                                              :keys (logior keys (ash 1 key-i)))
