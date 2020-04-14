@@ -697,18 +697,20 @@ By default, it will store the result into a list, but `type` can be tweaked to c
   (mapcar (partial-1 #'+ pos) deltas))
 
 (defun a* (init-state &key (init-cost 0) goal-state goalp neighbors
-                      (heuristic (constantly 0)) (test 'eql)
+                      heuristic (test 'eql)
                       &aux (cost-so-far (make-hash-table :test test))
                       (come-from (make-hash-table :test test)))
   (when goal-state
     (setf goalp (partial-1 test goal-state)))
-  (flet ((calc-priority (state &aux (cost (gethash state cost-so-far)))
+  (unless heuristic
+    (setf heuristic (constantly 0)))
+  (flet ((calc-priority (cost state)
            (+ cost (funcall heuristic state))))
     (hash-table-insert cost-so-far init-state init-cost)
     (values
       (loop
         :with frontier = (make-hq)
-        :initially (hq-insert frontier (cons init-state init-cost) (calc-priority init-state))
+        :initially (hq-insert frontier (cons init-state init-cost) (calc-priority init-cost init-state))
         :until (hq-empty-p frontier)
         :for (state . state-cost) = (hq-pop frontier)
         :when (funcall goalp state) :return state
@@ -720,7 +722,7 @@ By default, it will store the result into a list, but `type` can be tweaked to c
                       (when (or (not present-p) (< next-cost existing-cost))
                         (hash-table-insert cost-so-far next-state next-cost)
                         (hash-table-insert come-from next-state state)
-                        (hq-insert frontier (cons next-state next-cost) (calc-priority next-state)))))))
+                        (hq-insert frontier (cons next-state next-cost) (calc-priority next-cost next-state)))))))
       cost-so-far
       come-from)))
 
