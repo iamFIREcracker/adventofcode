@@ -24,7 +24,8 @@
   :components
   ((:module "vendor"
     :serial t
-    :components ((:file "quickutils")))
+    :components ((:file "quickutils-package")
+                 (:file "quickutils")))
    (:file "pmdb")
    (:file "package")
    (:file "utils")

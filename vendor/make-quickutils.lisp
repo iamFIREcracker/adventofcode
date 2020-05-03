@@ -8,6 +8,7 @@
                :flatten
                :hash-table-keys
                :hash-table-values
+               :iota
                :mkstr
                :ncycle
                :symb

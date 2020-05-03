@@ -2,7 +2,7 @@
 ;;;; See http://quickutil.org for details.
 
 ;;;; To regenerate:
-;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:COPY-HASH-TABLE :DIGITS :FLATTEN :HASH-TABLE-KEYS :HASH-TABLE-VALUES :MKSTR :NCYCLE :SYMB :VOID :WITH-GENSYMS) :ensure-package T :package "AOC.QUICKUTILS")
+;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:COPY-HASH-TABLE :DIGITS :FLATTEN :HASH-TABLE-KEYS :HASH-TABLE-VALUES :IOTA :MKSTR :NCYCLE :SYMB :VOID :WITH-GENSYMS) :ensure-package T :package "AOC.QUICKUTILS")
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (unless (find-package "AOC.QUICKUTILS")
@@ -16,8 +16,8 @@
   (setf *utilities* (union *utilities* '(:COPY-HASH-TABLE :DIGITS :FLATTEN
                                          :MAPHASH-KEYS :HASH-TABLE-KEYS
                                          :MAPHASH-VALUES :HASH-TABLE-VALUES
-                                         :MKSTR :NCYCLE :SYMB :VOID
-                                         :STRING-DESIGNATOR :WITH-GENSYMS))))
+                                         :IOTA :MKSTR :NCYCLE :SYMB :VOID
+                                         :STRING-DESIGNATOR :WITH-GENSYMS)))
 
   (defun copy-hash-table (table &key key test size
                                      rehash-size rehash-threshold)
@@ -106,6 +106,24 @@ the following identity holds:
       values))
   
 
+  (declaim (inline iota))
+  (defun iota (n &key (start 0) (step 1))
+    "Return a list of `n` numbers, starting from `start` (with numeric contagion
+from `step` applied), each consequtive number being the sum of the previous one
+and `step`. `start` defaults to `0` and `step` to `1`.
+
+Examples:
+
+    (iota 4)                      => (0 1 2 3)
+    (iota 3 :start 1 :step 1.0)   => (1.0 2.0 3.0)
+    (iota 3 :start -1 :step -1/2) => (-1 -3/2 -2)"
+    (declare (type (integer 0) n) (number start step))
+    (loop repeat n
+          ;; KLUDGE: get numeric contagion right for the first element too
+          for i = (+ (- (+ start step) step)) then (+ i step)
+          collect i))
+  
+
   (defun mkstr (&rest args)
     "Receives any number of objects (string, symbol, keyword, char, number), extracts all printed representations, and concatenates them all into one string.
 
@@ -175,10 +193,10 @@ Bare symbols appearing in `names` are equivalent to:
 
 The string-designator is used as the argument to `gensym` when constructing the
 unique symbol the named variable will be bound to."
-    `(with-gensyms ,names ,@forms))
+    `(with-gensyms ,names ,@forms)))
   
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (export '(copy-hash-table digits flatten hash-table-keys hash-table-values
-            mkstr ncycle symb void with-gensyms with-unique-names)))
+            iota mkstr ncycle symb void with-gensyms with-unique-names)))
 
 ;;;; END OF quickutils.lisp ;;;;

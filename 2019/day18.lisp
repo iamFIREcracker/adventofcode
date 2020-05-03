@@ -71,16 +71,14 @@
     doors))
 
 (defun/memo reach-key (v init-pos target-pos)
-  (multiple-value-bind (end-state cost-so-far come-from)
+  (multiple-value-bind (end-state end-state-cost end-state-path)
       (a* init-pos
           :goal-state target-pos
           :neighbors (search-unit-cost (partial-1 #'v-neighbors v))
           :heuristic (partial-1 #'manhattan-distance _ target-pos))
-    (let* ((path (search-backtrack come-from end-state))
-           (doors (doors-along-the-way v path)))
-      (list
-        (gethash end-state cost-so-far)
-        doors))))
+    (declare (ignore end-state))
+    (let* ((doors (doors-along-the-way v end-state-path)))
+      (list end-state-cost doors))))
 
 (defun already-collected (keys i)
   (plusp (logand keys (ash 1 i))))
@@ -123,12 +121,13 @@
     (values
       (progn
         (reach-key/clear-memo)
-        (multiple-value-bind (end-state cost-so-far)
+        (multiple-value-bind (end-state end-state-cost)
             (a* (make-state :pos (first (v-start v)) :keys 0)
                 :goalp (partial-1 #'= all-keys (s-keys _))
                 :neighbors (partial-1 #'v-reachable-keys v)
                 :test 'equalp)
-          (gethash end-state cost-so-far))))))
+          (declare (ignore end-state))
+          end-state-cost)))))
     ; (progn
     ;   (reach-key/clear-memo)
     ;   (multiple-value-bind (cost-so-far come-from end-state)

@@ -134,17 +134,19 @@
 
 (define-problem (2019 20) (d make-donut)
   (values
-    (multiple-value-bind (end-state cost-so-far)
+    (multiple-value-bind (end-state end-state-cost)
         (bfs (d-start d)
              :goal-state (d-end d)
              :neighbors (partial-1 #'d-neighbors-part1 d))
-      (gethash end-state cost-so-far))
-    (multiple-value-bind (end-state cost-so-far)
+      (declare (ignore end-state))
+      end-state-cost)
+    (multiple-value-bind (end-state end-state-cost)
         (bfs (make-state :pos (d-start d) :level 0)
              :goal-state (make-state :pos (d-end d) :level 0)
              :neighbors (partial-1 #'d-neighbors-part2 d)
              :test 'equalp)
-      (gethash end-state cost-so-far))))
+      (declare (ignore end-state))
+      end-state-cost)))
 
 (1am:test test-2019/20
   (multiple-value-bind (part1 part2) (problem-run)

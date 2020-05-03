@@ -86,7 +86,6 @@
 
     :adjacents
     :a*
-    :search-backtrack
     :search-unit-cost
     :bfs
     :dijkstra

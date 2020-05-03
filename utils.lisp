@@ -696,24 +696,28 @@ By default, it will store the result into a list, but `type` can be tweaked to c
     (setf deltas *nhood-diagonal*))
   (mapcar (partial-1 #'+ pos) deltas))
 
+(defun search-backtrack (come-from curr)
+  (nreverse (recursively ((curr curr))
+              (when curr
+                (cons curr (recur (gethash curr come-from)))))))
+
 (defun a* (init-state &key (init-cost 0) goal-state goalp neighbors
                       heuristic (test 'eql)
                       &aux (cost-so-far (make-hash-table :test test))
                       (come-from (make-hash-table :test test)))
-  (when goal-state
-    (setf goalp (partial-1 test goal-state)))
-  (unless heuristic
-    (setf heuristic (constantly 0)))
-  (flet ((calc-priority (cost state)
-           (+ cost (funcall heuristic state))))
-    (hash-table-insert cost-so-far init-state init-cost)
-    (values
+  (when goal-state (setf goalp (partial-1 test goal-state)))
+  (unless heuristic (setf heuristic (constantly 0)))
+  (flet ((calc-priority (state-cost state)
+           (+ state-cost (funcall heuristic state))))
+    (let (best-state)
       (loop
         :with frontier = (make-hq)
-        :initially (hq-insert frontier (cons init-state init-cost) (calc-priority init-cost init-state))
+        :initially (progn
+                     (hash-table-insert cost-so-far init-state init-cost)
+                     (hq-insert frontier (cons init-state init-cost) (calc-priority init-cost init-state)))
         :until (hq-empty-p frontier)
         :for (state . state-cost) = (hq-pop frontier)
-        :when (funcall goalp state) :return state
+        :when (funcall goalp state) :return (setf best-state state)
         :do (when (= state-cost (gethash state cost-so-far))
               (loop
                 :for (next-state . cost) :in (funcall neighbors state)
@@ -722,14 +726,14 @@ By default, it will store the result into a list, but `type` can be tweaked to c
                       (when (or (not present-p) (< next-cost existing-cost))
                         (hash-table-insert cost-so-far next-state next-cost)
                         (hash-table-insert come-from next-state state)
-                        (hq-insert frontier (cons next-state next-cost) (calc-priority next-cost next-state)))))))
-      cost-so-far
-      come-from)))
-
-(defun search-backtrack (come-from curr)
-  (nreverse (recursively ((curr curr))
-              (when curr
-                (cons curr (recur (gethash curr come-from)))))))
+                        (hq-insert frontier (cons next-state next-cost) (calc-priority
+                                                                          next-cost
+                                                                          next-state)))))))
+      (values
+        best-state
+        (gethash best-state cost-so-far)
+        (search-backtrack come-from best-state)
+        cost-so-far))))
 
 (defun search-unit-cost (neighbors)
   (lambda (state)
@@ -739,25 +743,26 @@ By default, it will store the result into a list, but `type` can be tweaked to c
                        (test 'eql)
                        &aux (cost-so-far (make-hash-table :test test))
                        (come-from (make-hash-table :test test)))
-  "XXX"
-  (when goal-state
-    (setf goalp (partial-1 test goal-state)))
-  (hash-table-insert cost-so-far init-state init-cost)
-  (values
+  (when goal-state (setf goalp (partial-1 test goal-state)))
+  (let (best-state)
     (loop
+      :initially (hash-table-insert cost-so-far init-state init-cost)
       :with frontier = (enqueue init-state (make-queue))
       :until (queue-empty-p frontier)
       :for state = (dequeue frontier)
       :for state-cost = (gethash state cost-so-far)
-      :when (funcall goalp state) :return state
+      :when (funcall goalp state) :return (setf best-state state)
       :do (loop
             :for next-state :in (funcall neighbors state)
             :do (unless (gethash next-state cost-so-far)
                   (hash-table-insert cost-so-far next-state (1+ state-cost))
                   (hash-table-insert come-from next-state state)
                   (enqueue next-state frontier))))
-    cost-so-far
-    come-from))
+    (values
+      best-state
+      (gethash best-state cost-so-far)
+      (search-backtrack come-from best-state)
+      cost-so-far)))
 
 (defun dijkstra (init-state init-cost target-state neighbors)
   (a*

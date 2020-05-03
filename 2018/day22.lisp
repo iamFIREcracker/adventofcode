@@ -79,7 +79,7 @@
         :key #'area-type)
       (let* ((init-state (make-state #C(0 0) 'torch))
              (goal-state (make-state target 'torch)))
-        (multiple-value-bind (end-state cost-so-far)
+        (multiple-value-bind (end-state end-state-cost)
             (a* init-state
                 :goal-state goal-state
                 :heuristic (partial-1 #'manhattan-distance
@@ -87,7 +87,8 @@
                                       (pos goal-state))
                 :neighbors (partial-1 #'cave-possible-moves target depth)
                 :test 'equalp)
-          (gethash end-state cost-so-far))))))
+          (declare (ignore end-state))
+          end-state-cost)))))
 
 (1am:test test-2018/22
   (multiple-value-bind (part1 part2) (problem-run)
