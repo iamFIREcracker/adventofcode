@@ -30,6 +30,7 @@
    (:file "package")
    (:file "utils")
    (:file "intcode")
+   (:auto-module "2016")
    (:auto-module "2017")
    (:module "2018" :serial t
     :components ((:file "day01")
