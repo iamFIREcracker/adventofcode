@@ -4,6 +4,7 @@
 (1 dorange)
 (1 dotimes)
 (1 dovector)
+(1 ecase)
 (1 lambda)
 (1 let)
 (1 let*)
