@@ -2,7 +2,7 @@
 ;;;; See http://quickutil.org for details.
 
 ;;;; To regenerate:
-;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:COPY-HASH-TABLE :DIGITS :FLATTEN :HASH-TABLE-KEYS :HASH-TABLE-VALUES :IOTA :MKSTR :NCYCLE :SYMB :VOID :WITH-GENSYMS) :ensure-package T :package "AOC.QUICKUTILS")
+;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:COPY-HASH-TABLE :DIGITS :FLATTEN :HASH-TABLE-ALIST :HASH-TABLE-KEYS :HASH-TABLE-VALUES :IOTA :MKSTR :NCYCLE :SYMB :VOID :WITH-GENSYMS) :ensure-package T :package "AOC.QUICKUTILS")
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (unless (find-package "AOC.QUICKUTILS")
@@ -14,10 +14,11 @@
 
 (when (boundp '*utilities*)
   (setf *utilities* (union *utilities* '(:COPY-HASH-TABLE :DIGITS :FLATTEN
-                                         :MAPHASH-KEYS :HASH-TABLE-KEYS
-                                         :MAPHASH-VALUES :HASH-TABLE-VALUES
-                                         :IOTA :MKSTR :NCYCLE :SYMB :VOID
-                                         :STRING-DESIGNATOR :WITH-GENSYMS)))
+                                         :HASH-TABLE-ALIST :MAPHASH-KEYS
+                                         :HASH-TABLE-KEYS :MAPHASH-VALUES
+                                         :HASH-TABLE-VALUES :IOTA :MKSTR
+                                         :NCYCLE :SYMB :VOID :STRING-DESIGNATOR
+                                         :WITH-GENSYMS))))
 
   (defun copy-hash-table (table &key key test size
                                      rehash-size rehash-threshold)
@@ -68,6 +69,16 @@ the following identity holds:
                      ((consp xs) (rec (car xs) (rec (cdr xs) acc)))
                      (t          (cons xs acc)))))
       (rec xs nil)))
+  
+
+  (defun hash-table-alist (table)
+    "Returns an association list containing the keys and values of hash table
+`table`."
+    (let ((alist nil))
+      (maphash (lambda (k v)
+                 (push (cons k v) alist))
+               table)
+      alist))
   
 
   (declaim (inline maphash-keys))
@@ -193,10 +204,11 @@ Bare symbols appearing in `names` are equivalent to:
 
 The string-designator is used as the argument to `gensym` when constructing the
 unique symbol the named variable will be bound to."
-    `(with-gensyms ,names ,@forms)))
+    `(with-gensyms ,names ,@forms))
   
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (export '(copy-hash-table digits flatten hash-table-keys hash-table-values
-            iota mkstr ncycle symb void with-gensyms with-unique-names)))
+  (export '(copy-hash-table digits flatten hash-table-alist hash-table-keys
+            hash-table-values iota mkstr ncycle symb void with-gensyms
+            with-unique-names)))
 
 ;;;; END OF quickutils.lisp ;;;;

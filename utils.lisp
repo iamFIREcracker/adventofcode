@@ -16,13 +16,15 @@
                (subseq forms 0 marker-pos)
                (list replacement)
                (subseq forms (skip-marker marker-pos)))))
-    (let* ((pos (search-marker-pos forms))
-           (iter (get-iteratee forms pos))
-           (list-body (generate-body forms pos :in))
-           (seq-body (generate-body forms pos :across)))
-      `(typecase ,iter
-         (list (loop ,@list-body))
-         (sequence (loop ,@seq-body))))))
+    (let ((pos (search-marker-pos forms)))
+      (if (null pos)
+        `(loop ,@forms)
+        (let* ((iter (get-iteratee forms pos))
+               (list-body (generate-body forms pos :in))
+               (seq-body (generate-body forms pos :across)))
+          `(typecase ,iter
+             (list (loop1 ,@list-body))
+             (sequence (loop1 ,@seq-body))))))))
 
 (defun summation (x &key (key 'identity))
   "Returns the sum of all the elements of `x`, or 0 if `x` is _empty_.
@@ -122,9 +124,7 @@
   of times such element occurs in `s`"
   (loop :with freqs = (make-hash-table)
         :for c :across s
-        :do (if (not (gethash c freqs))
-              (hash-table-insert freqs c 1)
-              (incf (gethash c freqs)))
+        :do (incf (gethash c freqs 0))
         :finally (return freqs)))
 
 (defun group-by (x &key (key 'identity) (test 'eql))

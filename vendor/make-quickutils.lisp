@@ -6,6 +6,7 @@
                :copy-hash-table
                :digits
                :flatten
+               :hash-table-alist
                :hash-table-keys
                :hash-table-values
                :iota
