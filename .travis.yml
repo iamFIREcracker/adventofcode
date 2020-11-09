@@ -15,7 +15,7 @@ env:
     - LISP=clisp
     - LISP=cmucl
     - LISP=ecl
-    - LISP=sbcl
+    - LISP=sbcl-bin
 
 jobs:
   allow_failures:
