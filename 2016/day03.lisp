@@ -25,11 +25,9 @@
     :collect (list bx by bz)
     :collect (list cx cy cz)))
 
-(defun problem-run ()
-  (let* ((data (uiop:read-file-lines #p"./2016/day03.txt"))
-         (specs (read-specifications data)))
-    (values (count-if #'valid-triangle-p specs)
-            (count-if #'valid-triangle-p (rotate-specs specs)))))
+(define-problem (2016 03) (specs read-specifications)
+  (values (count-if #'valid-triangle-p specs)
+          (count-if #'valid-triangle-p (rotate-specs specs))))
 
 (1am:test test-2016/03
   (multiple-value-bind (part1 part2) (problem-run)
