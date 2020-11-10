@@ -18,6 +18,7 @@
 
               #:1am
               #:cl-ppcre
+              #:md5
               #:pileup
               #:split-sequence
 
