@@ -6,6 +6,7 @@
 (1 dotimes)
 (1 dovector)
 (1 ecase)
+(1 if)
 (1 lambda)
 (1 let)
 (1 let*)
@@ -16,3 +17,4 @@
 (2 define-problem)
 (2 destructuring-bind)
 (2 multiple-value-bind)
+(2 register-groups-bind)
