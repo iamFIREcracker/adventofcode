@@ -11,7 +11,7 @@
 (defun message-compressed-length (string)
   (cl-ppcre:register-groups-bind ((#'parse-integer size times))
       ("^\\((\\d+)x(\\d+)\\)" string)
-    (let* ((match-size (1+ (position #\) string)))
+    (let* ((match-size (1+ (position #.(char ")" 0) string)))
            (size-uncompressed (if (= *version* 1)
                                 size
                                 (message-length (subseq string match-size (+ match-size size))))))
