@@ -48,7 +48,8 @@
                                   (:file "day11")
                                   (:file "day22")
                                   (:file "day25")))
-                 (:auto-module "2019"))))
+                 (:auto-module "2019")
+                 (:auto-module "2020"))))
   :in-order-to ((test-op (test-op :aoc/tests))))
 
 (asdf:defsystem :aoc/tests
