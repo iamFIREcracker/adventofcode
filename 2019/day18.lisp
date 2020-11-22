@@ -12,18 +12,11 @@
             :for pos = (complex j i)
             :do (hash-table-insert map pos c)))))
 
-(defstruct (state (:conc-name s-))
-  pos
-  keys)
+(defstruct state robots collected)
 
-(defun keyp (c)
-  (lower-case-p c))
-
-(defun doorp (c)
-  (upper-case-p c))
-
-(defun wallp (c)
-  (char= c #\#))
+(defun keyp (c) (lower-case-p c))
+(defun doorp (c) (upper-case-p c))
+(defun wallp (c) (char= c #\#))
 
 (defstruct (vault (:constructor make-vault%)
                   (:conc-name v-))
@@ -78,7 +71,7 @@
           :heuristic (partial-1 #'manhattan-distance _ target-pos))
     (declare (ignore end-state))
     (let* ((doors (doors-along-the-way v end-state-path)))
-      (list end-state-cost doors))))
+      (cons end-state-cost doors))))
 
 (defun already-collected (keys i)
   (plusp (logand keys (ash 1 i))))
@@ -86,62 +79,61 @@
 (defun doors-unlocked-p (doors keys)
   (= doors (logand doors keys)))
 
-(defun v-reachable-keys (v state)
-  (with-slots (pos keys) state
-    (loop
-      :for key :in (v-keys-sorted v)
-      :for key-i :from 0
-      :for key-pos = (v-key-pos v key)
-      :for (steps doors) = (reach-key v pos key-pos)
-      :unless (already-collected keys key-i)
-      :when (and steps (doors-unlocked-p doors keys)) :collect (cons
-                                                                 (make-state :pos key-pos
-                                                                             :keys (logior keys (ash 1 key-i)))
-                                                                 steps))))
-
 (defun change (orig i value)
-  (let ((ret (copy-seq orig)))
-    (prog1 ret
-      (setf (nth i ret) value))))
+  (let ((copy (copy-seq orig)))
+    (setf (aref copy i) value)
+    copy))
 
-; (defun v-reachable-keys-part2 (v states)
-;   (loop
-;     :with all-keys = (nsorted (flatten (mapcar #'s-keys states)))
-;     :for i :from 0 :below (length states)
-;     :for state :in states
-;     :append (loop
-;               :for (next-state . steps) :in (v-reachable-keys v state all-keys)
-;               :collect (cons
-;                          (change states i next-state)
-;                          steps))))
+(defun v-reachable-keys (v state)
+  (with-slots (robots collected) state
+    (loop :for i :below (length robots)
+          :for pos :across robots
+          :append (loop :for key :in (v-keys-sorted v)
+                        :for key-i :from 0
+                        :for key-pos = (v-key-pos v key)
+                        :for (steps . doors) = (reach-key v pos key-pos)
+                        :when (and steps (doors-unlocked-p doors collected)
+                                   (not (already-collected collected key-i)))
+                        :collect (cons
+                                   (make-state
+                                     :robots (change robots i key-pos)
+                                     :collected (logior collected (ash 1 key-i)))
+                                   steps)))))
 
-(define-problem (2019 18) (v make-vault)
+(defun solve (data &aux (v (make-vault data)))
   (let* ((num-keys (length (v-keys-sorted v)))
-         (all-keys (1- (ash 1 num-keys))))
-    (values
-      (progn
-        (reach-key/clear-memo)
-        (multiple-value-bind (end-state end-state-cost)
-            (a* (make-state :pos (first (v-start v)) :keys 0)
-                :goalp (partial-1 #'= all-keys (s-keys _))
-                :neighbors (partial-1 #'v-reachable-keys v)
-                :test 'equalp)
-          (declare (ignore end-state))
-          end-state-cost)))))
-    ; (progn
-    ;   (reach-key/clear-memo)
-    ;   (multiple-value-bind (cost-so-far come-from end-state)
-    ;       (a* (loop
-    ;                 :for pos :in (v-start v)
-    ;                 :collect (make-state pos NIL))
-    ;               0
-    ;               (list (make-state 0 (v-keys-sorted v)))
-    ;               (partial-1 #'v-reachable-keys-part2 v)
-    ;               (constantly 0)
-    ;               :key (lambda (s) (summation s :key (lambda (ss) ss (length (s-keys ss))))))
-    ;     (gethash end-state cost-so-far)))))
+         (all-keys (1- (ash 1 num-keys)))
+         (robots (coerce (v-start v) 'vector)))
+    (reach-key/clear-memo)
+    (multiple-value-bind (end-state end-state-cost)
+        (a* (make-state :robots robots :collected 0)
+            :goalp (partial-1 #'= all-keys (state-collected _))
+            :neighbors (partial-1 #'v-reachable-keys v)
+            :test 'equalp)
+      (declare (ignore end-state))
+      end-state-cost)))
+
+(defun prepare-part2 (data)
+  (let* ((copy (copy-seq data))
+         (vault-x (floor (length (first data)) 2))
+         (vault-y (floor (length data) 2)))
+    (setf (aref (nth (1- vault-y) copy) (1- vault-x)) #\@
+          (aref (nth (1- vault-y) copy) vault-x) #\#
+          (aref (nth (1- vault-y) copy) (1+ vault-x)) #\@
+          (aref (nth vault-y copy) (1- vault-x)) #\#
+          (aref (nth vault-y copy) vault-x) #\#
+          (aref (nth vault-y copy) (1+ vault-x)) #\#
+          (aref (nth (1+ vault-y) copy) (1- vault-x)) #\@
+          (aref (nth (1+ vault-y) copy) vault-x) #\#
+          (aref (nth (1+ vault-y) copy) (1+ vault-x)) #\@)
+    copy))
+
+(define-problem (2019 18) (data)
+  (values
+    (solve data)
+    (solve (prepare-part2 data))))
 
 (1am:test test-2019/18
-  (multiple-value-bind (part1) (problem-run)
-    (1am:is (= 5068 part1))))
-    ; (1am:is (= 1966 part2))))
+  (multiple-value-bind (part1 part2) (problem-run)
+    (1am:is (= 5068 part1))
+    (1am:is (= 1966 part2))))
