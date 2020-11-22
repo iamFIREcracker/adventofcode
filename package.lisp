@@ -100,7 +100,8 @@
     :parse-integers
     :read-integer
 
-    :define-problem))
+    :define-problem
+    :swallow))
 
 
 (defparameter *aoc-use* '(:use :cl :pmdb :aoc :aoc.quickutils))
