@@ -4,6 +4,7 @@
   "quickutils.lisp"
   :utilities '(
                :copy-hash-table
+               :if-let
                :digits
                :flatten
                :hash-table-alist
@@ -14,5 +15,6 @@
                :ncycle
                :symb
                :void
+               :when-let
                :with-gensyms)
   :package "AOC.QUICKUTILS")
