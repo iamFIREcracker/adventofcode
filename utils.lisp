@@ -895,3 +895,8 @@ By default, it will store the result into a list, but `type` can be tweaked to c
     :directory `(:relative "." ,(aesthetic-string year))
     :name (format nil "day~2,'0D" day)
     :type "txt"))
+
+(defmacro swallow (&body body)
+  "Swallow BODY, and return nil"
+  (declare (ignore body))
+  ())
