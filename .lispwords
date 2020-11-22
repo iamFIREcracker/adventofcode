@@ -15,6 +15,7 @@
 (1 lambda)
 (1 let)
 (1 let*)
+(1 prog1)
 (1 recursively)
 (1 test)
 (1 unless)
