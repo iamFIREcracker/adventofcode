@@ -755,7 +755,7 @@ By default, it will store the result into a list, but `type` can be tweaked to c
       :do (loop
             :for next-state :in (funcall neighbors state)
             :do (unless (or (gethash next-state cost-so-far)
-                            (funcall prunep state (1+ state-cost)))
+                            (funcall prunep next-state (1+ state-cost)))
                   (hash-table-insert cost-so-far next-state (1+ state-cost))
                   (hash-table-insert come-from next-state state)
                   (enqueue next-state frontier))))
