@@ -15,11 +15,15 @@ vendor/quickutils.lisp: vendor/make-quickutils.lisp
 	cd vendor && sbcl --noinform --load "make-quickutils.lisp"  --non-interactive
 
 # Tests -----------------------------------------------------------------------
-
 test: test-sbcl
 
 test-sbcl: $(lisps)
-	sbcl --noinform --load "test.lisp"
+	sbcl \
+	    --noinform --non-interactive \
+	    --load "build/info.lisp" \
+	    --load "build/test.lisp"
 
 test-ros: $(lisps)
-	ros run -- --noinform --load "test.lisp"
+	ros \
+	    --load "build/info.lisp" \
+	    --load "build/test.lisp"
