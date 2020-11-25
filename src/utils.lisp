@@ -892,7 +892,7 @@ By default, it will store the result into a list, but `type` can be tweaked to c
 
 (defun problem-input-path (year day)
   (make-pathname
-    :directory `(:relative "." ,(aesthetic-string year))
+    :directory `(:relative "src" ,(aesthetic-string year))
     :name (format nil "day~2,'0D" day)
     :type "txt"))
 
