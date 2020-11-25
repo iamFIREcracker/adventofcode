@@ -26,25 +26,27 @@
   :components
   ((:module "vendor"
     :serial t
-    :components ((:file "quickutils-package")
+    :components ((:file "pmdb")
+                 (:file "quickutils-package")
                  (:file "quickutils")))
-   (:file "pmdb")
    (:file "package")
-   (:file "utils")
-   (:file "intcode")
-   (:auto-module "2016")
-   (:auto-module "2017")
-   (:module "2018" :serial t
-    :components ((:file "day01")
-                 (:file "day02")
-                 (:file "day03")
-                 (:file "day05")
-                 (:file "day08")
-                 (:file "day09")
-                 (:file "day11")
-                 (:file "day22")
-                 (:file "day25")))
-   (:auto-module "2019"))
+   (:module "src"
+    :serial t
+    :components ((:file "utils")
+                 (:file "intcode")
+                 (:auto-module "2016")
+                 (:auto-module "2017")
+                 (:module "2018" :serial t
+                     :components ((:file "day01")
+                                  (:file "day02")
+                                  (:file "day03")
+                                  (:file "day05")
+                                  (:file "day08")
+                                  (:file "day09")
+                                  (:file "day11")
+                                  (:file "day22")
+                                  (:file "day25")))
+                 (:auto-module "2019"))))
   :in-order-to ((test-op (test-op :aoc/tests))))
 
 (asdf:defsystem :aoc/tests
