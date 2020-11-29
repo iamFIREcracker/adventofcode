@@ -28,7 +28,8 @@
     :serial t
     :components ((:file "pmdb")
                  (:file "quickutils-package")
-                 (:file "quickutils")))
+                 (:file "quickutils")
+                 (:file "quickutils-local")))
    (:file "package")
    (:module "src"
     :serial t
