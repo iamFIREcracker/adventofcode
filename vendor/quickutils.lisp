@@ -2,7 +2,7 @@
 ;;;; See http://quickutil.org for details.
 
 ;;;; To regenerate:
-;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:COPY-HASH-TABLE :IF-LET :DIGITS :FLATTEN :HASH-TABLE-ALIST :HASH-TABLE-KEYS :HASH-TABLE-VALUES :IOTA :MKSTR :NCYCLE :SYMB :VOID :WHEN-LET :WITH-GENSYMS) :ensure-package T :package "AOC.QUICKUTILS")
+;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:COPY-HASH-TABLE :FLATTEN :HASH-TABLE-ALIST :HASH-TABLE-KEYS :HASH-TABLE-VALUES :IF-LET :IOTA :MKSTR :NCYCLE :SYMB :VOID :WHEN-LET :WITH-GENSYMS) :ensure-package T :package "AOC.QUICKUTILS")
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (unless (find-package "AOC.QUICKUTILS")
@@ -13,13 +13,12 @@
 (in-package "AOC.QUICKUTILS")
 
 (when (boundp '*utilities*)
-  (setf *utilities* (union *utilities* '(:COPY-HASH-TABLE :IF-LET :DIGITS
-                                         :FLATTEN :HASH-TABLE-ALIST
-                                         :MAPHASH-KEYS :HASH-TABLE-KEYS
-                                         :MAPHASH-VALUES :HASH-TABLE-VALUES
-                                         :IOTA :MKSTR :NCYCLE :SYMB :VOID
-                                         :WHEN-LET :STRING-DESIGNATOR
-                                         :WITH-GENSYMS))))
+  (setf *utilities* (union *utilities* '(:COPY-HASH-TABLE :FLATTEN
+                                         :HASH-TABLE-ALIST :MAPHASH-KEYS
+                                         :HASH-TABLE-KEYS :MAPHASH-VALUES
+                                         :HASH-TABLE-VALUES :IF-LET :IOTA
+                                         :MKSTR :NCYCLE :SYMB :VOID :WHEN-LET
+                                         :STRING-DESIGNATOR :WITH-GENSYMS))))
 
   (defun copy-hash-table (table &key key test size
                                      rehash-size rehash-threshold)
@@ -42,56 +41,6 @@ copy is returned by default."
                  (setf (gethash k copy) (funcall key v)))
                table)
       copy))
-  
-
-  (defmacro if-let (bindings &body (then-form &optional else-form))
-    "Creates new variable bindings, and conditionally executes either
-`then-form` or `else-form`. `else-form` defaults to `nil`.
-
-`bindings` must be either single binding of the form:
-
-    (variable initial-form)
-
-or a list of bindings of the form:
-
-    ((variable-1 initial-form-1)
-     (variable-2 initial-form-2)
-     ...
-     (variable-n initial-form-n))
-
-All initial-forms are executed sequentially in the specified order. Then all
-the variables are bound to the corresponding values.
-
-If all variables were bound to true values, the `then-form` is executed with the
-bindings in effect, otherwise the `else-form` is executed with the bindings in
-effect."
-    (let* ((binding-list (if (and (consp bindings) (symbolp (car bindings)))
-                             (list bindings)
-                             bindings))
-           (variables (mapcar #'car binding-list)))
-      `(let ,binding-list
-         (if (and ,@variables)
-             ,then-form
-             ,else-form))))
-  
-
-  (defun digits (n &optional (base 10))
-    "Return a list of the digits of the non-negative integer `n` in base
-`base`. By default, decimal digits are returned.
-
-The order of the digits is such that the `k`th element of the list refers to the coefficient of `base^k`. In other words, given the resulting list
-
-    (c0 c1 c2 ... ck)
-
-the following identity holds:
-
-    n = c0 + c1*base + c2*base^2 + ... + ck*base^k."
-    (check-type n (integer 0))
-    (check-type base (integer 2))
-    (loop :with remainder
-          :do (setf (values n remainder) (truncate n base))
-          :collect remainder
-          :until (zerop n)))
   
 
   (defun flatten (&rest xs)
@@ -147,6 +96,37 @@ the following identity holds:
                         (push v values))
                       table)
       values))
+  
+
+  (defmacro if-let (bindings &body (then-form &optional else-form))
+    "Creates new variable bindings, and conditionally executes either
+`then-form` or `else-form`. `else-form` defaults to `nil`.
+
+`bindings` must be either single binding of the form:
+
+    (variable initial-form)
+
+or a list of bindings of the form:
+
+    ((variable-1 initial-form-1)
+     (variable-2 initial-form-2)
+     ...
+     (variable-n initial-form-n))
+
+All initial-forms are executed sequentially in the specified order. Then all
+the variables are bound to the corresponding values.
+
+If all variables were bound to true values, the `then-form` is executed with the
+bindings in effect, otherwise the `else-form` is executed with the bindings in
+effect."
+    (let* ((binding-list (if (and (consp bindings) (symbolp (car bindings)))
+                             (list bindings)
+                             bindings))
+           (variables (mapcar #'car binding-list)))
+      `(let ,binding-list
+         (if (and ,@variables)
+             ,then-form
+             ,else-form))))
   
 
   (declaim (inline iota))
@@ -301,8 +281,8 @@ unique symbol the named variable will be bound to."
     `(with-gensyms ,names ,@forms))
   
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (export '(copy-hash-table if-let digits flatten hash-table-alist
-            hash-table-keys hash-table-values iota mkstr ncycle symb void
-            when-let when-let* with-gensyms with-unique-names)))
+  (export '(copy-hash-table flatten hash-table-alist hash-table-keys
+            hash-table-values if-let iota mkstr ncycle symb void when-let
+            when-let* with-gensyms with-unique-names)))
 
 ;;;; END OF quickutils.lisp ;;;;

@@ -1,5 +1,5 @@
 (defpackage :aoc
-  (:use :cl :pmdb :aoc.quickutils)
+  (:use :cl :pmdb :aoc.quickutils :aoc.quickutils.local)
   (:export
     :summation
     :maximization
@@ -104,4 +104,4 @@
     :swallow))
 
 
-(defparameter *aoc-use* '(:use :cl :pmdb :aoc :aoc.quickutils))
+(defparameter *aoc-use* '(:use :cl :pmdb :aoc :aoc.quickutils :aoc.quickutils.local))
