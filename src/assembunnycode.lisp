@@ -2,12 +2,17 @@
   (:use :cl :pmdb :aoc)
   (:export
     :parse-program
-    :run))
+    :run
+    :program-output
+    :output-value))
 (in-package :assembunnycode)
 
 (defvar *regs* nil)
 (defvar *ip* nil)
 (defvar *program* nil)
+
+(define-condition program-output ()
+  ((output-value :initarg :output-value :reader output-value)))
 
 (defun reg-name-index (reg)
   (- (char-code reg) (char-code #\a)))
@@ -22,24 +27,29 @@
   (if (numberp x) x (reg x)))
 
 (defun i-cpy (x reg)
-  (prog1 1 (setf (reg reg) (reg-or-value x))))
+  (setf (reg reg) (reg-or-value x))
+  1)
 
-(defun i-inc (reg) (prog1 1 (incf (reg reg))))
+(defun i-inc (reg) (incf (reg reg)) 1)
 
-(defun i-dec (reg) (prog1 1 (decf (reg reg))))
+(defun i-dec (reg) (decf (reg reg)) 1)
 
 (defun i-jnz (x y)
   (if (zerop (reg-or-value x)) 1 (reg-or-value y)))
 
 (defun i-tgl (x)
-  (prog1 1
-    (let* ((offset (+ (reg-or-value x) *ip*)))
-      (when (array-in-bounds-p *program* offset)
-        (destructuring-bind (fun . args) (aref *program* offset)
-          (setf (car (aref *program* offset))
-                (ecase (length args)
-                  (1 (if (eq fun #'i-inc) #'i-dec #'i-inc))
-                  (2 (if (eq fun #'i-jnz) #'i-cpy #'i-jnz)))))))))
+  (let* ((offset (+ (reg-or-value x) *ip*)))
+    (when (array-in-bounds-p *program* offset)
+      (destructuring-bind (fun . args) (aref *program* offset)
+        (setf (car (aref *program* offset))
+              (ecase (length args)
+                (1 (if (eq fun #'i-inc) #'i-dec #'i-inc))
+                (2 (if (eq fun #'i-jnz) #'i-cpy #'i-jnz))))))
+    1))
+
+(defun i-out (x)
+  (signal 'program-output :output-value (reg-or-value x))
+  1)
 
 (defun parse-value (string)
   (parse-integer string :junk-allowed t))
@@ -75,15 +85,20 @@
     (when (string= (first parts) "tgl")
       (list #'i-tgl (parse-reg-or-value (second parts))))))
 
+(defun parse-out (string)
+  (let ((parts (split-sequence:split-sequence #\Space string)))
+    (when (string= (first parts) "out")
+      (list #'i-out (parse-reg-or-value (second parts))))))
+
 (defun parse-instruction (string)
   (or (parse-cpy string) (parse-inc string) (parse-dec string) (parse-jnz string)
-      (parse-tgl string)))
+      (parse-tgl string) (parse-out string)))
 
 (defun parse-program (data)
   (map 'vector #'parse-instruction data))
 
 (defun run (program regs)
-  (let ((*regs* regs)
+  (let ((*regs* (coerce regs 'vector))
         (*ip* 0)
         (*program* program))
     (loop while (< *ip* (length program))

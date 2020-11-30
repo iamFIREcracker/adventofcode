@@ -4,9 +4,9 @@
 (define-problem (2016 23) (data)
   (values
     (assembunnycode:run (assembunnycode:parse-program data)
-                        (make-array 4 :initial-contents (list 7 0 0 0)))
+                        (list 7 0 0 0))
     (swallow (assembunnycode:run (assembunnycode:parse-program data)
-                                 (make-array 4 :initial-contents (list 12 0 0 0))))))
+                                 (list 12 0 0 0)))))
 
 (1am:test test-2016/23
   (multiple-value-bind (part1 part2) (problem-run)
