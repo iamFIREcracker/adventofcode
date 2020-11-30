@@ -35,6 +35,7 @@
     :serial t
     :components ((:file "utils")
                  (:file "intcode")
+                 (:file "assembunnycode")
                  (:auto-module "2016")
                  (:auto-module "2017")
                  (:module "2018" :serial t
