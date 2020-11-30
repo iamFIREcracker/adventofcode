@@ -3,8 +3,8 @@
 
 (define-problem (2016 12) (program assembunnycode:parse-program)
   (values
-    (assembunnycode:run program (make-array 4 :initial-contents (list 0 0 0 0)))
-    (assembunnycode:run program (make-array 4 :initial-contents (list 0 0 1 0)))))
+    (assembunnycode:run program (list 0 0 0 0))
+    (assembunnycode:run program (list 0 0 1 0))))
 
 (1am:test test-2016/12
   (multiple-value-bind (part1 part2) (problem-run)
