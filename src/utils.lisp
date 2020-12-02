@@ -877,6 +877,10 @@ By default, it will store the result into a list, but `type` can be tweaked to c
   "Extract the first element from `X`, and parse is a integer."
   (first (parse-integers x)))
 
+(defun parse-char (string)
+  "Return the first character of `string`"
+  (char string 0))
+
 ;;;; Problems -----------------------------------------------------------------
 (defmacro define-problem ((year day)
                           (arg &optional (reader 'identity))
