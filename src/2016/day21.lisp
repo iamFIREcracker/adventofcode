@@ -48,9 +48,6 @@
       ("swap position (\\d+) with position (\\d+)" string)
     (list #'swap-position x y)))
 
-(defun parse-char (string)
-  (char string 0))
-
 (defun parse-swap-letter (string)
   (cl-ppcre:register-groups-bind ((#'parse-char c1 c2))
       ("swap letter (\\w) with letter (\\w)" string)

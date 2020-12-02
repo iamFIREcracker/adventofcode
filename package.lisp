@@ -99,6 +99,7 @@
     :read-all
     :parse-integers
     :read-integer
+    :parse-char
 
     :define-problem
     :swallow))
