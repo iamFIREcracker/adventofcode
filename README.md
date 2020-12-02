@@ -3,6 +3,8 @@
 ## TODO
 
 - This works with SBCL only
+- Get 2018 solutions to use DEFINE-PROBLEM -- and review the solutions too,
+  given that I was just getting stated with CL back then
 - 2016/11: it's taking 50+ seconds to generate solutions, and by looking at
   [Reddit's
   megathread](https://www.reddit.com/r/adventofcode/comments/5hoia9/2016_day_11_solutions/)
