@@ -10,6 +10,7 @@
                :hash-table-values
                :if-let
                :iota
+               :make-keyword
                :mkstr
                :ncycle
                :symb
