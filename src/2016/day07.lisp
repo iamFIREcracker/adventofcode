@@ -44,13 +44,10 @@
         :for babs = (extract-babs each)
         :when (some (contains-bab-p hypernet) babs) :return t))
 
-(define-problem (2016 07) (ips parse-ips)
+(define-solution (2016 7) (ips parse-ips)
   (loop :for (normal hypernet) :in ips
         :count (supports-tls-p normal hypernet) :into part1
         :count (supports-ssl-p normal hypernet) :into part2
         :finally (return (values part1 part2))))
 
-(1am:test test-2016/07
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 110 part1))
-    (1am:is (= 242 part2))))
+(define-test (2016 7) (110 242))

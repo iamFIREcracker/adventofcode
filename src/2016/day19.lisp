@@ -19,12 +19,9 @@
           (setf (cdr remaining) (cddr remaining))
           finally (return (first remaining)))))
 
-(define-problem (2016 19) (elves parse-num-elfes)
+(define-solution (2016 19) (elves parse-num-elfes)
   (values
     (part1 elves)
     (part2 elves)))
 
-(1am:test test-2016/19
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 1834903 part1))
-    (1am:is (= 1420280 part2))))
+(define-test (2016 19) (1834903 1420280))

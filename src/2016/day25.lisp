@@ -21,10 +21,8 @@
       (not-clock-signal () nil)
       (clock-signal-indeed () t))))
 
-(define-problem (2016 25) (program assembunnycode:parse-program)
+(define-solution (2016 25) (program assembunnycode:parse-program)
   (loop for n from 0
         when (generates-clock-signal-p n program) return n))
 
-(1am:test test-2016/25
-  (multiple-value-bind (part1) (problem-run)
-    (1am:is (= 198 part1))))
+(define-test (2016 25) (198))

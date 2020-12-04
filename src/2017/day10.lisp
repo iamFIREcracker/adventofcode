@@ -54,7 +54,7 @@
         (setf current c
               skip s)))))
 
-(define-problem (2017 10) (data first)
+(define-solution (2017 10) (data first)
   (values
     (let ((hash (knot-hash-init))
           (lengths (append (parse-line-of-integers data) *additional-lengths*)))
@@ -62,7 +62,4 @@
       (* (aref hash 0) (aref hash 1)))
     (knot-hash data)))
 
-(1am:test test-2017/10
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 23874 part1))
-    (1am:is (string= "e1a65bfb5a5ce396025fab5528c25a87" part2))))
+(define-test (2017 10) (23874 "e1a65bfb5a5ce396025fab5528c25a87"))

@@ -76,11 +76,8 @@
                      :heuristic (partial-1 #'manhattan-distance (cur _) 0)
                      :test 'equalp))))
 
-(define-problem (2016 22) (nodes parse-nodes)
+(define-solution (2016 22) (nodes parse-nodes)
   (values (length (viable-pairs nodes))
           (move-data nodes)))
 
-(1am:test test-2016/22
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 1024 part1))
-    (1am:is (= 230 part2))))
+(define-test (2016 22) (1024 230))

@@ -27,7 +27,7 @@
       :when (= curr 2) :do (write-at result (* left right))
       :do (setf ip (+ ip 4)))))
 
-(define-problem (2019 2) (program read-program)
+(define-solution (2019 2) (program read-program)
   (values
     (program-output (copy-program program 12 2))
     (block part-2
@@ -38,7 +38,4 @@
             (when (= 19690720 result)
               (return-from part-2 (+ (* 100 noun) verb)))))))))
 
-(1am:test test-2019/02
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 5866714 part1))
-    (1am:is (= 5208 part2))))
+(define-test (2019 2) (5866714 5208))

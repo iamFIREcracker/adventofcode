@@ -94,7 +94,7 @@
       :for n :from 108100 :to 125100 :by 17
       :count (not (primesp n)))))
 
-(define-problem (2017 23) (data)
+(define-solution (2017 23) (data)
   (setf *instructions-by-name* `(("set" ,#'i-set)
                                  ("sub" ,#'i-sub)
                                  ("mul" ,#'i-mul)
@@ -110,7 +110,4 @@
       :do (program-exec-next-instruction current))
     (solve-part-2)))
 
-(1am:test test-2017/23
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 6241 part1))
-    (1am:is (= 909 part2))))
+(define-test (2017 23) (6241 909))

@@ -18,13 +18,10 @@
     (cond ((char= ch1 ch) (char/= ch2 ch))
           ((char= ch2 ch) (char/= ch1 ch)))))
 
-(define-problem (2020 2) (passwords parse-passwords)
+(define-solution (2020 2) (passwords parse-passwords)
   (loop for (n m ch text) in passwords
         count (valid-password-part1-p n m ch text) into part1
         count (valid-password-part2-p n m ch text) into part2
         finally (return (values part1 part2))))
 
-(1am:test test-2020/02
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 422 part1))
-    (1am:is (= 451 part2))))
+(define-test (2020 2) (422 451))

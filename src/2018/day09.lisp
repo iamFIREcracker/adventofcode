@@ -23,13 +23,10 @@
             (ring-insertf board marble)))
     :finally (return (maximization scores))))
 
-(define-problem (2018 9) (data first)
+(define-solution (2018 9) (data first)
   (multiple-value-bind (players marbles) (parse-marble-setup data)
     (values
       (play players marbles)
       (play players (* marbles 100)))))
 
-(1am:test test-2018/09
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 384892 part1))
-    (1am:is (= 3169872331 part2))))
+(define-test (2018 9) (384892 3169872331))

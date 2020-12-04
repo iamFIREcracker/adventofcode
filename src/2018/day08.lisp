@@ -31,7 +31,7 @@
       :summing (tree-value (aref children index)))))
 
 
-(define-problem (2018 8) (data first)
+(define-solution (2018 8) (data first)
   (let ((tree (parse-tree (parse-integers (split-sequence:split-sequence #\Space data)))))
     (values
       (recursively ((node tree))
@@ -40,7 +40,4 @@
           (summation (node-metadata node))))
       (tree-value tree))))
 
-(1am:test test-2018/08
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 40036 part1))
-    (1am:is (= 21677 part2))))
+(define-test (2018 8) (40036 21677))

@@ -13,7 +13,7 @@
         (pop reduced)
         (push c reduced)))))
 
-(define-problem (2018 5) (data first)
+(define-solution (2018 5) (data first)
   (values
     (length (reduce-polymer data))
     (loop
@@ -22,7 +22,4 @@
                          (remove u data :test #'char-equal))
       :minimizing (length candidate))))
 
-(1am:test test-2018/05
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 9202 part1))
-    (1am:is (= 6394 part2))))
+(define-test (2018 5) (9202 6394))

@@ -68,7 +68,7 @@
           :do (remhash next remaining))
     :finally (return (hash-table-keys remaining))))
 
-(define-problem (2019 10) (region read-region)
+(define-solution (2019 10) (region read-region)
   (let* ((station (maximizing
                     (hash-table-keys (region-asteroids region))
                     :key (partial-1 #'length (visible-asteroids region _))))
@@ -79,7 +79,4 @@
              (nth (nth 199 vaporized)))
         (+ (* 100 (realpart nth)) (- (imagpart nth)))))))
 
-(1am:test test-2019/10
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 284 part1))
-    (1am:is (= 404 part2))))
+(define-test (2019 10) (284 404))

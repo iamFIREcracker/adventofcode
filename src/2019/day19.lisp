@@ -28,7 +28,7 @@
         (setf deltas (cdr deltas)
               pos next-pos)))))
 
-(define-problem (2019 19) (program intcode:read-program)
+(define-solution (2019 19) (program intcode:read-program)
   (let* ((map (make-hash-table)))
     (dorange (i 0 50)
       (dorange (j 0 50)
@@ -47,7 +47,4 @@
                    (pulledp (make-drone program) bottom-left))
         :return (+ (* 10000 (realpart top-left)) (- (imagpart top-left)))))))
 
-(1am:test test-2019/19
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 220 part1))
-    (1am:is (= 10010825 part2))))
+(define-test (2019 19) (220 10010825))

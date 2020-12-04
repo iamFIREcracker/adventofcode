@@ -41,7 +41,7 @@
                 (gethash curr grid) node-next
                 curr (+ curr dir)))))
 
-(define-problem (2017 22) (data)
+(define-solution (2017 22) (data)
   (values
     (run-infection data 10000
                    #'(lambda (node)
@@ -53,7 +53,4 @@
                              ((infectedp node) #\F)
                              ((flaggedp node) #\.))))))
 
-(1am:test test-2017/22
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 5570 part1))
-    (1am:is (= 2512022 part2))))
+(define-test (2017 22) (5570 2512022))

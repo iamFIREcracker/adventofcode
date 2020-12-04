@@ -37,7 +37,7 @@
     :for period = (* (1- range) 2)
     :thereis (dividesp period time-to-layer)))
 
-(define-problem (2017 13) (data parse-layers)
+(define-solution (2017 13) (data parse-layers)
   (values
     (trip-severity data)
     (loop
@@ -45,7 +45,4 @@
       :unless (caughtp data delay)
       :do (return delay))))
 
-(1am:test test-2017/13
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 2508 part1))
-    (1am:is (= 3913186 part2))))
+(define-test (2017 13) (2508 3913186))

@@ -39,7 +39,7 @@
       :for bridge :in bridges
       :maximize (strength bridge))))
 
-(define-problem (2017 24) (data parse-ports)
+(define-solution (2017 24) (data parse-ports)
   (let ((bridges (gen-bridges data)))
     (values
       (solve-part1 bridges)
@@ -50,7 +50,4 @@
                  :finally (return (remove-if-not (partial-1 #'= longest) bridges :key #'length)))))
         (solve-part1 (longest bridges))))))
 
-(1am:test test-2017/24
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 2006 part1))
-    (1am:is (= 1994 part2))))
+(define-test (2017 24) (2006 1994))

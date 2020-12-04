@@ -78,7 +78,7 @@
       (declare (ignore cycles-at u))
       cycle-size)))
 
-(define-problem (2019 12) (data)
+(define-solution (2019 12) (data)
   (values
     (let ((u (read-universe data)))
       (dotimes (step 1000)
@@ -88,7 +88,4 @@
          (find-cycle-on-axis 1 (read-universe data))
          (find-cycle-on-axis 2 (read-universe data)))))
 
-(1am:test test-2019/12
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 8310 part1))
-    (1am:is (= 319290382980408 part2))))
+(define-test (2019 12) (8310 319290382980408))

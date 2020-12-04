@@ -36,12 +36,9 @@
         (setf row (next row))
         finally (return (- safe (* times 2))))) ; offset 2 gutters per row
 
-(define-problem (2016 18) (state parse-trap-row)
+(define-solution (2016 18) (state parse-trap-row)
   (values
     (generate state 40)
     (generate state 400000)))
 
-(1am:test test-2016/18
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 1989 part1))
-    (1am:is (= 19999894 part2))))
+(define-test (2016 18) (1989 19999894))

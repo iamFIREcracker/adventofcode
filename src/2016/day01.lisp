@@ -8,7 +8,7 @@
               (cons rotation walk-for)))
           (split-sequence:split-sequence #\Space (first data))))
 
-(define-problem (2016 01) (instructions read-instructions)
+(define-solution (2016 1) (instructions read-instructions)
   (loop
     :with pos = #c(0 0) :with part2 :with seen
     :for (change-dir . walk-for) :in instructions
@@ -23,7 +23,4 @@
     :finally (return (values (manhattan-distance pos 0)
                              (manhattan-distance part2 0)))))
 
-(1am:test test-2016/01
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 278 part1))
-    (1am:is (= 161 part2))))
+(define-test (2016 1) (278 161))

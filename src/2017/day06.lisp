@@ -17,7 +17,7 @@
       :do (incf (aref ret i)))
     ret))
 
-(define-problem (2017 6) (data parse-single-line-of-integers)
+(define-solution (2017 6) (data parse-single-line-of-integers)
   (loop
     :with cache = (make-hash-table :test 'equalp)
     :with banks = data
@@ -27,7 +27,4 @@
           (return (values cycles (- cycles (gethash banks cache))))
           (hash-table-insert cache banks cycles))))
 
-(1am:test test-2017/06
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 12841 part1))
-    (1am:is (= 8038 part2))))
+(define-test (2017 6) (12841 8038))

@@ -16,7 +16,7 @@
         (part2-digit (aref (string-downcase (int-hex (ash (aref md5-hash 3) -4))) 0)))
     (list valid part1-digit part2-offset part2-digit)))
 
-(define-problem (2016 05) (door-id first)
+(define-solution (2016 5) (door-id first)
   (loop :with part1 = (make-array 8 :element-type 'character :adjustable t :fill-pointer 0)
         :with part2 = (make-string 8 :initial-element #\_)
         :with remaining = 8
@@ -32,7 +32,4 @@
                                   remaining (1- remaining))))
         :when (zerop remaining) :return (values part1 part2)))
 
-(1am:test test-2016/05
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (string= "2414bc77" part1))
-    (1am:is (string= "437e60fc" part2))))
+(define-test (2016 5) ("2414bc77" "437e60fc"))

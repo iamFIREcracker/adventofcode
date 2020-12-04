@@ -72,11 +72,8 @@
                           (aref paths (robot s) 0)))
       (+ end-state-cost (aref paths (robot end-state) 0)))))
 
-(define-problem (2016 24) (blueprint read-blueprint)
+(define-solution (2016 24) (blueprint read-blueprint)
   (values (visit-sites blueprint)
           (visit-sites-part2 blueprint)))
 
-(1am:test test-2016/24
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 430 part1))
-    (1am:is (= 700 part2))))
+(define-test (2016 24) (430 700))

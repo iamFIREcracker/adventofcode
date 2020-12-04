@@ -6,7 +6,7 @@
            (parse-integer (fifth splits))))
     (mapcar #'parse-generator x)))
 
-(define-problem (2017 15) (data parse-generators)
+(define-solution (2017 15) (data parse-generators)
   (labels ((next-a (curr)
              (mod (* curr 16807) 2147483647))
            (next-b (curr)
@@ -35,7 +35,4 @@
         :for b = (next-b-part2 gen-b) :then (next-b-part2 b)
         :count (numbers-match-p a b)))))
 
-(1am:test test-2017/15
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 592 part1))
-    (1am:is (= 320 part2))))
+(define-test (2017 15) (592 320))

@@ -57,12 +57,9 @@
           :when (= keys 64) :return index
           :do (setf (car cache) nil))))
 
-(define-problem (2016 14) (salt first)
+(define-solution (2016 14) (salt first)
   (values
     (solve salt)
     (swallow (solve salt :key-stretching 2016))))
 
-(1am:test test-2016/14
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 16106 part1))
-    (swallow (1am:is (= 22423 part2)))))
+(define-test (2016 14) (16106  22423))

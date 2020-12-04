@@ -48,22 +48,16 @@
                                    (if (eql 1 value) #\# #\Space))
                           s)))
 
-(define-problem (2019 11) (program intcode:read-program)
+(define-solution (2019 11) (program intcode:read-program)
   (values
     (hash-table-count (paint-panels 0 (make-robot program)))
     (print-registration-identifier (paint-panels 1 (make-robot program)))))
 
-(1am:test test-2019/11
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 1747 part1))
-    (1am:is (string=
-
-"
+(define-test (2019 11) (1747 "
  ####  ##   ##  ###  #  # #  # #    ###    
     # #  # #  # #  # #  # # #  #    #  #   
    #  #    #    #  # #### ##   #    ###    
   #   #    # ## ###  #  # # #  #    #  #   
  #    #  # #  # # #  #  # # #  #    #  #   
  ####  ##   ### #  # #  # #  # #### ###    
-"
-part2))))
+"))

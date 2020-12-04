@@ -28,7 +28,7 @@
 (defun parse-one-line-of-csv (x)
   (split-sequence:split-sequence #\, (first x)))
 
-(define-problem (2017 11) (data parse-one-line-of-csv)
+(define-solution (2017 11) (data parse-one-line-of-csv)
   (labels ((convert-to-delta (dir)
              (second (assoc dir *direction-to-complex* :test 'equal)))
            (point-list (p)
@@ -47,7 +47,4 @@
       :finally (return (values (distance origin p)
                                furthest)))))
 
-(1am:test test-2017/11
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 761 part1))
-    (1am:is (= 1542 part2))))
+(define-test (2017 11) (761 1542))

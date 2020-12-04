@@ -8,7 +8,7 @@
   (dolist (c command)
     (enqueue c (intcode:program-in p))))
 
-(define-problem (2019 25) (program intcode:read-program)
+(define-solution (2019 25) (program intcode:read-program)
   (values
     (loop
       :do (intcode:program-run program)
@@ -17,6 +17,4 @@
             :do (format T "~a" (code-char (dequeue (intcode:program-out program)))))
       :do (push-input program (read-line)))))
 
-; (1am:test test-2019/25
-;   (multiple-value-bind (part1) (problem-run)
-;     (1am:is (= 20483 part1)))) XXX how can we programmatically solve this?!
+; (define-test (2019 25) (20483)) XXX how can we programmatically solve this?!

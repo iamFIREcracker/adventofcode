@@ -40,13 +40,10 @@
                 (at-least-one-digit-repeated digits)
                 (at-least-digit-with-frequency-2 digits))))
 
-(define-problem (2019 4) (range read-range)
+(define-solution (2019 4) (range read-range)
   (destructuring-bind (from to) range
     (values
       (solve-part1 from to)
       (solve-part2 from to))))
 
-(1am:test test-2019/04
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 960 part1))
-    (1am:is (= 626 part2))))
+(define-test (2019 4) (960 626))

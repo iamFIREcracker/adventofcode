@@ -34,7 +34,7 @@
                    (if (eql c #\-) #\Space (decipher-char c offset)))
        string))
 
-(define-problem (2016 04) (specs read-specifications)
+(define-solution (2016 4) (specs read-specifications)
   (loop :with part2
         :for (name sector checksum) :in specs
         :for freqs = (hash-table-alist (frequencies (remove #\- name)))
@@ -43,7 +43,4 @@
         :when (and (not part2) (search "northpole" deciphered)) :do (setf part2 sector)
         :finally (return (values part1 part2))))
 
-(1am:test test-2016/04
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 137896 part1))
-    (1am:is (= 501 part2))))
+(define-test (2016 4) (137896 501))

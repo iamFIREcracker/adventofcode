@@ -100,7 +100,7 @@
   (setf (d-offset d) (mod (* (d-offset d) (sum-of-powers (d-jump d) (1- n) :modulus (d-size d))) (d-size d))
         (d-jump d) (expt-mod (d-jump d) n (d-size d))))
 
-(define-problem (2019 22) (instructions read-instructions)
+(define-solution (2019 22) (instructions read-instructions)
   (values
     (let ((d (make-deck 10007)))
       (deck-shuffle instructions d)
@@ -109,7 +109,4 @@
       (deck-shuffle-ntimes 101741582076661 instructions d)
       (deck-card 2020 d))))
 
-(1am:test test-2019/22
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 4649 part1))
-    (1am:is (= 68849657493596 part2))))
+(define-test (2019 22) (4649 68849657493596))
