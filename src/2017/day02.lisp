@@ -16,7 +16,7 @@
     :when b
     :do (return (values a b))))
 
-(define-problem (2017 2) (data parse-lines-of-integers)
+(define-solution (2017 2) (data parse-lines-of-integers)
   (values
     (loop
       :for values :in data
@@ -28,7 +28,4 @@
       :for (divisor number) = (multiple-value-list (evenly-divisible-values values))
       :summing (/ number divisor))))
 
-(1am:test test-2017/02
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 34925 part1))
-    (1am:is (= 221 part2))))
+(define-test (2017 2) (34925 221))

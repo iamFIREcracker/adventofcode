@@ -39,12 +39,9 @@
          (new-disk (format nil "Disc #~D has 11 positions; at time=0, it is at position 0." new-disk-id)))
     (append data (list new-disk))))
 
-(define-problem (2016 15) (data)
+(define-solution (2016 15) (data)
   (values
     (solve data)
     (solve (prepare-part2 data))))
 
-(1am:test test-2016/15
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 317371 part1))
-    (1am:is (= 2080951 part2))))
+(define-test (2016 15) (317371 2080951))

@@ -34,7 +34,7 @@
       :when (and c (not (char= c #\Space)))
       :do (return (values new-pos new-dir)))))
 
-(define-problem (2017 19) (data)
+(define-solution (2017 19) (data)
   (multiple-value-bind (curr dir tubes) (parse-tube-map data)
     (recursively ((curr curr)
                   (dir dir)
@@ -50,7 +50,4 @@
               (T (values (apply #'mkstr (reverse letters))
                          steps)))))))
 
-(1am:test test-2017/19
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (string= "MKXOIHZNBL" part1))
-    (1am:is (= 17872 part2))))
+(define-test (2017 19) ("MKXOIHZNBL"  17872))

@@ -21,7 +21,7 @@
               :collect (let ((key (complex i j)))
                          (make-disjointset key)))))
 
-(define-problem (2017 14) (data first)
+(define-solution (2017 14) (data first)
   (let* ((grid (make-grid data))
          (sets (init-sets grid)))
     (values
@@ -37,7 +37,4 @@
                 :do (disjointset-union a b)))
         (length (distinct-disjointsets sets))))))
 
-(1am:test test-2017/14
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 8316 part1))
-    (1am:is (= 1074 part2))))
+(define-test (2017 14) (8316 1074))

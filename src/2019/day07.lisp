@@ -31,7 +31,7 @@
     :when still-running :do (nconc (acs-amps acs) (list amp))
     :finally (return (dequeue (acs-out acs)))))
 
-(define-problem (2019 7) (program intcode:read-program)
+(define-solution (2019 7) (program intcode:read-program)
   (values
     (loop
       :for phases :in (all-permutations (list 0 1 2 3 4))
@@ -42,7 +42,4 @@
       :for acs = (make-acs program phases :feedback-loop-p T)
       :maximizing (acs-run acs 0))))
 
-(1am:test test-2019/07
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 45730 part1))
-    (1am:is (= 5406484 part2))))
+(define-test (2019 7) (45730 5406484))

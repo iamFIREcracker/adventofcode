@@ -37,12 +37,9 @@
     :finally (return (+ (length rest1)
                         (length rest2)))))
 
-(define-problem (2019 6) (orbits parse-orbits)
+(define-solution (2019 6) (orbits parse-orbits)
   (values
     (total-orbits orbits)
     (you-to-santa orbits)))
 
-(1am:test test-2019/06
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 268504 part1))
-    (1am:is (= 409 part2))))
+(define-test (2019 6) (268504 409))

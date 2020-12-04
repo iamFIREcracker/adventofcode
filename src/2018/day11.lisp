@@ -31,7 +31,7 @@
                       best-value power))))
   (values best-pos best-value))
 
-(define-problem (2018 11) (data read-integer)
+(define-solution (2018 11) (data read-integer)
   (let* ((grid (power-grid 300 data))
          (st (make-summedarea-table grid)))
     (values
@@ -50,7 +50,4 @@
         :finally (return (destructuring-bind (x y) best-pos
                            (mkstrc (1+ x) (1+ y) best-size)))))))
 
-(1am:test test-2018/11
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (string= "21,41" part1))
-    (1am:is (string= "227,199,19" part2))))
+(define-test (2018 11) ("21,41" "227,199,19"))

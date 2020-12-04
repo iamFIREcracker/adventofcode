@@ -36,12 +36,9 @@
                                                    (declare (ignore state))
                                                    (> cost 50)))))))
 
-(define-problem (2016 13) (data)
+(define-solution (2016 13) (data)
   (values
     (part1 (parse-integer (first data)) #c(31 39))
     (part2 (parse-integer (first data)))))
 
-(1am:test test-2016/13
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 96 part1))
-    (1am:is (= 141 part2))))
+(define-test (2016 13) (96 141))

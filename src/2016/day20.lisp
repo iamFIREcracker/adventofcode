@@ -27,7 +27,7 @@
           finally (return (append ranges
                                   (list (list merged-start merged-end)))))))
 
-(define-problem (2016 20) (ranges parse-ranges)
+(define-solution (2016 20) (ranges parse-ranges)
   (loop with part1 with part2 = (1+ *ip-max*)
         for (start end) in (merge-overlapping ranges)
         for size = (1+ (- end start)) do
@@ -35,7 +35,4 @@
         (decf part2 size)
         finally (return (values part1 part2))))
 
-(1am:test test-2016/20
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 31053880 part1))
-    (1am:is (= 117 part2))))
+(define-test (2016 20) (31053880 117))

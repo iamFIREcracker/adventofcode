@@ -132,7 +132,7 @@
             (list (make-state :pos other-side
                               :level (+ level (if (d-outer-boundary-p d pos) -1 1))))))))))
 
-(define-problem (2019 20) (d make-donut)
+(define-solution (2019 20) (d make-donut)
   (values
     (multiple-value-bind (end-state end-state-cost)
         (bfs (d-start d)
@@ -148,7 +148,4 @@
       (declare (ignore end-state))
       end-state-cost)))
 
-(1am:test test-2019/20
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 496 part1))
-    (1am:is (= 5886 part2))))
+(define-test (2019 20) (496 5886))

@@ -166,7 +166,7 @@
     :collect (apply #'mkstr (apply #'mapcar #'mkstr line-squares)) :into lines
     :finally (return (apply #'mkstr lines))))
 
-(define-problem (2017 21) (data parse-rules)
+(define-solution (2017 21) (data parse-rules)
   (flet ((pixels-on (pixels)
            (count #\# pixels)))
     (loop
@@ -179,7 +179,4 @@
       :when (= iteration 5) :do (setf part1 (pixels-on pixels))
       :finally (return (values part1 (pixels-on pixels))))))
 
-(1am:test test-2017/21
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 188 part1))
-    (1am:is (= 2758764 part2))))
+(define-test (2017 21) (188 2758764))

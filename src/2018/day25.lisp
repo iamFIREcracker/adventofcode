@@ -7,7 +7,7 @@
 (defun parse-points (x)
   (mapcar #'parse-point x))
 
-(define-problem (2018 25) (data parse-points)
+(define-solution (2018 25) (data parse-points)
   (values
     (let ((sets (mapcar #'make-disjointset data)))
       (loop
@@ -21,6 +21,4 @@
                       (disjointset-union s1 s2)))))
       (length (distinct-disjointsets sets)))))
 
-(1am:test test-2018/25
-  (multiple-value-bind (part1) (problem-run)
-    (1am:is (= 420 part1))))
+(define-test (2018 25) (420))

@@ -35,7 +35,7 @@
                                         :value-comp value-comp))))
       (mapcar #'parse-instruction x))))
 
-(define-problem (2017 8) (data parse-jump-instructions)
+(define-solution (2017 8) (data parse-jump-instructions)
   (labels ((get-reg-value (registers reg)
              (gethash reg registers 0))
            (inc-reg (registers reg delta)
@@ -53,7 +53,4 @@
       :finally (return (values (max-reg-value registers)
                                max)))))
 
-(1am:test test-2017/08
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 4888 part1))
-    (1am:is (= 7774 part2))))
+(define-test (2017 8) (4888 7774))

@@ -56,12 +56,9 @@
     :when (= n 100)
     :return (firt-8-digits digits)))
 
-(define-problem (2019 16) (message read-integer)
+(define-solution (2019 16) (message read-integer)
   (values
     (solve-part1 message)
     (solve-part2 message)))
 
-(1am:test test-2019/16
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (string= "63483758" part1))
-    (1am:is (string= "96099551" part2))))
+(define-test (2019 16) ("63483758" "96099551"))

@@ -29,12 +29,9 @@
     (loop do (checksum-reduction array)
           while (evenp (length array)))))
 
-(define-problem (2016 16) (seed first)
+(define-solution (2016 16) (seed first)
   (values
     (checksum (generate-random-data seed 272))
     (checksum (generate-random-data seed 35651584))))
 
-(1am:test test-2016/16
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (string= "01110011101111011" part1))
-    (1am:is (string= "11001111011000111" part2))))
+(define-test (2016 16) ("01110011101111011" "11001111011000111"))

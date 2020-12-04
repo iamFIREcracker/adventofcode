@@ -83,7 +83,7 @@
     :do (funcall m df)
     :finally (return df)))
 
-(define-problem (2017 16) (data parse-moves)
+(define-solution (2017 16) (data parse-moves)
   (values
     (let ((df (make-dancefloor)))
       (print-dancefloor (do-the-dance df data)))
@@ -97,7 +97,4 @@
           (dotimes (n remaining (print-dancefloor df))
             (do-the-dance df data)))))))
 
-(1am:test test-2017/16
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (string= "hmefajngplkidocb" part1))
-    (1am:is (string= "fbidepghmjklcnoa" part2))))
+(define-test (2017 16) ("hmefajngplkidocb" "fbidepghmjklcnoa"))

@@ -63,7 +63,7 @@
     :when *interactive* :do (progn (game-print game) (sleep .2))
     :finally (return (game-score game))))
 
-(define-problem (2019 13) (program intcode:read-program)
+(define-solution (2019 13) (program intcode:read-program)
   (values
     (let ((game (make-game program)))
       (game-run game)
@@ -71,7 +71,4 @@
     (let ((game (make-game program)))
       (game-play game :interactive NIL))))
 
-(1am:test test-2019/13
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 255 part1))
-    (1am:is (= 12338 part2))))
+(define-test (2019 13) (255 12338))

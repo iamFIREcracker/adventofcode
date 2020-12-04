@@ -10,7 +10,7 @@
         :collect (aref array i j) :into values
         :finally (return (coerce values 'simple-vector))))
 
-(define-problem (2016 06) (recording parse-recording)
+(define-solution (2016 6) (recording parse-recording)
   (loop :with columns = (array-dimension recording 1)
         :for j :below columns
         :for column = (array-column recording j)
@@ -20,7 +20,4 @@
         :finally (return (values (coerce part1 'string)
                                  (coerce part2 'string)))))
 
-(1am:test test-2016/06
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (string= "umcvzsmw" part1))
-    (1am:is (string= "rwqoacfz" part2))))
+(define-test (2016 6) ("umcvzsmw" "rwqoacfz"))

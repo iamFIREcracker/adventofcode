@@ -2,7 +2,7 @@
 (in-package :aoc/2018/01)
 
 
-(define-problem (2018 1) (data parse-integers)
+(define-solution (2018 1) (data parse-integers)
   (values
     (summation data)
     (loop
@@ -14,7 +14,4 @@
             (return frequency)
             (hash-table-insert seen frequency T))))) ; XXX hash-set
 
-(1am:test test-2018/01
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 484 part1))
-    (1am:is (= 367 part2))))
+(define-test (2018 1) (484 367))

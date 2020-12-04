@@ -48,7 +48,7 @@
                     (delta (- (nth i tower-weights) (nth j tower-weights))))
                (return-from find-corrected-weight (- (weight (nth i programs-above)) delta)))))))))
 
-(define-problem (2017 7) (data parse-programs)
+(define-solution (2017 7) (data parse-programs)
   (flet ((index-by-name (programs &aux (index (make-hash-table :test 'equal)))
            (dolist (p programs index)
              (hash-table-insert index (name p) p))))
@@ -57,7 +57,4 @@
         bottom-program
         (find-corrected-weight (index-by-name data) bottom-program)))))
 
-(1am:test test-2017/07
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (equal "cyrupz" part1))
-    (1am:is (= 193 part2))))
+(define-test (2017 7) ("cyrupz" 193))

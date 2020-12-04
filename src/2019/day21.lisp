@@ -29,7 +29,7 @@
       :when (>= v 255) :return v
       :do (format T "~a" (code-char v))))
 
-(define-problem (2019 21) (program intcode:read-program)
+(define-solution (2019 21) (program intcode:read-program)
   (values 
     ;; jump if:
     ;; - the next tile is empty
@@ -63,7 +63,4 @@
                   "RUN")))
       (droid-run (make-droid program) code))))
 
-(1am:test test-2019/21
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 19355391 part1))
-    (1am:is (= 1143770635 part2))))
+(define-test (2019 21) (19355391 1143770635))

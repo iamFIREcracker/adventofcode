@@ -2,7 +2,7 @@
 (in-package :aoc/2018/02)
 
 
-(define-problem (2018 2) (data)
+(define-solution (2018 2) (data)
   (values
     (loop
       :for id :in data
@@ -21,7 +21,4 @@
                      (subseq a 0 i)
                      (subseq a (1+ i)))))))
 
-(1am:test test-2018/02
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 5390 part1))
-    (1am:is (string= "nvosmkcdtdbfhyxsphzgraljq" part2))))
+(define-test (2018 2) (5390 "nvosmkcdtdbfhyxsphzgraljq"))

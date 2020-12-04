@@ -128,12 +128,9 @@
           (aref (nth (1+ vault-y) copy) (1+ vault-x)) #\@)
     copy))
 
-(define-problem (2019 18) (data)
+(define-solution (2019 18) (data)
   (values
     (solve data)
     (solve (prepare-part2 data))))
 
-(1am:test test-2019/18
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 5068 part1))
-    (1am:is (= 1966 part2))))
+(define-test (2019 18) (5068 1966))

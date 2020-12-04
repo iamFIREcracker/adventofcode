@@ -164,7 +164,7 @@
     :for eris :in (hash-table-values (levels re))
     :summing (count-if #'bugp (hash-table-values (tiles eris)))))
 
-(define-problem (2019 24) (data)
+(define-solution (2019 24) (data)
   (values
     (destructuring-bind (cycles-at cycle-size e)
         (floyd #'eris-evolve
@@ -178,7 +178,4 @@
       :for re = (make-recursive-eris data) :then (recursive-eris-evolve re)
       :finally (return (recursive-eris-bugs re)))))
 
-(1am:test test-2019/24
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 7543003 part1))
-    (1am:is (= 1975 part2))))
+(define-test (2019 24) (7543003 1975))

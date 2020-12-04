@@ -29,7 +29,7 @@
             (claim-id claim)
             (gethash (mkstrc x y) fabric)))))))
 
-(define-problem (2018 3) (data)
+(define-solution (2018 3) (data)
   (let* ((claims (mapcar #'parse-claim data))
          (fabric (make-fabric claims)))
     (values
@@ -46,7 +46,4 @@
           (unless (gethash (claim-id claim) overlapping-ids)
             (return (claim-id claim))))))))
 
-(1am:test test-2018/03
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 107820 part1))
-    (1am:is (string= "661" part2))))
+(define-test (2018 3) (107820 "661"))

@@ -1,7 +1,7 @@
 (defpackage :aoc/2017/17 #.cl-user::*aoc-use*)
 (in-package :aoc/2017/17)
 
-(define-problem (2017 17) (data read-integer)
+(define-solution (2017 17) (data read-integer)
   (values
     (flet ((next-value (dl)
              (dlink-content (dlink-next dl))))
@@ -20,7 +20,4 @@
       :when (= curr 1) :do (setf last n)
       :finally (return last))))
 
-(1am:test test-2017/17
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 1914 part1))
-    (1am:is (= 41797835 part2))))
+(define-test (2017 17) (1914 41797835))

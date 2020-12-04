@@ -52,14 +52,11 @@
   (loop for (name value) on passport by #'cddr
         always (field-valid-p name value)))
 
-(define-problem (2020 04) (data)
+(define-solution (2020 4) (data)
   (let ((passports (remove-if-not #'has-all-required-fields-p
                                   (parse-passports data))))
     (values
       (length passports)
       (count-if #'all-fields-valid-p passports))))
 
-(1am:test test-2020/04
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 250 part1))
-    (1am:is (= 158 part2))))
+(define-test (2020 4) (250 158))

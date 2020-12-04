@@ -33,12 +33,9 @@
                                                   #'identity
                                                   (partial-1 #'manhattan-distance _ #C(0 0)))))))
 
-(define-problem (2019 3) (wires read-wires)
+(define-solution (2019 3) (wires read-wires)
   (values
     (walk wires)
     (walk wires T)))
 
-(1am:test test-2019/03
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 232 part1))
-    (1am:is (= 6084 part2))))
+(define-test (2019 3) (232 6084))

@@ -23,12 +23,9 @@
       ("^([^(]+)" string)
     (+ (length raw) (message-length (subseq string (length raw))))))
 
-(define-problem (2016 09) (message first)
+(define-solution (2016 9) (message first)
   (values (message-length message)
           (let ((*version* 2))
             (message-length message))))
 
-(1am:test test-2016/09
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 98135 part1))
-    (1am:is (= 10964557606 part2))))
+(define-test (2016 9) (98135 10964557606))

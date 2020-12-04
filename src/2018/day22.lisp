@@ -68,7 +68,7 @@
         :for adj-tools = (tools-by-area adj-area)
         :when (member tool adj-tools) :collect (cons (make-state adj tool) 1)))))
 
-(define-problem (2018 22) (data)
+(define-solution (2018 22) (data)
   (multiple-value-bind (depth target) (parse-depth-target data)
     (values
       (summation
@@ -90,7 +90,4 @@
           (declare (ignore end-state))
           end-state-cost)))))
 
-(1am:test test-2018/22
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 5400 part1))
-    (1am:is (= 1048 part2))))
+(define-test (2018 22) (5400 1048))

@@ -43,22 +43,16 @@
                  :when (eql #\0 pixel) :return #\Space
                  :when (eql #\1 pixel) :return #\#))))
 
-(define-problem (2019 8) (image read-image)
+(define-solution (2019 8) (image read-image)
   (values
     (solve-part1 image)
     (solve-part2 image)))
 
-(1am:test test-2019/08
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 2684 part1))
-    (1am:is (string=
-
-"
+(define-test (2019 8) (2684 "
 #   # ##  ###  #   ##### 
 #   ##  # #  # #   #   # 
  # # #    #  #  # #   #  
   #  # ## ###    #   #   
   #  #  # # #    #  #    
   #   ### #  #   #  #### 
-"
-part2))))
+"))

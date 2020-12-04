@@ -101,7 +101,8 @@
     :read-integer
     :parse-char
 
-    :define-problem
+    :define-solution
+    :define-test
     :swallow))
 
 

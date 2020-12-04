@@ -43,7 +43,7 @@
         :for microchips = (bot-microchips each)
         :when (= (length microchips) 2) :return each))
 
-(define-problem (2016 10) (bots parse-bots)
+(define-solution (2016 10) (bots parse-bots)
   (loop :with part1 :with outputs = (make-hash-table)
         :for bot = (find-unblocked-bot bots)
         :while bot
@@ -63,7 +63,4 @@
                                     (gethash 1 outputs)
                                     (gethash 2 outputs))))))
 
-(1am:test test-2016/10
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 118 part1))
-    (1am:is (= 143153 part2))))
+(define-test (2016 10) (118 143153))

@@ -27,7 +27,7 @@
                               :acceleration acceleration))))
     (mapcar #'parse-particle x)))
 
-(define-problem (2017 20) (data parse-particles)
+(define-solution (2017 20) (data parse-particles)
   (labels ((copy-particles (particles)
              (mapcar #'copy-structure particles))
            (move-particles (particles)
@@ -51,7 +51,4 @@
         :do (setf particles (unique-only particles :key #'particle-position :test 'equal))
         :finally (return (length particles))))))
 
-(1am:test test-2017/20
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 258 part1))
-    (1am:is (= 707 part2))))
+(define-test (2017 20) (258 707))

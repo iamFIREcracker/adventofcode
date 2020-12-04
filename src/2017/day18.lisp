@@ -143,7 +143,7 @@
                   *id* (program-id current)
                   *registers* (program-registers current))))))
 
-(define-problem (2017 18) (data)
+(define-solution (2017 18) (data)
   (setf *instructions-by-name* `(("snd" ,#'i-snd)
                                  ("set" ,#'i-set)
                                  ("add" ,#'i-add)
@@ -156,7 +156,4 @@
       (solve-part1 instructions)
       (solve-part2 instructions))))
 
-(1am:test test-2017/18
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 3423 part1))
-    (1am:is (= 7493 part2))))
+(define-test (2017 18) (3423 7493))

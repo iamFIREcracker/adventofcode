@@ -94,13 +94,10 @@
   (mapcar #'(lambda (x) (coerce x 'string))
           (all-permutations (coerce string 'list))))
 
-(define-problem (2016 21) (script parse-scramble-script)
+(define-solution (2016 21) (script parse-scramble-script)
   (values (scramble script "abcdefgh")
           (loop for input in (permutations-string "abcdefgh")
                 when (string= (scramble script input) "fbgdceah")
                 return input)))
 
-(1am:test test-2016/21
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (string= "gfdhebac" part1))
-    (1am:is (string= "dhaegfbc" part2))))
+(define-test (2016 21) ("gfdhebac" "dhaegfbc"))

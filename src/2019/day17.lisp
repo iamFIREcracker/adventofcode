@@ -87,7 +87,7 @@
     (intcode:program-run (robot-program robot))
     (explore-1 robot)))
 
-(define-problem (2019 17) (program intcode:read-program)
+(define-solution (2019 17) (program intcode:read-program)
   (values
     (let* ((robot (make-robot program))
            (map (explore robot)))
@@ -99,7 +99,4 @@
     (let* ((robot (make-robot program)))
       (robot-clean robot))))
 
-(1am:test test-2019/17
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 11140 part1))
-    (1am:is (= 1113108 part2))))
+(define-test (2019 17) (11140 1113108))

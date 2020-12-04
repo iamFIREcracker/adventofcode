@@ -72,7 +72,7 @@
                              :if-one-next if-one-next) :into states
         :finally (return (values init-state steps states))))))
 
-(define-problem (2017 25) (data)
+(define-solution (2017 25) (data)
   (multiple-value-bind (init-state steps states)
       (read-turing-machine-state data)
     (loop
@@ -81,6 +81,4 @@
       :do (turing-machine-advancef tm)
       :finally (return (count 1 (hash-table-values (tm-tape tm)))))))
 
-(1am:test test-2017/25
-  (multiple-value-bind (part1) (problem-run)
-    (1am:is (= 5593 part1))))
+(define-test (2017 25) (5593))

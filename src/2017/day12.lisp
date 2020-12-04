@@ -13,7 +13,7 @@
                                  :linked linked))))
     (mapcar #'parse-program-links x)))
 
-(define-problem (2017 12) (data parse-program-links)
+(define-solution (2017 12) (data parse-program-links)
   (flet ((init-groups (&aux (sets (make-hash-table)))
            (dolist (pipe data sets)
              (let ((from (program-links-from pipe)))
@@ -37,7 +37,4 @@
                                   :test 'eq)
                            (length (distinct-disjointsets sets))))))))
 
-(1am:test test-2017/12
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 378 part1))
-    (1am:is (= 204 part2))))
+(define-test (2017 12) (378 204))

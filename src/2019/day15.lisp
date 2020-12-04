@@ -42,7 +42,7 @@
                                   ((= oxygen pos) #\O)
                                   (T value)))))
 
-(define-problem (2019 15) (program intcode:read-program)
+(define-solution (2019 15) (program intcode:read-program)
   (multiple-value-bind (start oxygen map)
       (build-map program)
     (multiple-value-bind (end-state end-state-cost end-state-path cost-so-far)
@@ -53,7 +53,4 @@
         (gethash start cost-so-far)
         (maximization (hash-table-values cost-so-far))))))
 
-(1am:test test-2019/15
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 336 part1))
-    (1am:is (= 360 part2))))
+(define-test (2019 15) (336 360))

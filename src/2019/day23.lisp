@@ -69,12 +69,9 @@
                 nat-y-prev nat-y
                 inactive NIL))))
 
-(define-problem (2019 23) (program intcode:read-program)
+(define-solution (2019 23) (program intcode:read-program)
   (values
     (solve-part1 (make-network program))
     (solve-part2 (make-network program))))
 
-(1am:test test-2019/23
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 16685 part1))
-    (1am:is (= 11048 part2))))
+(define-test (2019 23) (16685 11048))

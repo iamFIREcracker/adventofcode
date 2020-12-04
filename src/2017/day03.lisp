@@ -97,7 +97,7 @@
       (values (spiral-gen-last-pos gen)
               (spiral-gen-last gen)))))
 
-(define-problem (2017 3) (data read-integer)
+(define-solution (2017 3) (data read-integer)
   (values
     (loop
       :with gen = (make-spiral-gen)
@@ -113,7 +113,4 @@
       :when (> value data) :return value
       :do (hash-table-insert grid pos value))))
 
-(1am:test test-2017/03
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 419 part1))
-    (1am:is (= 295229 part2))))
+(define-test (2017 3) (419 295229))

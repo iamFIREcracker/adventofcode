@@ -1,7 +1,7 @@
 (defpackage :aoc/2017/01 #.cl-user::*aoc-use*)
 (in-package :aoc/2017/01)
 
-(define-problem (2017 1) (data first)
+(define-solution (2017 1) (data first)
   (let* ((digits (str-digits data 'vector))
          (size (length digits)))
     (values
@@ -20,7 +20,4 @@
         :when (eql curr next2)
         :summing curr))))
 
-(1am:test test-2017/01
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 1341 part1))
-    (1am:is (= 1348 part2))))
+(define-test (2017 1) (1341 1348))

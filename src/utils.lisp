@@ -882,23 +882,32 @@ By default, it will store the result into a list, but `type` can be tweaked to c
   (char string 0))
 
 ;;;; Problems -----------------------------------------------------------------
-(defmacro define-problem ((year day)
-                          (arg &optional (reader 'identity))
-                          &body body)
+(defmacro define-solution ((year day)
+                           (arg &optional (reader 'identity))
+                           &body body)
   (with-gensyms (file)
-    (let ((run (symb 'problem-run)))
+    (let ((run (symb 'solution-run)))
       `(defun ,run (&optional ,arg)
-         (let ((,file (open (problem-input-path ,year ,day))))
-           (unwind-protect
-               (progn (setf ,arg (,reader (read-all ,file)))
-                      ,@body)
-             (when ,file (close ,file))))))))
+        (let ((,file (open (problem-input-path ,year ,day))))
+          (unwind-protect
+            (progn (setf ,arg (,reader (read-all ,file)))
+                   ,@body)
+            (when ,file (close ,file))))))))
 
 (defun problem-input-path (year day)
   (make-pathname
     :directory `(:relative "src" ,(aesthetic-string year))
     :name (format nil "day~2,'0D" day)
     :type "txt"))
+
+(defmacro define-test ((year day) (expected-part1 &optional expected-part2))
+  (let ((test-name (symb (format nil "TEST-~D/~2,'0D" year day)))
+        (runner-name (symb 'solution-run)))
+    `(1am:test ,test-name
+       (multiple-value-bind (actual-part1 actual-part2) (,runner-name)
+          (1am:is (equal ,expected-part1 actual-part1))
+          (when actual-part2
+            (1am:is (equal ,expected-part2 actual-part2)))))))
 
 (defmacro swallow (&body body)
   "Swallow BODY, and return nil"

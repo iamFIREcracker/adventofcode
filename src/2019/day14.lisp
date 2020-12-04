@@ -62,7 +62,7 @@
                    (incf (gethash type stock 0) waste))))))
     consumed-ore))
 
-(define-problem (2019 14) (rl read-reactions-list)
+(define-solution (2019 14) (rl read-reactions-list)
   (let* ((cargo-limit 1000000000000)
          (ore-per-fuel (rl-generate-fuel rl 1))
          (min-fuel (floor cargo-limit ore-per-fuel)))
@@ -73,7 +73,4 @@
                        (let ((ore (rl-generate-fuel rl fuel)))
                          (<=> ore cargo-limit)))))))
 
-(1am:test test-2019/14
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 443537 part1))
-    (1am:is (= 2910558 part2))))
+(define-test (2019 14) (443537 2910558))

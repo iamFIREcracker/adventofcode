@@ -61,7 +61,7 @@
           (princ (aref screen i j) s))
         (terpri s)))))
 
-(define-problem (2016 08) (instructions parse-instructions)
+(define-solution (2016 8) (instructions parse-instructions)
   (loop :with screen = (make-array (list 6 50) :initial-element #\Space)
         :for (type . args) :in instructions
         :do (case type
@@ -71,15 +71,11 @@
         :finally (return (values (count-lit-pixels screen)
                                  (print-screen screen)))))
 
-(1am:test test-2016/08
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 121 part1))
-    (1am:is (string= "
+(define-test (2016 8) (121  "
 ###  #  # ###  #  #  ##  ####  ##  ####  ### #    
 #  # #  # #  # #  # #  # #    #  # #      #  #    
 #  # #  # #  # #  # #    ###  #  # ###    #  #    
 ###  #  # ###  #  # #    #    #  # #      #  #    
 # #  #  # # #  #  # #  # #    #  # #      #  #    
 #  #  ##  #  #  ##   ##  ####  ##  ####  ### #### 
-"
- part2))))
+"))

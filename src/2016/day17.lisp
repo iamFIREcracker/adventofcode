@@ -50,12 +50,9 @@
          :test 'equalp)
     max))
 
-(define-problem (2016 17) (seed first)
+(define-solution (2016 17) (seed first)
   (values
     (part1 seed)
     (part2 seed)))
 
-(1am:test test-2016/17
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (string= "DUDDRLRRRD" part1))
-    (1am:is (= 578 part2))))
+(define-test (2016 17) ("DUDDRLRRRD" 578))

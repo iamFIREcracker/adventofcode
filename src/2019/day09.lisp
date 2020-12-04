@@ -6,12 +6,9 @@
   (intcode:program-run program)
   (dequeue (intcode:program-out program)))
 
-(define-problem (2019 9) (data)
+(define-solution (2019 9) (data)
   (values
     (boost-run data 1)
     (boost-run data 2)))
 
-(1am:test test-2019/09
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 3280416268 part1))
-    (1am:is (= 80210 part2))))
+(define-test (2019 9) (3280416268 80210))

@@ -9,12 +9,9 @@
     :while (zerop o) ; skip all the successful (i.e. 0) tests
     :finally (return o)))
 
-(define-problem (2019 5) (data)
+(define-solution (2019 5) (data)
   (values
     (diagnostics-run data 1)
     (diagnostics-run data 5)))
 
-(1am:test test-2019/05
-  (multiple-value-bind (part1 part2) (problem-run)
-    (1am:is (= 9938601 part1))
-    (1am:is (= 4283952 part2))))
+(define-test (2019 5) (9938601 4283952))
