@@ -2,7 +2,7 @@
 ;;;; See http://quickutil.org for details.
 
 ;;;; To regenerate:
-;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:COPY-HASH-TABLE :FLATTEN :HASH-TABLE-ALIST :HASH-TABLE-KEYS :HASH-TABLE-VALUES :IF-LET :IOTA :MKSTR :NCYCLE :SYMB :VOID :WHEN-LET :WITH-GENSYMS) :ensure-package T :package "AOC.QUICKUTILS")
+;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:COPY-HASH-TABLE :FLATTEN :HASH-TABLE-ALIST :HASH-TABLE-KEYS :HASH-TABLE-VALUES :IF-LET :IOTA :MAKE-KEYWORD :MKSTR :NCYCLE :SYMB :VOID :WHEN-LET :WITH-GENSYMS) :ensure-package T :package "AOC.QUICKUTILS")
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (unless (find-package "AOC.QUICKUTILS")
@@ -17,8 +17,9 @@
                                          :HASH-TABLE-ALIST :MAPHASH-KEYS
                                          :HASH-TABLE-KEYS :MAPHASH-VALUES
                                          :HASH-TABLE-VALUES :IF-LET :IOTA
-                                         :MKSTR :NCYCLE :SYMB :VOID :WHEN-LET
-                                         :STRING-DESIGNATOR :WITH-GENSYMS))))
+                                         :MAKE-KEYWORD :MKSTR :NCYCLE :SYMB
+                                         :VOID :WHEN-LET :STRING-DESIGNATOR
+                                         :WITH-GENSYMS))))
 
   (defun copy-hash-table (table &key key test size
                                      rehash-size rehash-threshold)
@@ -145,6 +146,11 @@ Examples:
           ;; KLUDGE: get numeric contagion right for the first element too
           for i = (+ (- (+ start step) step)) then (+ i step)
           collect i))
+  
+
+  (defun make-keyword (name)
+    "Interns the string designated by `name` in the `keyword` package."
+    (intern (string name) :keyword))
   
 
   (defun mkstr (&rest args)
@@ -282,7 +288,7 @@ unique symbol the named variable will be bound to."
   
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (export '(copy-hash-table flatten hash-table-alist hash-table-keys
-            hash-table-values if-let iota mkstr ncycle symb void when-let
-            when-let* with-gensyms with-unique-names)))
+            hash-table-values if-let iota make-keyword mkstr ncycle symb void
+            when-let when-let* with-gensyms with-unique-names)))
 
 ;;;; END OF quickutils.lisp ;;;;
