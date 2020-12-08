@@ -19,10 +19,20 @@
 (defun parse-rules (data)
   (mapcar #'parse-rule data))
 
-(defun contains-shiny-gold-p (rules curr)
-  (or (eq curr :shiny-gold)
-      (some (partial-1 'contains-shiny-gold-p rules (first _))
-            (second (assoc curr rules)))))
+(defun invert (table)
+  (loop with inverted = nil
+        for (from mapping) in table do
+        (loop for (to . _) in mapping
+              for existing = (assoc to inverted) do
+              (if existing
+                (push from (second existing))
+                (push (list to (list from)) inverted)))
+        finally (return inverted)))
+
+(defun collect-containing-bags (curr rules)
+  (remove-duplicates
+    (loop for type in (second (assoc curr rules))
+          append (cons type (collect-containing-bags type rules)))))
 
 (defun count-bags-inside (curr rules)
   (loop for (type . n) in (second (assoc curr rules))
@@ -30,9 +40,7 @@
 
 (define-solution (2020 7) (rules parse-rules)
   (values
-    (count-if (partial-1 #'contains-shiny-gold-p rules)
-              (remove :shiny-gold rules :key #'first)
-              :key #'first)
+    (length (collect-containing-bags :shiny-gold (invert rules)))
     (count-bags-inside :shiny-gold rules)))
 
 (define-test (2020 7) (148 24867))
