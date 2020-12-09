@@ -30,3 +30,5 @@
 - 2019/25: implement a solution for this (I solved this by _playing_ it)
 - Add PERMUTATIONS function that works with strings too (currently, for
   2016/21 I COERCE'd like there is no tomorrow)
+- 2020/08: does a better solution that bruteforce exist for part 2?
+- 2020/09: solve part2 using a sliding window instead of BFS + prefix-sum
