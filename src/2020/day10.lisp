@@ -7,16 +7,13 @@
         count (= delta 3) into threes
         finally (return (* ones (1+ threes)))))
 
-(defun part2 (adapters)
-  (let ((memo (make-hash-table :test 'equal)))
-    (labels ((recur (p rest &aux (n (first rest)) (key (list p n)))
-               (cond ((or (null rest) (> (- n p) 3)) 0) ; no luck
-                     ((null (rest rest)) 1) ; found it
-                     ((gethash key memo) (gethash key memo))
-                     (t (setf (gethash key memo)
-                              (+ (recur p (rest rest))
-                                 (recur n (rest rest))))))))
-      (recur 0 adapters))))
+(defun part2 (numbers &aux (dp (make-hash-table)))
+  (loop initially (setf (gethash 0 dp) 1)
+        for n in numbers do
+        (setf (gethash n dp) (+ (gethash (- n 1) dp 0)
+                                (gethash (- n 2) dp 0)
+                                (gethash (- n 3) dp 0)))
+        finally (return (gethash n dp))))
 
 (define-solution (2020 10) (numbers parse-integers)
   (let* ((sorted (sort numbers #'<)))
