@@ -14,8 +14,8 @@
           (#\S (incf pos (* n #c(0 -1))))
           (#\E (incf pos (* n #c(1 0))))
           (#\W (incf pos (* n #c(-1 0))))
-          (#\L (setf dir (* dir (expt #c(0 1) (/ n 90)))))
-          (#\R (setf dir (* dir (expt #c(0 -1) (/ n 90)))))
+          (#\L (mulf dir (expt #c(0 1) (/ n 90))))
+          (#\R (mulf dir (expt #c(0 -1) (/ n 90))))
           (#\F (incf pos (* n dir))))
         finally (return (manhattan-distance pos 0))))
 
@@ -26,8 +26,8 @@
           (#\S (incf dir (* n #c(0 -1))))
           (#\E (incf dir (* n #c(1 0))))
           (#\W (incf dir (* n #c(-1 0))))
-          (#\L (setf dir (* dir (expt #c(0 1) (/ n 90)))))
-          (#\R (setf dir (* dir (expt #c(0 -1) (/ n 90)))))
+          (#\L (mulf dir (expt #c(0 1) (/ n 90))))
+          (#\R (mulf dir (expt #c(0 -1) (/ n 90))))
           (#\F (incf pos (* n dir))))
         finally (return (manhattan-distance pos 0))))
 
