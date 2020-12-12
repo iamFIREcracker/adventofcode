@@ -12,6 +12,7 @@
                :iota
                :make-keyword
                :mkstr
+               :mulf
                :ncycle
                :symb
                :void
