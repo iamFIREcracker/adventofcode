@@ -34,3 +34,4 @@
 - 2020/09: solve part2 using a sliding window instead of BFS + prefix-sum
 - 2020/11: cache recursive calls IN-SIGHT-OCCUPIED, or change how the problem
   is modeled...[completely](http://clj-me.cgrand.net/2011/08/19/conways-game-of-life/)
+- 2020/13: implement [proper](https://matteolandi.net/plan.html#day-2020-12-13) solution (CRT)
