@@ -35,3 +35,8 @@
 - 2020/11: cache recursive calls IN-SIGHT-OCCUPIED, or change how the problem
   is modeled...[completely](http://clj-me.cgrand.net/2011/08/19/conways-game-of-life/)
 - 2020/13: implement [proper](https://matteolandi.net/plan.html#day-2020-12-13) solution (CRT)
+- 2020/15: implement a solution that uses a single HASH-TABLE (the realization
+  is that `turn-1` is always equal to `turn - 1`)
+- 2020/16: 30s to complete...try and map positions to fields minimizing the
+  branching factor (i.e. if a position is compatible with one field only,
+  recurse into that immediately)
