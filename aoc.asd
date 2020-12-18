@@ -33,9 +33,11 @@
    (:file "package")
    (:module "src"
     :serial t
-    :components ((:file "utils")
+    :components ((:file "hset")
+                 (:file "utils")
                  (:file "intcode")
                  (:file "assembunnycode")
+                 (:file "gameoflife")
                  (:auto-module "2016")
                  (:auto-module "2017")
                  (:module "2018" :serial t
