@@ -40,3 +40,5 @@
 - 2020/16: 30s to complete...try and map positions to fields minimizing the
   branching factor (i.e. if a position is compatible with one field only,
   recurse into that immediately)
+- 2020/18: Solve using [Shunting yard
+  algorithm](https://en.wikipedia.org/wiki/Shunting-yard_algorithm)
