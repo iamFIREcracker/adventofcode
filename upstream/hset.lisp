@@ -4,7 +4,9 @@
     :make-hset
     :hset-contains-p
     :hset-values
-    :hset-size))
+    :hset-size
+    :hset-add
+    :hset-rem))
 (in-package :hset)
 
 (defun make-hset (values &key (test 'eql))
@@ -30,3 +32,11 @@
 (defun hset-size (hset)
   "Returns the number of values stored inside `hset`."
   (hash-table-count hset))
+
+(defun hset-add (v hset)
+  "Adds `v` to `hset`."
+  (setf (gethash v hset) t))
+
+(defun hset-rem (v hset)
+  "Removes `v` from `hset`."
+  (remhash v hset))

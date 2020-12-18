@@ -29,12 +29,15 @@
     :components ((:file "pmdb")
                  (:file "quickutils-package")
                  (:file "quickutils")
-                 (:file "quickutils-local")))
+                 ))
+   (:module "upstream"
+    :serial t
+    :components ((:file "quickutils-local")
+                 (:file "hset")))
    (:file "package")
    (:module "src"
     :serial t
-    :components ((:file "hset")
-                 (:file "utils")
+    :components ((:file "utils")
                  (:file "intcode")
                  (:file "assembunnycode")
                  (:file "gameoflife")
