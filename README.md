@@ -31,7 +31,6 @@
 - Add PERMUTATIONS function that works with strings too (currently, for
   2016/21 I COERCE'd like there is no tomorrow)
 - 2020/08: does a better solution that bruteforce exist for part 2?
-- 2020/09: solve part2 using a sliding window instead of BFS + prefix-sum
 - 2020/11: cache recursive calls IN-SIGHT-OCCUPIED, or change how the problem
   is modeled...[completely](http://clj-me.cgrand.net/2011/08/19/conways-game-of-life/)
 - 2020/13: implement [proper](https://matteolandi.net/plan.html#day-2020-12-13) solution (CRT)
