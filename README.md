@@ -30,7 +30,6 @@
 - 2019/25: implement a solution for this (I solved this by _playing_ it)
 - Add PERMUTATIONS function that works with strings too (currently, for
   2016/21 I COERCE'd like there is no tomorrow)
-- 2020/08: does a better solution that bruteforce exist for part 2?
 - 2020/11: cache recursive calls IN-SIGHT-OCCUPIED, or change how the problem
   is modeled...[completely](http://clj-me.cgrand.net/2011/08/19/conways-game-of-life/)
 - 2020/13: implement [proper](https://matteolandi.net/plan.html#day-2020-12-13) solution (CRT)
@@ -41,3 +40,6 @@
   recurse into that immediately)
 - 2020/18: Solve using [Shunting yard
   algorithm](https://en.wikipedia.org/wiki/Shunting-yard_algorithm)
+- 2020/19: Solve implementing a [Context-free
+  grammar](https://en.wikipedia.org/wiki/Context-free_grammar) parser
+- 2020/20: Clean up the solution (remove hard-coded stuff, regexps, ...)
