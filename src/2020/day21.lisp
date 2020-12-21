@@ -20,32 +20,26 @@
 
 (defun find-mapping (foods)
   (labels ((sort-foods (foods)
-             (sort foods
-                   (lambda (food1 food2)
-                     (or (< (length (ingredients food1))
-                            (length (ingredients food2)))
-                         (and (= (length (ingredients food1))
-                                 (length (ingredients food2)))
-                              (< (length (allergens food1))
-                                 (length (allergens food2))))))))
+             (sort foods #'<
+                   :key (lambda (food)
+                          (* (length (ingredients food))
+                             (length (allergens food))))))
+           (foods-valid-p (foods) foods)
            (update-foods (foods i a)
              (loop for (ii aa) in foods
-                   for invalidp = (and (member a aa :test #'string=)
-                                       (not (member i ii :test #'string=)))
-                   if invalidp return nil
-                   else collect (list
-                                  (remove i ii :test #'string=)
-                                  (remove a aa :test #'string=))))
+                   collect (list (remove i ii :test #'string=)
+                                 (remove a aa :test #'string=))
+                   when (and (member a aa :test #'string=)
+                             (not (member i ii :test #'string=))) return nil))
            (recur (foods mapping &aux (foods (sort-foods foods)))
-             (cond ((every #'null (mapcar #'allergens foods))
+             (cond ((not (foods-valid-p foods)) nil)
+                   ((every #'null (mapcar #'allergens foods))
                     (return-from find-mapping (values mapping foods)))
                    (t
                      (loop for (ii aa) in foods do
                            (loop for i in ii do
-                                 (loop for a in aa
-                                       for foods-next = (update-foods foods i a)
-                                       when foods-next do
-                                       (recur foods-next
+                                 (loop for a in aa do
+                                       (recur (update-foods foods i a)
                                               (cons (cons i a) mapping)))))))))
     (recur foods nil)))
 
