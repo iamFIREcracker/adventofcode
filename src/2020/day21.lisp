@@ -28,7 +28,7 @@
                                  (length (ingredients food2)))
                               (< (length (allergens food1))
                                  (length (allergens food2))))))))
-           (guess (foods i a)
+           (update-foods (foods i a)
              (loop for (ii aa) in foods
                    for invalidp = (and (member a aa :test #'string=)
                                        (not (member i ii :test #'string=)))
@@ -43,7 +43,7 @@
                      (loop for (ii aa) in foods do
                            (loop for i in ii do
                                  (loop for a in aa
-                                       for foods-next = (guess foods i a)
+                                       for foods-next = (update-foods foods i a)
                                        when foods-next do
                                        (recur foods-next
                                               (cons (cons i a) mapping)))))))))
