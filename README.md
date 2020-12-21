@@ -35,9 +35,6 @@
 - 2020/13: implement [proper](https://matteolandi.net/plan.html#day-2020-12-13) solution (CRT)
 - 2020/15: implement a solution that uses a single HASH-TABLE (the realization
   is that `turn-1` is always equal to `turn - 1`)
-- 2020/16: 30s to complete...try and map positions to fields minimizing the
-  branching factor (i.e. if a position is compatible with one field only,
-  recurse into that immediately)
 - 2020/18: Solve using [Shunting yard
   algorithm](https://en.wikipedia.org/wiki/Shunting-yard_algorithm)
 - 2020/19: Solve implementing a [Context-free
