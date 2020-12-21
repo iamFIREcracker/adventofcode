@@ -79,10 +79,10 @@
                            (setf (aref image row col) nil)))))))
       (recur nil 0 0))))
 
-(setf *sea-monster* (list
-                      "..................#."
-                      "#....##....##....###"
-                      ".#..#..#..#..#..#..."))
+(defparameter *sea-monster* (list
+                              "..................#."
+                              "#....##....##....###"
+                              ".#..#..#..#..#..#..."))
 
 (defun create-image (tiles)
   (let ((image (make-array '(96 96))))
