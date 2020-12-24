@@ -22,7 +22,7 @@
 
 (defun create-floor (instructions)
   (loop with flipped = (make-hset '())
-        for steps in instructions and delta = (reduce #'+ steps)
+        for steps in instructions for delta = (reduce #'+ steps)
         if (hset-contains-p delta flipped) do (hset-rem delta flipped)
         else do (hset-add delta flipped)
         finally (return flipped)))
