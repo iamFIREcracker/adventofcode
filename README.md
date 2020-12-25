@@ -40,3 +40,4 @@
 - 2020/19: Solve implementing a [Context-free
   grammar](https://en.wikipedia.org/wiki/Context-free_grammar) parser
 - 2020/20: Clean up the solution (remove hard-coded stuff, regexps, ...)
+- 2020/23: Takes 6 seconds to generate the answer
