@@ -4,8 +4,8 @@
     :summation
     :maximization
     :minimization
-    :maximizing
-    :minimizing
+    :find-min
+    :find-max
     :dividesp
     :alphabet
     :aesthetic-string

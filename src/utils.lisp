@@ -56,37 +56,79 @@
     :for v = (funcall key e)
     :minimizing v))
 
-(defun minimizing (x &key (key 'identity))
-  "Returns the element which is the min of all the elements of `x`, or NIL if
-  `x` is _empty_.
+(defun find-min (x &key (key 'identity) (predicate '<))
+  "Finds the minimum element of `x`, or NIL if `x` is empty.
+
+  By default this function assumes `x` to be a bag of numbers, but this
+  can be overridden by providing a different value of `predicate`;
+  `predicate` should accept two arguments and return non-NIL if
+  `arg1` is _smaller_ than `arg2`.
 
   If `key` is specified, this function will return the element that
-  minimizes `x`."
-  (loop1
-    :with best-e
-    :with best-v
-    :for e :being :the :elements :of x
-    :for v = (funcall key e)
-    :when (or (not best-e) (< v best-v))
-    :do (setf best-e e
-              best-v v)
-    :finally (return best-e)))
+  minimizes `(funcall key elem)`; otherwise, calling this function will be
+  the same as calling: `(reduce #'min x)`.
 
-(defun maximizing (x &key (key 'identity))
-  "Returns the element which is the max of all the elements of `x`, or NIL if
-  `x` is _empty_.
+  The minimum value of `(funcall key elem)` is also returned as second value.
+
+  (find-min '(4 3 2 1))
+  =>
+  1
+  1
+
+  (find-min '(#\d #\c #\b #\a) :predicate #'char<)
+  =>
+  #\a
+  #\a
+
+  (find-min '(4 3 2 1) :key (lambda (x) (- 4 x)))
+  =>
+  4
+  0
+  "
+  (values-list
+    (reduce
+      #'(lambda (acc each &aux (value (funcall key each)))
+         (if (or (not acc) (funcall predicate value (second acc)))
+           (list each value)
+           acc))
+      x :initial-value nil)))
+
+(defun find-max (x &key (predicate '>) (key 'identity))
+  "Finds the maximum element of `x`, or NIL if `x` is empty.
+
+  By default this function assumes `x` to be a bag of numbers, but this
+  can be overridden by providing a different value of `predicate`;
+  `predicate` should accept two arguments and return non-NIL if
+  `arg1` is _greater_ than `arg2`.
 
   If `key` is specified, this function will return the element that
-  maximizes `x`."
-  (loop1
-    :with best-e
-    :with best-v
-    :for e :being :the :elements :of x
-    :for v = (funcall key e)
-    :when (or (not best-e) (> v best-v))
-    :do (setf best-e e
-              best-v v)
-    :finally (return best-e)))
+  maximises `(funcall key elem)`; otherwise, calling this function will be
+  the same as calling: `(reduce #'max x)`.
+
+  The maximum value of `(funcall key elem)` is also returned as second value.
+
+  (find-max '(1 2 3 4))
+  =>
+  4
+  4
+
+  (find-max '(#\a #\b #\c #\d) :predicate #'char>)
+  =>
+  #\d
+  #\d
+
+  (find-max '(1 2 3 4) :key (lambda (x) (- 4 x)))
+  =>
+  1
+  3
+  "
+  (values-list
+    (reduce
+      #'(lambda (acc each &aux (value (funcall key each)))
+         (if (or (not acc) (funcall predicate value (second acc)))
+           (list each value)
+           acc))
+      x :initial-value nil)))
 
 (defun dividesp (divisor number)
   "Returns `T` if `DIVISOR` divies `NUMBER`."
