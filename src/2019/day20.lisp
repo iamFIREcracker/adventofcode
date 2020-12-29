@@ -78,10 +78,10 @@
                   :when (wallp v) :collect k)))
     (make-donut% :map map
                  :portals portals
-                 :outer-boundary-min-x (minimization walls :key #'realpart)
-                 :outer-boundary-max-x (maximization walls :key #'realpart)
-                 :outer-boundary-min-y (minimization walls :key #'imagpart)
-                 :outer-boundary-max-y (maximization walls :key #'imagpart))))
+                 :outer-boundary-min-x (reduce #'min walls :key #'realpart)
+                 :outer-boundary-max-x (reduce #'max walls :key #'realpart)
+                 :outer-boundary-min-y (reduce #'min walls :key #'imagpart)
+                 :outer-boundary-max-y (reduce #'max walls :key #'imagpart))))
 
 (defun d-start (d)
   (first (gethash "AA" (d-portals d))))

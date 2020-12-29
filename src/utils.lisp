@@ -26,36 +26,6 @@
              (list (loop1 ,@list-body))
              (sequence (loop1 ,@seq-body))))))))
 
-(defun summation (x &key (key 'identity))
-  "Returns the sum of all the elements of `x`, or 0 if `x` is _empty_.
-
-  If `key` is specified, this function will return the sum of all
-  the values of `x`, `map`-ed using `key`."
-  (loop1
-    :for e :being :the :elements :of x
-    :for v = (funcall key e)
-    :summing v))
-
-(defun maximization (x &key (key 'identity))
-  "Returns the max of all the elements of `x`, or NIL if `x` is _empty_.
-
-  If `key` is specified, this function will return the max of all
-  the values of `x`, `map`-ed using `key`."
-  (loop1
-    :for e :being :the :elements :of x
-    :for v = (funcall key e)
-    :maximizing v))
-
-(defun minimization (x &key (key 'identity))
-  "Returns the min of all the elements of `x`, or NIL if `x` is _empty_.
-
-  If `key` is specified, this function will return the min of all
-  the values of `x`, `map`-ed using `key`."
-  (loop1
-    :for e :being :the :elements :of x
-    :for v = (funcall key e)
-    :minimizing v))
-
 (defun find-min (x &key (key 'identity) (predicate '<))
   "Finds the minimum element of `x`, or NIL if `x` is empty.
 
@@ -530,10 +500,10 @@ By default, it will store the result into a list, but `type` can be tweaked to c
   val)
 
 (defun print-hash-table-map (h &optional (key #'print-map-char) (stream T))
-  (let ((min-x (minimization (hash-table-keys h) :key #'realpart))
-        (max-x (maximization (hash-table-keys h) :key #'realpart))
-        (min-y (minimization (hash-table-keys h) :key #'imagpart))
-        (max-y (maximization (hash-table-keys h) :key #'imagpart)))
+  (let ((min-x (reduce #'min (hash-table-keys h) :key #'realpart))
+        (max-x (reduce #'max (hash-table-keys h) :key #'realpart))
+        (min-y (reduce #'min (hash-table-keys h) :key #'imagpart))
+        (max-y (reduce #'max (hash-table-keys h) :key #'imagpart)))
     (doirange (y max-y min-y -1)
       (doirange (x min-x max-x)
         (let ((pos (complex x y)))

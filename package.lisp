@@ -1,9 +1,6 @@
 (defpackage :aoc
   (:use :cl :pmdb :aoc.quickutils :aoc.quickutils.local :hset)
   (:export
-    :summation
-    :maximization
-    :minimization
     :find-min
     :find-max
     :dividesp

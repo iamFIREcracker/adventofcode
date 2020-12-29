@@ -41,7 +41,7 @@
              (tower-weights (mapcar #'recur programs-above)))
         (cond
           ((not programs-above) (return-from recur (weight p)))
-          ((apply #'= tower-weights) (+ (weight p) (summation tower-weights)))
+          ((apply #'= tower-weights) (+ (weight p) (reduce #'+ tower-weights)))
           (T (let* ((frequencies (mapcar (partial-1 #'count _ tower-weights) tower-weights))
                     (i (position 1 frequencies))
                     (j (position 1 frequencies :test-not #'=))

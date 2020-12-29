@@ -12,7 +12,7 @@
 
 (define-solution (2019 1) (data parse-integers)
   (values
-    (summation data :key #'fuel-req)
-    (summation data :key #'fuel-req-recursive)))
+    (reduce #'+ data :key #'fuel-req)
+    (reduce #'+ data :key #'fuel-req-recursive)))
 
 (define-test (2019 1) (3273715 4907702))

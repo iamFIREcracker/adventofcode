@@ -51,6 +51,6 @@
       (declare (ignore end-state end-state-cost end-state-path))
       (values
         (gethash start cost-so-far)
-        (maximization (hash-table-values cost-so-far))))))
+        (reduce #'max (hash-table-values cost-so-far))))))
 
 (define-test (2019 15) (336 360))

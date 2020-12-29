@@ -71,11 +71,12 @@
 (define-solution (2018 22) (data)
   (multiple-value-bind (depth target) (parse-depth-target data)
     (values
-      (summation
-        (gathering
-          (doirange (i 0 (imagpart target))
-            (doirange (j 0 (realpart target))
-              (gather (erosion-level (complex j i) target depth)))))
+      (reduce
+        #'+ (loop for i from 0 upto (imagpart target)
+                  append (loop for j from 0 upto (realpart target)
+                               collect (erosion-level (complex j i)
+                                                      target
+                                                      depth)))
         :key #'area-type)
       (let* ((init-state (make-state #C(0 0) 'torch))
              (goal-state (make-state target 'torch)))

@@ -34,8 +34,8 @@
   (setf (m-pos m) (mapcar #'+ (m-pos m) (m-vel m))))
 
 (defun moon-energy (m)
-  (let* ((pot (summation (m-pos m) :key #'abs))
-         (kit (summation (m-vel m) :key #'abs)))
+  (let* ((pot (reduce #'+ (m-pos m) :key #'abs))
+         (kit (reduce #'+ (m-vel m) :key #'abs)))
     (* pot kit)))
 
 (defstruct (universe
@@ -61,7 +61,7 @@
       :do (moon-apply-velf moon))))
 
 (defun universe-energy (u)
-  (summation (u-moons u) :key #'moon-energy))
+  (reduce #'+ (u-moons u) :key #'moon-energy))
 
 (defun find-cycle-on-axis (axis u)
   (flet ((by-axis (u)

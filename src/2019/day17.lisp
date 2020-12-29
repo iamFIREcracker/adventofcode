@@ -91,11 +91,10 @@
   (values
     (let* ((robot (make-robot program))
            (map (explore robot)))
-      (summation
-        (gathering
-          (dolist (k (hash-table-keys map))
-            (when (and (scaffoldp k map) (intersectionp k map))
-              (gather (* (realpart k) (- (imagpart k)))))))))
+      (reduce
+        #'+ (loop for k being the hash-keys of map
+                  when (and (scaffoldp k map) (intersectionp k map))
+                  collect (* (realpart k) (- (imagpart k))))))
     (let* ((robot (make-robot program)))
       (robot-clean robot))))
 

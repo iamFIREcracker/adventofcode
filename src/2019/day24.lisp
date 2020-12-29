@@ -85,10 +85,10 @@
     :do (format T "~%")))
 
 (defun recursive-eris-min-level (re)
-  (minimization (hash-table-keys (levels re))))
+  (reduce #'min (hash-table-keys (levels re))))
 
 (defun recursive-eris-max-level (re)
-  (maximization (hash-table-keys (levels re))))
+  (reduce #'max (hash-table-keys (levels re))))
 
 (defun recursive-eris-create-levelf (re level &aux (tiles (make-hash-table)))
   (dorange (i 0 5)
