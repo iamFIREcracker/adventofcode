@@ -20,8 +20,8 @@
   (values
     (loop
       :for values :in data
-      :for min = (minimization values)
-      :for max = (maximization values)
+      :for min = (reduce #'min values)
+      :for max = (reduce #'max values)
       :summing (- max min))
     (loop
       :for values :in data

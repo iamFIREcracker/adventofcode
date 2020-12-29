@@ -4,7 +4,7 @@
 (defun parse-tube-map (x)
   (let ((entry (position #\| (first x)))
         (height (length x))
-        (width (maximization x :key #'length)))
+        (width (reduce #'max x :key #'length)))
     (values (complex entry 0)
             #C(0 -1)
             (make-array (list height width) :initial-contents x))))

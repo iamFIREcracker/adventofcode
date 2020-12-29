@@ -6,8 +6,8 @@
         (n (parse-integer (subseq str 1))))
     (cond ((string= "R" d) (make-list n :initial-element (complex 1)))
           ((string= "U" d) (make-list n :initial-element (complex 0 1)))
-          ((string= "L" d) (make-list n :initial-element (complex (- 1) 0)))
-          ((string= "D" d) (make-list n :initial-element (complex 0 (- 1)))))))
+          ((string= "L" d) (make-list n :initial-element (complex -1 0)))
+          ((string= "D" d) (make-list n :initial-element (complex 0 -1))))))
 
 (defun read-wires (data)
   (loop
@@ -29,7 +29,7 @@
     :for n = 1 :then (+ n 1)
     :for distance = (gethash curr seen)
     :when distance :collect (if part2 (+ distance n) curr) :into crosses
-    :finally (return (minimization crosses :key (if part2
+    :finally (return (reduce #'min crosses :key (if part2
                                                   #'identity
                                                   (partial-1 #'manhattan-distance _ #C(0 0)))))))
 

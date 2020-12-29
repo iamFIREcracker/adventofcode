@@ -36,7 +36,7 @@
            (distance-to-origin (p)
              (manhattan-distance (list 0 0 0) (particle-position p)))
            (closest-to-origin (particles)
-             (let ((min (minimization particles :key #'distance-to-origin)))
+             (let ((min (reduce #'min particles :key #'distance-to-origin)))
                (find min particles :key #'distance-to-origin))))
     (values
       (loop

@@ -4,7 +4,7 @@
 
 (define-solution (2018 1) (data parse-integers)
   (values
-    (summation data)
+    (reduce #'+ data)
     (loop
       :initially (ncycle data) ; make data a circular list for easy looping
       :with seen = (make-hash-table)

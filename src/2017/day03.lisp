@@ -108,8 +108,8 @@
       :with grid = (make-hash-table)
       :initially (hash-table-insert grid #C(0 0) 1)
       :for (pos) = (multiple-value-list (spiral-gen-next gen))
-      :for value = (summation (adjacents pos :include-diagonal T)
-                              :key (partial-1 #'gethash _ grid 0))
+      :for value = (reduce #'+ (adjacents pos :include-diagonal T)
+                           :key (partial-1 #'gethash _ grid 0))
       :when (> value data) :return value
       :do (hash-table-insert grid pos value))))
 

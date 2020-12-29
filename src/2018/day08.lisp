@@ -23,7 +23,7 @@
 
 (defun tree-value (node &aux (children (node-children node)))
   (if (zerop (length children))
-    (summation (node-metadata node))
+    (reduce #'+ (node-metadata node))
     (loop
       :for meta :in (node-metadata node)
       :for index = (1- meta)
@@ -36,8 +36,8 @@
     (values
       (recursively ((node tree))
         (+
-          (summation (node-children node) :key #'recur)
-          (summation (node-metadata node))))
+          (reduce #'+ (node-children node) :key #'recur)
+          (reduce #'+ (node-metadata node))))
       (tree-value tree))))
 
 (define-test (2018 8) (40036 21677))

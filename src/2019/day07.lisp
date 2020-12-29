@@ -33,13 +33,11 @@
 
 (define-solution (2019 7) (program intcode:read-program)
   (values
-    (loop
-      :for phases :in (all-permutations (list 0 1 2 3 4))
-      :for acs = (make-acs program phases)
-      :maximizing (acs-run acs 0))
-    (loop
-      :for phases :in (all-permutations (list 5 6 7 8 9))
-      :for acs = (make-acs program phases :feedback-loop-p T)
-      :maximizing (acs-run acs 0))))
+    (reduce
+      #'max (all-permutations (list 0 1 2 3 4))
+      :key (partial-1 #'acs-run (make-acs program _) 0))
+    (reduce
+      #'max (all-permutations (list 5 6 7 8 9))
+      :key (partial-1 #'acs-run (make-acs program _ :feedback-loop-p t) 0))))
 
 (define-test (2019 7) (45730 5406484))

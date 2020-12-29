@@ -7,7 +7,7 @@
    (make-array (length numbers) :initial-contents numbers)))
 
 (defun reallocate-blocks (banks &aux (ret (copy-seq banks)))
-  (let* ((most-blocks (maximization banks))
+  (let* ((most-blocks (reduce #'max banks))
          (bank (position most-blocks banks)))
     (setf (aref ret bank) 0)
     (loop
