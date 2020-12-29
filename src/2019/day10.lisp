@@ -69,7 +69,7 @@
     :finally (return (hash-table-keys remaining))))
 
 (define-solution (2019 10) (region read-region)
-  (let* ((station (maximizing
+  (let* ((station (find-max
                     (hash-table-keys (region-asteroids region))
                     :key (partial-1 #'length (visible-asteroids region _))))
          (visible (visible-asteroids region station)))

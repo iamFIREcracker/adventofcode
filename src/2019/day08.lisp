@@ -12,7 +12,7 @@
         (gather (subseq str (* n layer-size) (* (1+ n) layer-size)))))))
 
 (defun solve-part1 (image)
-  (let ((best (minimizing image :key (partial-1 #'count #\0))))
+  (let ((best (find-min image :key (partial-1 #'count #\0))))
     (* (count #\1 best) (count #\2 best))))
 
 (defun reduce-layers (image)
