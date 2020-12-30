@@ -14,7 +14,7 @@
   (loop :with columns = (array-dimension recording 1)
         :for j :below columns
         :for column = (array-column recording j)
-        :for freqs = (sort (hash-table-alist (frequencies column)) #'> :key #'cdr)
+        :for freqs = (sort (frequencies column) #'> :key #'cdr)
         :collect (car (first freqs)) :into part1
         :collect (caar (last freqs)) :into part2
         :finally (return (values (coerce part1 'string)

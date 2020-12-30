@@ -36,18 +36,16 @@
 
 (define-solution (2017 19) (data)
   (multiple-value-bind (curr dir tubes) (parse-tube-map data)
-    (recursively ((curr curr)
-                  (dir dir)
-                  letters
-                  (steps 0))
-      (let ((c (tubes-get tubes curr)))
-        (cond ((letterp c) (recur (+ curr dir) dir (cons c letters) (1+ steps)))
-              ((straightp c) (recur (+ curr dir) dir letters (1+ steps)))
-              ((cornerp c) (multiple-value-bind
-                               (curr dir)
-                               (change-direction tubes curr dir)
-                             (recur curr dir letters (1+ steps))))
-              (T (values (apply #'mkstr (reverse letters))
-                         steps)))))))
+    (labels ((recur (curr dir letters steps)
+               (let ((c (tubes-get tubes curr)))
+                 (cond ((letterp c) (recur (+ curr dir) dir (cons c letters) (1+ steps)))
+                       ((straightp c) (recur (+ curr dir) dir letters (1+ steps)))
+                       ((cornerp c) (multiple-value-bind
+                                        (curr dir)
+                                      (change-direction tubes curr dir)
+                                      (recur curr dir letters (1+ steps))))
+                       (T (values (apply #'mkstr (reverse letters))
+                                  steps))))))
+      (recur curr dir nil 0))))
 
 (define-test (2017 19) ("MKXOIHZNBL"  17872))

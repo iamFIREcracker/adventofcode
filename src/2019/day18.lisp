@@ -32,7 +32,7 @@
       :when (keyp c) :do (hash-table-insert keys c pos))
     (make-vault% :map map
                  :keys keys
-                 :keys-sorted (nsorted (hash-table-keys keys)))))
+                 :keys-sorted (sort (hash-table-keys keys) #'char<))))
 
 (defun v-start (v)
   (loop

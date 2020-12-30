@@ -1,14 +1,13 @@
 (defpackage :aoc/2018/02 #.cl-user::*aoc-use*)
 (in-package :aoc/2018/02)
 
-
 (define-solution (2018 2) (data)
   (values
     (loop
       :for id :in data
       :for freqs = (frequencies id)
-      :counting (hash-table-find 2 freqs) :into twos
-      :counting (hash-table-find 3 freqs) :into threes
+      :counting (find 2 freqs :key #'cdr) :into twos
+      :counting (find 3 freqs :key #'cdr) :into threes
       :finally (return (* twos threes)))
     (multiple-value-bind (a b)
         (loop

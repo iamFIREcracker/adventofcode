@@ -2,30 +2,6 @@
 
 ;;;; General ------------------------------------------------------------------
 
-(defmacro loop1 (&rest forms)
-  "XXX document please"
-  (labels ((search-marker-pos (forms)
-             (search '(:being :the :elements :of)
-                     forms
-                     :test 'eql))
-           (skip-marker (pos) (+ pos 4))
-           (get-iteratee (forms marker-pos)
-             (nth (skip-marker marker-pos) forms)) ; skil :being :the :elements :of
-           (generate-body (forms marker-pos replacement)
-             (nconc
-               (subseq forms 0 marker-pos)
-               (list replacement)
-               (subseq forms (skip-marker marker-pos)))))
-    (let ((pos (search-marker-pos forms)))
-      (if (null pos)
-        `(loop ,@forms)
-        (let* ((iter (get-iteratee forms pos))
-               (list-body (generate-body forms pos :in))
-               (seq-body (generate-body forms pos :across)))
-          `(typecase ,iter
-             (list (loop1 ,@list-body))
-             (sequence (loop1 ,@seq-body))))))))
-
 (defun find-min (x &key (key 'identity) (predicate '<))
   "Finds the minimum element of `x`, or NIL if `x` is empty.
 
@@ -104,13 +80,6 @@
   "Returns `T` if `DIVISOR` divies `NUMBER`."
   (zerop (rem number divisor)))
 
-(defun alphabet ()
-  (loop
-    :with from = (char-code #\a)
-    :with to = (char-code #\z)
-    :for code :from from :to to
-    :collecting (code-char code)))
-
 (defmacro aesthetic-string (data)
   `(format NIL "~A" ,data))
 
@@ -123,60 +92,14 @@
           (num (parse-integer ,s :radix 16)))
      (format NIL control-str num)))
 
-(defun sorted (s &optional (predicate 'char<))
-  "Sort `s`, destructively"
-  (sort s predicate))
-
-(defun nsorted (s &optional (predicate 'char<))
-  "Non-destructive version of `SORTED`"
-  (sorted (copy-seq s) predicate))
-
-(defun frequencies (s)
-  "Returns a hash-table containing per each element of `s`, the number
-  of times such element occurs in `s`"
-  (loop :with freqs = (make-hash-table)
-        :for c :across s
-        :do (incf (gethash c freqs 0))
-        :finally (return freqs)))
-
-(defun group-by (x &key (key 'identity) (test 'eql))
-  "Groups the elements of `x` based on the values returned by applying function
-  `key` to such elements.
-
-  `key` is a function computing a key value for each element, and based on that
-  value groups are created, and `test` instead, is the equality function used to
-  compare key values together.
-
-  Note: this function aggregates common elements regardless of their input
-  order.
-
-  Examples:
-
-    (group-by '(1 2 3 4 5 6) :key #'oddp)
-    =>
-    (((5 3 1) T) ((6 4 2) NIL))
-  "
-  (loop1
-    :with groups = (make-hash-table :test test)
-    :with keys = (make-hash-table :test test)
-    :for k :being :the :elements :of x
-    :for v = (funcall key k)
-    :do (push k (gethash v groups))
-    :unless (gethash v keys) :do (hash-table-insert keys v T) :and :collect v :into sorted-keys ; XXX hash-set
-    :finally (return (loop
-                       :for k :in sorted-keys
-                       :for group = (gethash k groups)
-                       :collect (list group k)))))
-
-(defun unique-only (x &key (key 'identity) (test 'eql))
-  "Remove from `X` all the elements which are not unique.
-
-  This differs from REMOVE-DUPLICATES in that if a element has duplicates, not just
-  the duplicates but the element itself is removed.
-  "
-  (loop
-    :for (group) :in (group-by x :key key :test test)
-    :when (= 1 (length group)) :collect (first group)))
+(defun frequencies (x &key (test 'eql))
+  "Returns an association list mapping _unique_ elements of `x` to the number
+  of times they occur in `x`."
+  (let ((freqs (make-hash-table :test test))
+        alist)
+    (map nil (lambda (e) (incf (gethash e freqs 0))) x)
+    (maphash (lambda (k v) (push (cons k v) alist)) freqs)
+    alist))
 
 (defun hamming-distance (s1 s2 &key (test 'eql))
   "Number of positional differences in two equal length strings."

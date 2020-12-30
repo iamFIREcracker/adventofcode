@@ -12,7 +12,7 @@
              :for (a . rest) :on pass-phrase
              :thereis (member a rest :test 'equal)))
          (sort-each-word (pass-phrase)
-           (mapcar #'nsorted pass-phrase)))
+           (mapcar (partial-1 #'sort _ #'char<) pass-phrase)))
     (values
       (count-if-not #'duplicate-words-p data)
       (count-if-not #'duplicate-words-p data :key #'sort-each-word))))

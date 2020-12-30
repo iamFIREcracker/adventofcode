@@ -4,15 +4,11 @@
     :find-min
     :find-max
     :dividesp
-    :alphabet
     :aesthetic-string
     :hexadecimal-string
     :hexadecimal-binary
     :sorted
-    :nsorted
     :frequencies
-    :group-by
-    :unique-only
     :hamming-distance
     :manhattan-distance
     :all-permutations
@@ -32,8 +28,6 @@
     :str-digits
     :<=>
 
-    :recursively
-    :recur
     :><
     :-><
     :with-slots-as-list

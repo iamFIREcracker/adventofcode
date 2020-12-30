@@ -12,20 +12,20 @@
   orbits)
 
 (defun total-orbits (orbits)
-  (recursively ((curr "COM")
-                (total 0))
-    (+ total (loop
-               :for child :in (gethash curr orbits)
-               :summing (recur child (+ 1 total))))))
+  (labels ((recur (curr total)
+             (+ total (loop
+                        :for child :in (gethash curr orbits)
+                        :summing (recur child (+ 1 total))))))
+    (recur "COM" 0)))
 
 (defun find-planet-path (orbits target)
-  (recursively ((curr "COM")
-                path)
-    (cond ((equal curr target) (reverse (cons target path)))
-          (T (loop
-               :for child :in (gethash curr orbits)
-               :when (recur child (cons curr path))
-               :return it)))))  
+  (labels ((recur (curr path)
+             (cond ((equal curr target) (reverse (cons target path)))
+                   (T (loop
+                        :for child :in (gethash curr orbits)
+                        :when (recur child (cons curr path))
+                        :return it)))))
+    (recur "COM" nil)))
 
 (defun you-to-santa (orbits)
   (loop
