@@ -59,7 +59,7 @@
     :initially (remhash current remaining)
     :for other :in (clockwise (hash-table-keys remaining) current)
     :for dir = (sight-direction current other)
-    :unless (or (= dir 0) (not (hash-table-contains-key-p remaining other)))
+    :unless (or (= dir 0) (not (hash-table-key-exists-p remaining other)))
     :do (loop
           :for next = (+ other dir) :then (+ next dir)
           :while (and

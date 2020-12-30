@@ -21,6 +21,11 @@
     (setf (aref r (deck-position n d)) n))
   (format t "~a~&" r))
 
+(defun modn (number divisor)
+  (if (>= number 0)
+    (mod number divisor)
+    (- (mod number divisor) divisor)))
+
 (defun deck-cut (n d)
   (prog1 d
     (setf (d-offset d) (modn (- (d-offset d) n) (d-size d)))))

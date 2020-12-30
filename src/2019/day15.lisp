@@ -13,7 +13,7 @@
                (intcode:program-run program)
                (dequeue (intcode:program-out program)))
              (explore-dfs (pos)
-               (unless (hash-table-contains-key-p map pos)
+               (unless (hash-table-key-exists-p map pos)
                  (hash-table-insert map pos #\Space)
                  (loop
                    :for i :in *directions* :and d :in *deltas* :and i-opp :in *opposites*

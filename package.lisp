@@ -22,7 +22,6 @@
     :with-complex-parts
     :complex-rotate-cw
     :complex-rotate-ccw
-    :modn
     :<=>
 
     :><
@@ -33,9 +32,7 @@
     :doirange
     :dovector
 
-    :hash-table-find
     :hash-table-insert
-    :hash-table-contains-key-p
     :print-hash-table
     :print-hash-table-map
 

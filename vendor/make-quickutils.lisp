@@ -8,6 +8,7 @@
                :hash-table-alist
                :hash-table-keys
                :hash-table-values
+               :hash-table-key-exists-p
                :if-let
                :iota
                :make-keyword

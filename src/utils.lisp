@@ -330,11 +330,6 @@
   "Rotate `c`, counter-clockwise."
   (complex (- (imagpart c)) (realpart c)))
 
-(defun modn (number divisor)
-  (if (>= number 0)
-    (mod number divisor)
-    (- (mod number divisor) divisor)))
-
 (defun <=> (n m)
   "Three-way comparison operator, a.k.a. spaceship operator.
 
@@ -383,21 +378,8 @@
 
 ;;;; Hash tables --------------------------------------------------------------
 
-(defun hash-table-find (value h &key (key 'identity) (test 'eql))
-  "Returns the first key in `h`, whose value is equal to `value`"
-  (loop
-    :for k :being :the :hash-keys :of h
-    :for v = (gethash k h)
-    :when (funcall test value (funcall key v)) :return (values k v)))
-
 (defun hash-table-insert (ht key value) ;; XXX this cannot be defined as macro, somehow..
   (setf (gethash key ht) value))
-
-(defun hash-table-contains-key-p (h key)
-  (multiple-value-bind (v containsp)
-      (gethash key h)
-    (declare (ignore v))
-    containsp))
 
 (defun print-hash-table (h)
   (progn

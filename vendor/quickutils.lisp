@@ -2,7 +2,7 @@
 ;;;; See http://quickutil.org for details.
 
 ;;;; To regenerate:
-;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:COPY-HASH-TABLE :FLATTEN :HASH-TABLE-ALIST :HASH-TABLE-KEYS :HASH-TABLE-VALUES :IF-LET :IOTA :MAKE-KEYWORD :MKSTR :MULF :NCYCLE :SYMB :VOID :WHEN-LET :WITH-GENSYMS) :ensure-package T :package "AOC.QUICKUTILS")
+;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:COPY-HASH-TABLE :FLATTEN :HASH-TABLE-ALIST :HASH-TABLE-KEYS :HASH-TABLE-VALUES :HASH-TABLE-KEY-EXISTS-P :IF-LET :IOTA :MAKE-KEYWORD :MKSTR :MULF :NCYCLE :SYMB :VOID :WHEN-LET :WITH-GENSYMS) :ensure-package T :package "AOC.QUICKUTILS")
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (unless (find-package "AOC.QUICKUTILS")
@@ -16,7 +16,8 @@
   (setf *utilities* (union *utilities* '(:COPY-HASH-TABLE :FLATTEN
                                          :HASH-TABLE-ALIST :MAPHASH-KEYS
                                          :HASH-TABLE-KEYS :MAPHASH-VALUES
-                                         :HASH-TABLE-VALUES :IF-LET :IOTA
+                                         :HASH-TABLE-VALUES
+                                         :HASH-TABLE-KEY-EXISTS-P :IF-LET :IOTA
                                          :MAKE-KEYWORD :MKSTR :MULF :NCYCLE
                                          :SYMB :VOID :WHEN-LET
                                          :STRING-DESIGNATOR :WITH-GENSYMS))))
@@ -97,6 +98,11 @@ copy is returned by default."
                         (push v values))
                       table)
       values))
+  
+
+  (defun hash-table-key-exists-p (hash-table key)
+    "Does `key` exist in `hash-table`?"
+    (nth-value 1 (gethash key hash-table)))
   
 
   (defmacro if-let (bindings &body (then-form &optional else-form))
@@ -292,7 +298,8 @@ unique symbol the named variable will be bound to."
   
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (export '(copy-hash-table flatten hash-table-alist hash-table-keys
-            hash-table-values if-let iota make-keyword mkstr mulf ncycle symb
-            void when-let when-let* with-gensyms with-unique-names)))
+            hash-table-values hash-table-key-exists-p if-let iota make-keyword
+            mkstr mulf ncycle symb void when-let when-let* with-gensyms
+            with-unique-names)))
 
 ;;;; END OF quickutils.lisp ;;;;
