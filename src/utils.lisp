@@ -335,18 +335,6 @@
     (mod number divisor)
     (- (mod number divisor) divisor)))
 
-(defun digits-reverse (n &optional (base 10))
-  "Similar to Quickutil's DIGITS, except digits are returned in reading order.
-
-For example, where (digits 123) would return (3 2 1), DIGITS-REVERSE would return instead (1 2 3)"
-  (nreverse (digits n base)))
-
-(defun str-digits (string &optional (type 'list))
-  "Converts `string` -- a string representation of a natural number -- into a sequence of its digits (in reading order).
-
-By default, it will store the result into a list, but `type` can be tweaked to change that"
-  (map type #'(lambda (c) (- (char-code c) (char-code #\0))) string))
-
 (defun <=> (n m)
   "Three-way comparison operator, a.k.a. spaceship operator.
 
@@ -699,14 +687,6 @@ By default, it will store the result into a list, but `type` can be tweaked to c
       (gethash best-state cost-so-far)
       (search-backtrack come-from best-state)
       cost-so-far)))
-
-(defun dijkstra (init-state init-cost target-state neighbors)
-  (a*
-    init-state
-    init-cost
-    target-state
-    neighbors
-    (lambda (state) (declare (ignore state)) 0)))
 
 (defun floyd (next init-state &key (copier 'identity) (key 'identity) (test 'eql))
   "Also called the 'tortoise and the hare algorithm',"
