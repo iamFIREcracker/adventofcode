@@ -7,7 +7,6 @@
     :aesthetic-string
     :hexadecimal-string
     :hexadecimal-binary
-    :sorted
     :frequencies
     :hamming-distance
     :manhattan-distance
@@ -24,8 +23,6 @@
     :complex-rotate-cw
     :complex-rotate-ccw
     :modn
-    :digits-reverse
-    :str-digits
     :<=>
 
     :><
@@ -79,7 +76,6 @@
     :a*
     :search-unit-cost
     :bfs
-    :dijkstra
     :floyd
     :binary-search
 

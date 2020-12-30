@@ -21,7 +21,7 @@
 (defun solve-part1 (from to)
   (loop
     :for password :from from :upto (1+ to)
-    :for digits = (digits-reverse password)
+    :for digits = (reverse (digits password))
     :counting (and
                 (not-decreasing digits)
                 (at-least-one-digit-repeated digits))))
@@ -34,7 +34,7 @@
 (defun solve-part2 (from to)
   (loop
     :for password :from from :upto (1+ to)
-    :for digits = (digits-reverse password)
+    :for digits = (reverse (digits password))
     :counting (and
                 (not-decreasing digits)
                 (at-least-one-digit-repeated digits)
