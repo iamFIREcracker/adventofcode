@@ -37,7 +37,7 @@
 (define-solution (2016 4) (specs read-specifications)
   (loop :with part2
         :for (name sector checksum) :in specs
-        :for freqs = (hash-table-alist (frequencies (remove #\- name)))
+        :for freqs = (frequencies (remove #\- name))
         :for deciphered = (caesar-decipher name sector)
         :when (validp freqs checksum) :sum sector :into part1
         :when (and (not part2) (search "northpole" deciphered)) :do (setf part2 sector)

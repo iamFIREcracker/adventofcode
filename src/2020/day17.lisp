@@ -23,8 +23,8 @@
 
 (defun play (coords &aux (dimensions (length (first coords))))
   (let* ((*neighbors-deltas* (neighbors-deltas dimensions))
-         (game (hset:make-hset coords :test 'equal)))
-    (dotimes (n 6 (hset:hset-size game))
+         (game (make-hset coords :test 'equal)))
+    (dotimes (n 6 (hset-size game))
       (setf game (gol:next game :neighbors #'neighbors)))))
 
 (define-solution (2020 17) (coords parse-coords)

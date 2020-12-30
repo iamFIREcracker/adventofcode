@@ -18,17 +18,17 @@
                :for b :in (gethash a ports)
                :for id = (id a b)
                :unless (member id visited)
-               :collect b)))
-    (recursively ((a 0)
-                  visited)
-      (let ((outputs (possible-outputs a visited)))
-        (if (null outputs)
-          (list NIL)
-          (loop
-            :for b :in outputs
-            :for id = (id a b)
-            :for rest = (recur b (cons id visited))
-            :append (mapcar (partial-1 #'cons id) rest)))))))
+               :collect b))
+           (recur (a visited)
+             (let ((outputs (possible-outputs a visited)))
+               (if (null outputs)
+                 (list NIL)
+                 (loop
+                   :for b :in outputs
+                   :for id = (id a b)
+                   :for rest = (recur b (cons id visited))
+                   :append (mapcar (partial-1 #'cons id) rest))))))
+    (recur 0 nil)))
 
 (defun solve-part1 (bridges)
   (labels ((strength (bridge)

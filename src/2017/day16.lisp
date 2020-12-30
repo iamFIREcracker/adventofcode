@@ -15,7 +15,7 @@
         (name-to-position (make-hash-table)))
     (loop
       :for pos :below size
-      :for char :in (alphabet)
+      :for char :across "abcdefghijklmnopqrstuvwxyz"
       :do (progn
             (hash-table-insert position-to-name pos char)
             (hash-table-insert name-to-position char pos)))

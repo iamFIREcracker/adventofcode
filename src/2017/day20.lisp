@@ -27,6 +27,14 @@
                               :acceleration acceleration))))
     (mapcar #'parse-particle x)))
 
+(defun remove-collisions (particles)
+  (let* ((all-positions (mapcar #'particle-position particles))
+         (freqs (frequencies all-positions :test 'equal))
+         (unique-positions (mapcar #'car (remove 1 freqs :test-not 'eql :key #'cdr))))
+    (remove-if-not
+      (partial-1 #'member _ unique-positions) particles
+      :key #'particle-position)))
+
 (define-solution (2017 20) (data parse-particles)
   (labels ((copy-particles (particles)
              (mapcar #'copy-structure particles))
@@ -46,9 +54,9 @@
         :finally (return (particle-id (closest-to-origin particles))))
       (loop
         :with particles = (copy-particles data)
-        :repeat 500
-        :do (move-particles particles)
-        :do (setf particles (unique-only particles :key #'particle-position :test 'equal))
+        :repeat 500 :do
+        (move-particles particles)
+        (setf particles (remove-collisions particles))
         :finally (return (length particles))))))
 
 (define-test (2017 20) (258 707))
