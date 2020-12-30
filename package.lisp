@@ -1,5 +1,5 @@
 (defpackage :aoc
-  (:use :cl :pmdb :aoc.quickutils :aoc.quickutils.local :hset)
+  (:use :cl :pmdb :aoc.quickutils :aoc.quickutils.local :hset :dset)
   (:export
     :find-min
     :find-max
@@ -35,14 +35,6 @@
     :hash-table-insert
     :print-hash-table
     :print-hash-table-map
-
-    :make-disjointset
-    :disjointset-value
-    :disjointset-rank
-    :disjointset-parent
-    :disjointset-find
-    :disjointset-union
-    :distinct-disjointsets
 
     :make-dlink
     :dlink-content
@@ -90,4 +82,4 @@
     :swallow))
 
 
-(setf *aoc-use* '(:use :cl :pmdb :aoc :aoc.quickutils :aoc.quickutils.local :hset))
+(setf *aoc-use* '(:use :cl :pmdb :aoc :aoc.quickutils :aoc.quickutils.local :hset :dset))

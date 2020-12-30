@@ -17,11 +17,10 @@
   (flet ((init-groups (&aux (sets (make-hash-table)))
            (dolist (pipe data sets)
              (let ((from (program-links-from pipe)))
-               (hash-table-insert sets from (make-disjointset from)))))
+               (hash-table-insert sets from (make-dset from)))))
          (join-groups (groups from linked)
            (dolist (to linked)
-             (disjointset-union (gethash from groups)
-                                (gethash to groups)))))
+             (dset-union (gethash from groups) (gethash to groups)))))
     (loop
       :with groups = (init-groups)
       :with group-0 = (gethash 0 groups)
@@ -31,10 +30,11 @@
       :do (join-groups groups from linked)
       :finally (return (let ((sets (hash-table-values groups)))
                          (values
-                           (count (disjointset-find group-0)
-                                  sets
-                                  :key #'disjointset-find
-                                  :test 'eq)
-                           (length (distinct-disjointsets sets))))))))
+                           (count
+                             (dset-find group-0) sets
+                             :key #'dset-find :test 'eq)
+                           (length
+                             (remove-duplicates
+                               sets :key #'dset-find :test 'eq))))))))
 
 (define-test (2017 12) (378 204))
