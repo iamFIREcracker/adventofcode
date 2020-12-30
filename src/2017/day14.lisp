@@ -18,8 +18,7 @@
               :for i :below (length row)
               :for c = (aref row i)
               :when (eql c #\1)
-              :collect (let ((key (complex i j)))
-                         (make-disjointset key)))))
+              :collect (make-dset (complex i j)))))
 
 (define-solution (2017 14) (data first)
   (let* ((grid (make-grid data))
@@ -33,8 +32,10 @@
           :for (a . rest) :on sets
           :do (loop
                 :for b :in rest
-                :when (= 1 (manhattan-distance (disjointset-value a) (disjointset-value b)))
-                :do (disjointset-union a b)))
-        (length (distinct-disjointsets sets))))))
+                :when (= 1 (manhattan-distance (dset-value a) (dset-value b)))
+                :do (dset-union a b))
+          :finally (return (length
+                             (remove-duplicates
+                               sets :key #'dset-find :test 'eq))))))))
 
 (define-test (2017 14) (8316 1074))

@@ -405,38 +405,6 @@
 
 ;;;; Disjoint-set (Union/find) ------------------------------------------------
 
-(defstruct (disjointset (:constructor make-disjointset%)
-                        (:copier nil))
-  value
-  rank
-  parent)
-
-(defun make-disjointset (value)
-  (let* ((s (make-disjointset% :value value :rank 0)))
-    (setf (disjointset-parent s) s)
-    s))
-
-(defun disjointset-find (x)
-  (if (eq (disjointset-parent x) x)
-    x
-    (setf (disjointset-parent x) (disjointset-find (disjointset-parent x)))))
-
-(defun disjointset-union (x y)
-  (let ((x-root (disjointset-find x))
-        (y-root (disjointset-find y)))
-    (cond ((> (disjointset-rank x-root) (disjointset-rank y-root))
-           (setf (disjointset-parent y-root) x-root))
-          ((< (disjointset-rank x-root) (disjointset-rank y-root))
-           (setf (disjointset-parent x-root) y-root))
-          ((not (eq x-root y-root))
-           (setf (disjointset-parent y-root) x-root)
-           (incf (disjointset-rank x-root))))))
-
-(defun distinct-disjointsets (sets)
-  (remove-duplicates sets
-                     :key #'disjointset-find
-                     :test 'eq))
-
 ;;;; Doubly linked list -------------------------------------------------------
 
 (defstruct dlink content prev next)

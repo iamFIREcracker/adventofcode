@@ -33,7 +33,8 @@
    (:module "upstream"
     :serial t
     :components ((:file "quickutils-local")
-                 (:file "hset")))
+                 (:file "hset")
+                 (:file "dset")))
    (:file "package")
    (:module "src"
     :serial t
