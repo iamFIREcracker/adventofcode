@@ -80,9 +80,6 @@
   "Returns `T` if `DIVISOR` divies `NUMBER`."
   (zerop (rem number divisor)))
 
-(defmacro aesthetic-string (data)
-  `(format NIL "~A" ,data))
-
 (defmacro hexadecimal-string (seq)
   `(format NIL "~{~(~2,'0x~)~}" ,seq))
 
@@ -761,7 +758,8 @@
 
 (defun problem-input-path (year day)
   (make-pathname
-    :directory `(:relative "src" ,(aesthetic-string year))
+    :directory `(:relative "src" ,(format NIL "~A" year))
+
     :name (format nil "day~2,'0D" day)
     :type "txt"))
 

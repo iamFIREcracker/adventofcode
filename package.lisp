@@ -4,7 +4,6 @@
     :find-min
     :find-max
     :dividesp
-    :aesthetic-string
     :hexadecimal-string
     :hexadecimal-binary
     :frequencies
