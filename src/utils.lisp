@@ -765,12 +765,16 @@
 
 (defmacro define-test ((year day) (expected-part1 &optional expected-part2))
   (let ((test-name (symb (format nil "TEST-~D/~2,'0D" year day)))
+        (test-runner-name (symb 'test-run))
         (runner-name (symb 'solution-run)))
-    `(1am:test ,test-name
-       (multiple-value-bind (actual-part1 actual-part2) (,runner-name)
+    `(values
+      (1am:test ,test-name
+        (multiple-value-bind (actual-part1 actual-part2) (,runner-name)
           (1am:is (equal ,expected-part1 actual-part1))
           (when actual-part2
-            (1am:is (equal ,expected-part2 actual-part2)))))))
+            (1am:is (equal ,expected-part2 actual-part2)))))
+      (defun ,test-runner-name ()
+        (,test-name)))))
 
 (defmacro swallow (&body body)
   "Swallow BODY, and return nil"
