@@ -2,6 +2,24 @@
 
 ;;;; General ------------------------------------------------------------------
 
+(defun array-elements (array)
+  "Returns a list of all the elements of the array `array`, in row major order.
+
+  (array-elements #2a((1 2) (3 4)))
+  =>
+  (1 2 3 4)
+
+  (array-elements #3a(((1 2) (3 4)) ((5 6) (7 8))))
+  =>
+  (1 2 3 4 5 6 7 8)
+  "
+  (let ((index -1))
+    (labels ((recur (dimensions)
+               (cond ((not dimensions) (list (row-major-aref array (incf index))))
+                     (t (loop repeat (car dimensions)
+                              append (recur (cdr dimensions)))))))
+      (recur (array-dimensions array)))))
+
 (defun find-min (x &key (key 'identity) (predicate '<))
   "Finds the minimum element of `x`, or NIL if `x` is empty.
 
