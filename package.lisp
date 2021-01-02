@@ -1,6 +1,7 @@
 (defpackage :aoc
   (:use :cl :pmdb :aoc.quickutils :aoc.quickutils.local :hset :dset)
   (:export
+    :array-elements
     :find-min
     :find-max
     :dividesp
