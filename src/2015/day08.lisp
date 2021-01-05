@@ -2,11 +2,14 @@
 (in-package :aoc/2015/08)
 
 (defun length-unescaped (string &aux (index 0))
-  (- (loop while (< index (length string)) for ch = (char string index)
-           sum 1 do
-           (when (and (char= ch #\\) (char= (char string (incf index)) #\x))
-             (incf index 2))
-           (incf index))
+  (- (loop while (< index (length string))
+           for ch = (char string index)
+           for ch1 = (and (< (1+ index) (length string))
+                              (char string (1+ index)))
+           sum 1
+           if (and (char= ch #\\) (char= ch1 #\x)) do (incf index 4)
+           else if (char= ch #\\) do (incf index 2)
+           else do (incf index 1))
      2))
 
 (defun part1 (strings)
