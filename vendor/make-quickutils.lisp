@@ -4,6 +4,7 @@
   "quickutils.lisp"
   :utilities '(
                :copy-hash-table
+               :divf
                :flatten
                :hash-table-alist
                :hash-table-keys

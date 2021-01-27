@@ -2,7 +2,7 @@
 ;;;; See http://quickutil.org for details.
 
 ;;;; To regenerate:
-;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:COPY-HASH-TABLE :FLATTEN :HASH-TABLE-ALIST :HASH-TABLE-KEYS :HASH-TABLE-VALUES :HASH-TABLE-KEY-EXISTS-P :IF-LET :IOTA :MAKE-KEYWORD :MKSTR :MULF :NCYCLE :SYMB :VOID :WHEN-LET :WITH-GENSYMS) :ensure-package T :package "AOC.QUICKUTILS")
+;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:COPY-HASH-TABLE :DIVF :FLATTEN :HASH-TABLE-ALIST :HASH-TABLE-KEYS :HASH-TABLE-VALUES :HASH-TABLE-KEY-EXISTS-P :IF-LET :IOTA :MAKE-KEYWORD :MKSTR :MULF :NCYCLE :SYMB :VOID :WHEN-LET :WITH-GENSYMS) :ensure-package T :package "AOC.QUICKUTILS")
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (unless (find-package "AOC.QUICKUTILS")
@@ -13,7 +13,7 @@
 (in-package "AOC.QUICKUTILS")
 
 (when (boundp '*utilities*)
-  (setf *utilities* (union *utilities* '(:COPY-HASH-TABLE :FLATTEN
+  (setf *utilities* (union *utilities* '(:COPY-HASH-TABLE :DIVF :FLATTEN
                                          :HASH-TABLE-ALIST :MAPHASH-KEYS
                                          :HASH-TABLE-KEYS :MAPHASH-VALUES
                                          :HASH-TABLE-VALUES
@@ -43,6 +43,10 @@ copy is returned by default."
                  (setf (gethash k copy) (funcall key v)))
                table)
       copy))
+  
+
+  (define-modify-macro divf (&optional (1/ratio 2)) /
+    "A modifying version of division, similar to `decf`.")
   
 
   (defun flatten (&rest xs)
@@ -297,7 +301,7 @@ unique symbol the named variable will be bound to."
     `(with-gensyms ,names ,@forms))
   
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (export '(copy-hash-table flatten hash-table-alist hash-table-keys
+  (export '(copy-hash-table divf flatten hash-table-alist hash-table-keys
             hash-table-values hash-table-key-exists-p if-let iota make-keyword
             mkstr mulf ncycle symb void when-let when-let* with-gensyms
             with-unique-names)))
