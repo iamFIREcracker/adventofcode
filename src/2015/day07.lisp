@@ -3,7 +3,6 @@
 
 (defun parse-provision (string)
   (cl-ppcre:register-groups-bind (in out)
-                                 asdfdasf
       ("^(\\w+) -> (\\w+)" string)
     (list out #'identity in)))
 
