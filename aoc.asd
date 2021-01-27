@@ -43,6 +43,7 @@
                  (:file "intcode")
                  (:file "assembunnycode")
                  (:file "gameoflife")
+                 (:auto-module "2015")
                  (:auto-module "2016")
                  (:auto-module "2017")
                  (:module "2018" :serial t
