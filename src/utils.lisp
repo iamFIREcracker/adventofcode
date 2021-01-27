@@ -162,7 +162,7 @@
   (defun args-contain-placeholder-p (args placeholder)
     (recursively ((args args))
       (if (atom args)
-        (string= args placeholder)
+        (eq args placeholder)
         (or (recur (car args))
             (recur (cdr args)))))))
 
@@ -270,7 +270,6 @@
            (actual-args (args-replace-placeholder-or-append actual-args '_2 moar-arg)))
       `(lambda (,more-arg ,moar-arg)
           (funcall ,fn ,@actual-args)))))
-
 
 ;;;; Memoization --------------------------------------------------------------
 
