@@ -21,6 +21,7 @@
               #:md5
               #:pileup
               #:split-sequence
+              #:st-json
 
               )
   :components
