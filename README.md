@@ -40,3 +40,6 @@
   grammar](https://en.wikipedia.org/wiki/Context-free_grammar) parser
 - 2020/20: Clean up the solution (remove hard-coded stuff, regexps, ...)
 - 2020/23: Takes 6 seconds to generate the answer
+- 2015/24: Properly verify that, once I find a combination of packages that fit
+  into the first group, all the remaining packages can be evenly split into
+  2 or 3 groups
