@@ -82,4 +82,4 @@
     :swallow))
 
 
-(setf *aoc-use* '(:use :cl :pmdb :aoc :aoc.quickutils :aoc.quickutils.local :hset :dset))
+(defparameter *aoc-use* '(:use :cl :pmdb :aoc :aoc.quickutils :aoc.quickutils.local :hset :dset))
