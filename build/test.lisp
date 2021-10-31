@@ -1,8 +1,6 @@
-(ql:quickload :aoc/tests :verbose T)
+(handler-case (ql:quickload :aoc/tests)
+  (error (a) (format t "caught error ~s~%~a~%" a a) (uiop:quit 17)))
 
-(let ((exit-code 0))
-  (handler-case (time (asdf:test-system :aoc))
-    (error (c)
-      (format T "~&~A~%" c)
-      (setf exit-code 1)))
-  (uiop:quit exit-code))
+(handler-case (time (asdf:test-system :aoc))
+  (error (a)
+    (format T "caught error ~s~%~a~%" a a) (uiop:quit 13)))
