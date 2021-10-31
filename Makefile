@@ -10,19 +10,32 @@ vendor/pmdb.lisp:
 vendor/quickutils.lisp: vendor/make-quickutils.lisp
 	cd vendor && sbcl --noinform --load "make-quickutils.lisp"  --non-interactive
 
+# Info ------------------------------------------------------------------------
+.PHONY: lisp-info
+lisp-info:
+	sbcl --noinform --quit \
+		--load "build/info.lisp"
+
+.PHONY: lisp-info-ros
+lisp-info-ros:
+	ros \
+		--load "build/info.lisp" \
+
 # Tests -----------------------------------------------------------------------
 .PHONY: test
 test: test-sbcl
 
 .PHONY: test-sbcl
-test-sbcl: $(lisps)
-	sbcl \
-	    --noinform --non-interactive \
-	    --load "build/info.lisp" \
-	    --load "build/test.lisp"
+test-sbcl: lisp-info $(lisps)
+	sbcl --noinform \
+		--load "build/setup.lisp" \
+		--load "build/report-warnings.lisp" \
+		--load "build/test.lisp"
 
 .PHONY: test-ros
-test-ros: $(lisps)
-	ros \
-	    --load "build/info.lisp" \
-	    --load "build/test.lisp"
+test-ros: lisp-info-ros $(lisps)
+	ros run \
+		--load "build/setup.lisp" \
+		--load "build/report-warnings.lisp" \
+		--load "build/test.lisp"
+	
