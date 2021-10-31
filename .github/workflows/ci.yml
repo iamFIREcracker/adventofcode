@@ -1,0 +1,81 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "0 0 * * SUN"
+
+jobs:
+  ci-config:
+    runs-on: ubuntu-latest
+    outputs:
+      enabled: ${{ steps.set-enabled.outputs.enabled }}
+      roswell-version: ${{ steps.set-deps-versions.outputs.roswell-version }}
+      asdf-version: ${{ steps.set-deps-versions.outputs.asdf-version }}
+      qlot-version: ${{ steps.set-deps-versions.outputs.qlot-version }}
+    steps:
+      - id: set-enabled
+        name: Set enabled
+        run: |
+          event_name=${{ github.event_name }}
+          pull_request_repo=${{ github.event.pull_request.head.repo.full_name }}
+          repo=${{ github.repository }}
+
+          enabled=no
+          # We want to run on external PRs, but not on our own internal PRs as
+          # they'll be run by the push to the branch.
+          if test "$event_name" != 'pull_request' -o "$pull_request_repo" != "$repo"
+          then
+            enabled=yes
+          fi
+          echo "::set-output name=enabled::$enabled"
+      - id: set-deps-versions
+        name: Set dependencies versions
+        run: |
+          event_name=${{ github.event_name }}
+
+          roswell_version=v21.10.14.111
+          asdf_version=3.3.5.3
+          qlot_version=0.11.5
+          if [[ $event_name == 'schedule' ]]; then
+            roswell_version=latest
+            # XXX remove this override (i.e. put "latest" back in) after the
+            # following roswell issue has been solved:
+            # https://github.com/roswell/roswell/issues/497
+            # asdf_version=latest
+            asdf_version=3.3.5.3
+            qlot_version=latest
+          fi
+          echo "::set-output name=roswell-version::$roswell_version"
+          echo "::set-output name=asdf-version::$asdf_version"
+          echo "::set-output name=qlot-version::$qlot_version"
+
+  tests:
+    needs: ci-config
+    if: needs.ci-config.outputs.enabled == 'yes'
+    strategy:
+      fail-fast: false # Let the workflow continue as much as possible
+      matrix:
+        lisp: [ abcl, allegro, ccl, cmucl, ecl ]
+        experimental: [ true ]
+        include:
+          - lisp: sbcl-bin/2.1.10
+            experimental: false
+    env:
+      LISP: ${{ matrix.lisp }}
+    defaults:
+      run:
+        shell: lispsh {0}
+    name: tests [lisp=${{ matrix.lisp }}]
+    runs-on: ubuntu-latest
+    continue-on-error: ${{ matrix.experimental }}
+    timeout-minutes: 10
+    steps:
+      - uses: 40ants/setup-lisp@v2
+        with:
+          roswell-version: ${{ needs.ci-config.outputs.roswell-version }}
+          asdf-version: ${{ needs.ci-config.outputs.asdf-version }}
+          qlot-version: ${{ needs.ci-config.outputs.qlot-version }}
+      - uses: actions/checkout@v2
+      - run: make test-ros
