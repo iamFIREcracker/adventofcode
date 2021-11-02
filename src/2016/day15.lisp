@@ -22,7 +22,7 @@
 
 (defun minmax (gens)
   (loop :with min :with min-pos :with max :with max-pos
-        :for (value . ignored) :across gens
+        :for (value) :across gens
         :for i :from 0
         :when (or (not min) (< value min)) :do (setf min value min-pos i)
         :when (or (not max) (> value max)) :do (setf max value max-pos i)

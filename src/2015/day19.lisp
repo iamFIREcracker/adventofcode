@@ -25,9 +25,8 @@
                       collect (mreplace molecule from to start)))
           :test #'string=))))
 
-(defun number-of-matches (molecule replacement)
-  (destructuring-bind (from . to) replacement
-    (length (cl-ppcre:all-matches to molecule))))
+(defun number-of-matches (molecule replacement &aux (to (cdr replacement)))
+  (length (cl-ppcre:all-matches to molecule)))
 
 (defun part2 (input)
   (destructuring-bind (replacements . molecule) input

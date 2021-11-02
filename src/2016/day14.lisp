@@ -43,7 +43,7 @@
   (loop :repeat 1000
         :for lcache = cache :then (cdr lcache)
         :for lindex = index :then (1+ lindex)
-        :for (hash . quintets) = (hash lindex lcache)
+        :for quintets = (cdr (hash lindex lcache))
         :thereis (member char quintets)))
 
 (defun solve (salt &key (key-stretching 0))
@@ -51,7 +51,7 @@
         (*key-stretching* key-stretching))
     (loop :for cache = (circular-cache 1001) :then (cdr cache)
           :for index = 0 :then (1+ index)
-          :for (hash . ignored) = (hash index cache)
+          :for (hash) = (hash index cache)
           :for char = (find-triplet-char hash)
           :count (and char (keyp (1+ index) (cdr cache) char)) :into keys
           :when (= keys 64) :return index

@@ -31,7 +31,6 @@
   (loop
     :for nic :across nics
     :for out = (intcode:program-out nic)
-    :for in = (intcode:program-in nic)
     :always (and (queue-empty-p out))))
 
 (defun solve-part2 (nics)

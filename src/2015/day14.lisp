@@ -24,7 +24,8 @@
         with distances = (make-list (length reindeers) :initial-element 0)
         with run-fors = (make-list (length reindeers) :initial-element 0)
         with rest-fors = (make-list (length reindeers) :initial-element 0)
-        do (loop for (name speed run-for rest-for) in reindeers for index from 0
+        do (loop for reindeer in reindeers for index from 0
+                 for (speed run-for rest-for) = (cdr reindeer) ; skip name
                  if (< (nth index run-fors) run-for)
                     do (incf (nth index distances) speed)
                        (incf (nth index run-fors))

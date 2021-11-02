@@ -22,7 +22,7 @@
 (defun invert (table)
   (loop with inverted = nil
         for (from mapping) in table do
-        (loop for (to . _) in mapping
+        (loop for (to) in mapping
               for existing = (assoc to inverted) do
               (if existing
                 (push from (second existing))

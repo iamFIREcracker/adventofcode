@@ -7,14 +7,14 @@
 
 (defun not-decreasing (digits)
   (loop
-    :for (d . (next . remaining)) :on digits
+    :for (d next) :on digits
     :while next
     :always (<= d next)))
 
 (defun at-least-one-digit-repeated (digits)
   "`DIGITS` are expected to be sorted"
   (loop
-    :for (d . (next . remaining)) :on digits
+    :for (d next) :on digits
     :while next
     :when (= d next) :return T))
 

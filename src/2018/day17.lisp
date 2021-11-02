@@ -5,8 +5,8 @@
   (cl-ppcre:register-groups-bind (x-or-y (#'parse-integer n m o))
       ("(x|y)=(\\d+).*=(\\d+)..(\\d+)" string)
     (if (string= x-or-y "x")
-        (loop with col = n for row from m upto o collect (complex n row))
-        (loop with row = n for col from m upto o collect (complex col n)))))
+        (loop for row from m upto o collect (complex n row))
+        (loop for col from m upto o collect (complex col n)))))
 
 (defun parse-map (data)
   (let ((map (make-hash-table)))

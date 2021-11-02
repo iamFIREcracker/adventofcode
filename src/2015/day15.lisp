@@ -23,7 +23,7 @@
 (defun total-score (cookie)
   (reduce #'* (remove-if (partial-1 #'< _ 0) (subseq cookie 0 4))))
 
-(defun part1 (ingredients &aux best)
+(defun part1 (ingredients)
   (labels ((recur (ingredients-left spoons-left recipe)
              (cond ((= ingredients-left 1) (total-score
                                              (make-cookie

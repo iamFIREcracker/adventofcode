@@ -32,7 +32,7 @@
 (defun nearby-tickets (doc) (third doc))
 
 (defun value-valid-p (rules value)
-  (loop for (name (from1 . to1) (from2 . to2)) in rules
+  (loop for rule in rules for ((from1 . to1) (from2 . to2)) = (cdr rule)
         thereis (or (<= from1 value to1)
                     (<= from2 value to2))))
 
@@ -64,7 +64,7 @@
   (labels ((sort-rules (rules)
              (sort rules #'< :key (lambda (x) (length (second x)))))
            (rules-valid-p (rules)
-             (loop for (name positions) in rules
+             (loop for rule in rules for positions = (second rule)
                    always (> (length positions) 0)))
            (update-rules (rules n p)
              (loop for (name positions) in rules
