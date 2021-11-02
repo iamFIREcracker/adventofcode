@@ -39,4 +39,4 @@ they are not included but their dependencies are."
                 report (length report) system)
         (uiop:quit 19)))))
 
-#+#:the-project-is-not-warning-free-yet (compilation-conditions "aoc")
+(compilation-conditions "aoc")

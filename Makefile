@@ -26,16 +26,29 @@ lisp-info-ros:
 test: test-sbcl
 
 .PHONY: test-sbcl
-test-sbcl: lisp-info $(lisps)
+test-sbcl: $(lisps)
 	sbcl --noinform \
 		--load "build/setup.lisp" \
-		--load "build/report-warnings.lisp" \
 		--load "build/test.lisp"
 
 .PHONY: test-ros
-test-ros: lisp-info-ros $(lisps)
+test-ros: $(lisps)
 	ros run \
 		--load "build/setup.lisp" \
-		--load "build/report-warnings.lisp" \
 		--load "build/test.lisp"
 	
+# Report warnings ------------------------------------------------------------
+.PHONY: report-warnings
+report-warnings: report-warnings-sbcl
+
+.PHONY: report-warnings-sbcl
+report-warnings-sbcl: $(lisps)
+	sbcl --noinform \
+		--load "build/setup.lisp" \
+		--load "build/report-warnings.lisp"
+
+.PHONY: report-warnings-ros
+report-warnings-ros: $(lisps)
+	ros run \
+		--load "build/setup.lisp" \
+		--load "build/report-warnings.lisp"

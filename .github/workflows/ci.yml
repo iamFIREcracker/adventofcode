@@ -69,7 +69,6 @@ jobs:
         shell: lispsh {0}
     name: tests [lisp=${{ matrix.lisp }}]
     runs-on: ubuntu-latest
-    continue-on-error: ${{ matrix.experimental }}
     timeout-minutes: 10
     steps:
       - uses: 40ants/setup-lisp@v2
@@ -78,4 +77,33 @@ jobs:
           asdf-version: ${{ needs.ci-config.outputs.asdf-version }}
           qlot-version: ${{ needs.ci-config.outputs.qlot-version }}
       - uses: actions/checkout@v2
+      - run: make lisp-info-ros
       - run: make test-ros
+        continue-on-error: ${{ matrix.experimental }}
+
+  compilation-warnings:
+    needs: ci-config
+    if: needs.ci-config.outputs.enabled == 'yes'
+    strategy:
+      fail-fast: false # Let the workflow continue as much as possible
+      matrix:
+        lisp: [ abcl, allegro, ccl, cmucl, ecl ]
+        include:
+          - lisp: sbcl-bin/2.1.10
+    env:
+      LISP: ${{ matrix.lisp }}
+    defaults:
+      run:
+        shell: lispsh {0}
+    name: compilation-warnings [lisp=${{ matrix.lisp }}]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: 40ants/setup-lisp@v2
+        with:
+          roswell-version: ${{ needs.ci-config.outputs.roswell-version }}
+          asdf-version: ${{ needs.ci-config.outputs.asdf-version }}
+          qlot-version: ${{ needs.ci-config.outputs.qlot-version }}
+      - uses: actions/checkout@v2
+      - run: make lisp-info-ros
+      - run: make compilation-warnings
+        continue-on-error: true # XXX not ready for this yet. Stil...
