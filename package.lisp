@@ -78,8 +78,7 @@
     :parse-char
 
     :define-solution
-    :define-test
-    :swallow))
+    :define-test))
 
 
 (defparameter *aoc-use* '(:use :cl :pmdb :aoc :aoc.quickutils :aoc.quickutils.local :hset :dset))

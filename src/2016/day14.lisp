@@ -60,6 +60,6 @@
 (define-solution (2016 14) (salt first)
   (values
     (solve salt)
-    (swallow (solve salt :key-stretching 2016))))
+    #+#:takes-too-much-time (solve salt :key-stretching 2016)))
 
-(define-test (2016 14) (16106  22423))
+(define-test (2016 14) (16106 22423))

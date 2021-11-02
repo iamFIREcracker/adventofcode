@@ -5,7 +5,7 @@
   (values
     (assembunnycode:run (assembunnycode:parse-program data)
                         (list 7 0 0 0))
-    (swallow (assembunnycode:run (assembunnycode:parse-program data)
-                                 (list 12 0 0 0)))))
+    #+#:takes-too-much-time-to-run (assembunnycode:run (assembunnycode:parse-program data)
+                        (list 12 0 0 0))))
 
 (define-test (2016 23) (12860  479009420))

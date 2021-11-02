@@ -792,8 +792,3 @@
             (1am:is (equal ,expected-part2 actual-part2)))))
       (defun ,test-runner-name ()
         (,test-name)))))
-
-(defmacro swallow (&body body)
-  "Swallow BODY, and return nil"
-  (declare (ignore body))
-  ())

@@ -110,6 +110,6 @@
 (define-solution (2016 11) (data)
   (values
     (solve data)
-    (swallow (solve (prepare-part2 data) t))))
+    #+#:takes-too-much-time-to-run (solve (prepare-part2 data) t)))
 
 (define-test (2016 11) (37 61))
