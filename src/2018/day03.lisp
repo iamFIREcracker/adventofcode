@@ -4,7 +4,7 @@
 (defstruct claim id left top right bottom)
 
 (defun parse-claim (str)
-  (cl-ppcre:register-groups-bind (id (#'parse-integer left top width height))
+  (cl-ppcre:register-groups-bind ((#'parse-integer id left top width height))
       ("#(\\d+) @ (\\d+),(\\d+): (\\d+)x(\\d+)" str)
     (make-claim :id id
                 :left left
@@ -28,7 +28,7 @@
       (loop
         :for overlapping :being :the :hash-value :of fabric
         :counting (> (length overlapping) 1))
-      (let ((overlapping-ids (make-hset '() :test 'equal)))
+      (let ((overlapping-ids (make-hset '())))
         (loop
           :for ids :being :the :hash-value :of fabric
           :do (when (> (length ids) 1)
@@ -38,4 +38,4 @@
           (unless (gethash (claim-id claim) overlapping-ids)
             (return (claim-id claim))))))))
 
-(define-test (2018 3) (107820 "661"))
+(define-test (2018 3) (107820 661))
