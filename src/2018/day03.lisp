@@ -3,17 +3,9 @@
 
 (defstruct claim id left top right bottom)
 
-;; XXX Learn how to parse based on reg-exps
-
 (defun parse-claim (str)
-  (let* ((parts (split-sequence:split-sequence #\Space str))
-         (id (second (split-sequence:split-sequence #\# (first parts))))
-         (pos (first (split-sequence:split-sequence #\: (third parts))))
-         (left (parse-integer (first (split-sequence:split-sequence #\, pos))))
-         (top (parse-integer (second (split-sequence:split-sequence #\, pos))))
-         (size (fourth parts))
-         (width (parse-integer (first (split-sequence:split-sequence #\x size))))
-         (height (parse-integer (second (split-sequence:split-sequence #\x size)))))
+  (cl-ppcre:register-groups-bind (id (#'parse-integer left top width height))
+      ("#(\\d+) @ (\\d+),(\\d+): (\\d+)x(\\d+)" str)
     (make-claim :id id
                 :left left
                 :top top
@@ -36,12 +28,12 @@
       (loop
         :for overlapping :being :the :hash-value :of fabric
         :counting (> (length overlapping) 1))
-      (let ((overlapping-ids (make-hash-table :test 'equal)))
+      (let ((overlapping-ids (make-hset '() :test 'equal)))
         (loop
           :for ids :being :the :hash-value :of fabric
           :do (when (> (length ids) 1)
                 (dolist (id ids)
-                  (hash-table-insert overlapping-ids id T)))) ; XXX hash-set
+                  (hset-add id overlapping-ids))))
         (dolist (claim claims)
           (unless (gethash (claim-id claim) overlapping-ids)
             (return (claim-id claim))))))))
