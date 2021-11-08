@@ -5,14 +5,6 @@
      (assert (equalp ,expected ,actual))
     t))
 
-;; Day 4-1
-(test '("1518-11-01" 0 10 NIL NIL) (parse-time-log "[1518-11-01 00:00] Guard #10 begins shift"))
-(test '("1518-11-01" 5 NIL 19 NIL) (parse-time-log "[1518-11-01 00:05] falls asleep"))
-(test '("1518-11-01" 25 NIL NIL 19) (parse-time-log "[1518-11-01 00:25] wakes up"))
-(test 3212 (day4-1))
-;; Day 4-2
-(test 4966 (day4-2))
-
 ;; Day 6-1
 (test '(1 1) (parse-coords "1, 1"))
 (test 5 (manhattan-distance 1 1 3 4))
