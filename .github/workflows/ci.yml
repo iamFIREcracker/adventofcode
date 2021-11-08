@@ -81,7 +81,7 @@ jobs:
       - run: make test-ros
         continue-on-error: ${{ matrix.experimental }}
 
-  compilation-warnings:
+  report-warnings:
     needs: ci-config
     if: needs.ci-config.outputs.enabled == 'yes'
     strategy:
@@ -95,7 +95,7 @@ jobs:
     defaults:
       run:
         shell: lispsh {0}
-    name: compilation-warnings [lisp=${{ matrix.lisp }}]
+    name: report-warnings [lisp=${{ matrix.lisp }}]
     runs-on: ubuntu-latest
     steps:
       - uses: 40ants/setup-lisp@v2
@@ -105,5 +105,5 @@ jobs:
           qlot-version: ${{ needs.ci-config.outputs.qlot-version }}
       - uses: actions/checkout@v2
       - run: make lisp-info-ros
-      - run: make compilation-warnings
+      - run: make report-warnings-ros
         continue-on-error: true # XXX not ready for this yet. Stil...
