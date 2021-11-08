@@ -27,7 +27,7 @@ test: test-sbcl
 
 .PHONY: test-sbcl
 test-sbcl: $(lisps)
-	sbcl --noinform \
+	sbcl --noinform --quit \
 		--load "build/setup.lisp" \
 		--load "build/test.lisp"
 
@@ -43,7 +43,7 @@ report-warnings: report-warnings-sbcl
 
 .PHONY: report-warnings-sbcl
 report-warnings-sbcl: $(lisps)
-	sbcl --noinform \
+	sbcl --noinform --quit \
 		--load "build/setup.lisp" \
 		--load "build/report-warnings.lisp"
 

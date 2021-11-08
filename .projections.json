@@ -1,0 +1,5 @@
+{
+  "*": {
+    "start": "-title=REPL sbcl-vlime"
+  }
+}
