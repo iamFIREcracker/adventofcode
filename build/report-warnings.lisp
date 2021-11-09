@@ -39,4 +39,8 @@ they are not included but their dependencies are."
                 report (length report) system)
         (uiop:quit 19)))))
 
+
+(handler-case (ql:quickload :aoc)
+  (error (a) (format t "caught error ~s~%~a~%" a a) (uiop:quit 17)))
+
 (compilation-conditions "aoc")
