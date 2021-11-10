@@ -5,18 +5,6 @@
      (assert (equalp ,expected ,actual))
     t))
 
-;; Day 6-1
-(test '(1 1) (parse-coords "1, 1"))
-(test 5 (manhattan-distance 1 1 3 4))
-(test '((1 1)) (closest-coords 0 0 '((1 1) (1 6) (8 3) (3 4) (5 5) (8 9))))
-(test '((1 1) (5 5)) (closest-coords 5 1 '((1 1) (1 6) (8 3) (3 4) (5 5) (8 9))))
-(test 17 (solve-day6-1 '((1 1) (1 6) (8 3) (3 4) (5 5) (8 9))))
-(test 3894 (day6-1))
-;; Day 6-2
-(test 30 (sum-of-all-distances 4 3 '((1 1) (1 6) (8 3) (3 4) (5 5) (8 9))))
-(test 16 (solve-day6-2 '((1 1) (1 6) (8 3) (3 4) (5 5) (8 9)) 32))
-(test 39398 (day6-2))
-
 ;; Day 7-1
 (test '("C" "A") (parse-requirement "Step C must be finished before step A can begin."))
 (test '("C") (dependency-roots
@@ -267,16 +255,6 @@
 (test 2106 (day19-1))
 ;; Day19-2
 (test 23021280 (day19-2))
-
-;; Day20-1
-(test 3 (solve-day20-1 "^WNE$"))
-(test 10 (solve-day20-1 "^ENWWW(NEEE|SSE(EE|N))$"))
-(test 18 (solve-day20-1 "^ENNWSWW(NEWS|)SSSEEN(WNSE|)EE(SWEN|)NNN$"))
-(test 23 (solve-day20-1 "^ESSWWN(E|NNENN(EESS(WNSE|)SSS|WWWSSSSE(SW|NNNE)))$"))
-(test 31 (solve-day20-1 "^WSSEESWWWNW(S|NENNEEEENN(ESSSSW(NWSW|SSEN)|WSWWN(E|WWS(E|SS))))$"))
-(test 3835 (day20-1))
-;; Day20-2
-(test 8520 (day20-2))
 
 ;; Day21-1
 (test 3909249 (day21-1))
