@@ -32,5 +32,3 @@
       (count-if (partial-1 #'>= _ 1000) (hash-table-values cost-so-far)))))
 
 (define-test (2018 20) (3835 8520))
-
-(test-run)
