@@ -59,6 +59,7 @@
                                   (:file "day17")
                                   (:file "day20")
                                   (:file "day22")
+                                  (:file "day23")
                                   (:file "day25")))
                  (:auto-module "2019")
                  (:auto-module "2020"))))

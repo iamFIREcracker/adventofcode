@@ -261,12 +261,6 @@
 ;; Day21-2
 ; (test 12333799 (day21-2))
 
-;; Day23-1
-(test '(0 -12 33 4) (parse-nanobot "pos=<0,-12,33>, r=4"))
-(test 433 (day23-1))
-;; Day23-2
-(test 107272899 (day23-2))
-
 ;; Day24-1
 (test '(18 729 8 "radiation" 10 ("fire") ("slashing" "cold"))
       (parse-group "18 units each with 729 hit points (weak to fire; immune to cold, slashing) with an attack that does 8 radiation damage at initiative 10"))

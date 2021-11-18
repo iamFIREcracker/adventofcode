@@ -472,21 +472,21 @@
 
 ;;;; Heap Queue ---------------------------------------------------------------
 
-(defun make-hq ()
+(defun make-hq (&key (predicate #'<) (key #'identity))
   "Creates an heap queue."
-  (pileup:make-heap #'< :key #'cdr))
+  (pileup:make-heap predicate :key key))
 
 (defun hq-empty-p (hq)
   "Returns true if the heap is empty."
   (pileup:heap-empty-p hq))
 
 (defun hq-pop (hq)
-  "Pops the first element of the queue (i.e. the element with lowest priority)."
-  (car (pileup:heap-pop hq)))
+  "Pops the first element of the queue"
+  (pileup:heap-pop hq))
 
-(defun hq-insert (hq item priority)
-  "Adds `item` to the queue, and assigns it priority `priority`."
-  (pileup:heap-insert (cons item priority ) hq))
+(defun hq-insert (hq item)
+  "Adds `item` to the queue."
+  (pileup:heap-insert item hq))
 
 ;;;; Deque --------------------------------------------------------------------
 
@@ -598,12 +598,13 @@
            (+ state-cost (funcall heuristic state))))
     (let (best-state)
       (loop
-        :with frontier = (make-hq)
+        :with frontier = (make-hq :key #'cdr)
         :initially (progn
                      (hash-table-insert cost-so-far init-state init-cost)
-                     (hq-insert frontier (cons init-state init-cost) (calc-priority init-cost init-state)))
+                     (hq-insert frontier (cons (cons init-state init-cost)
+                                               (calc-priority init-cost init-state))))
         :until (hq-empty-p frontier)
-        :for (state . state-cost) = (hq-pop frontier)
+        :for (state . state-cost) = (car (hq-pop frontier))
         :when (funcall goalp state) :return (setf best-state state)
         :do (when (= state-cost (gethash state cost-so-far))
               (loop
@@ -613,9 +614,10 @@
                       (when (or (not present-p) (< next-cost existing-cost))
                         (hash-table-insert cost-so-far next-state next-cost)
                         (hash-table-insert come-from next-state state)
-                        (hq-insert frontier (cons next-state next-cost) (calc-priority
-                                                                          next-cost
-                                                                          next-state)))))))
+                        (hq-insert frontier (cons (cons next-state next-cost)
+                                                  (calc-priority
+                                                    next-cost
+                                                    next-state))))))))
       (values
         best-state
         (gethash best-state cost-so-far)

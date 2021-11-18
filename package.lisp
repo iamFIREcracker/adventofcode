@@ -50,6 +50,7 @@
     :ring-insertf
 
     :make-hq
+    :hq-empty-p
     :hq-pop
     :hq-insert
 
