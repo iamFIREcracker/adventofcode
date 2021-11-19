@@ -233,22 +233,6 @@
 (test 600 (day16-2))
 
 
-;; Day18-1
-(parse-lumber-area (list ".#.#...|#."
-                         ".....#|##|"
-                         ".|..|...#."
-                         "..|#.....#"
-                         "#.#|||#|#|"
-                         "...#.||..."
-                         ".|....|..."
-                         "||...#|.#|"
-                         "|.||||..|."
-                         "...#.|..|."))
-(test ".#.." (vector-to-string (make-array '(2 2) :initial-contents '(".#" ".."))))
-(test 549936 (day18-1))
-;; Day18-2
-(test 206304 (day18-2))
-
 ;; Day19-1
 (test 0 (parse-instruction-pointer "#ip 0"))
 (test (list #'opcode-seti '(5 0 1)) (parse-instruction "seti 5 0 1"))
