@@ -204,79 +204,8 @@
     result))
 
 
-(defun parse-pots (str)
-  (let* ((parts (split-sequence:split-sequence #\Space str)))
-    (third parts)))
-
-
-(defun parse-rules (lst)
-  (let* ((rules (make-hash-table :test 'equalp)))
-    (loop for str in lst
-          do (let* ((parts (split-sequence:split-sequence #\Space str)))
-               (setf (gethash (first parts) rules) (third parts))))
-    rules))
-
-
 (defun hash-keys (hash-table)
   (loop for key being the hash-keys of hash-table collect key))
-
-
-(defun grow-plants (center state rules)
-  (let* ((leftmost-plant (position #\# state))
-         (rightmost-plant (position #\# state :from-end T))
-         (state-padded (concatenate
-                         'string
-                         "...."
-                         (copy-seq (subseq state leftmost-plant (+ 1 rightmost-plant)))
-                         "...."))
-         (state-next (copy-seq state-padded)))
-    (loop for i from 0 to (- (length state-padded) 5)
-          do (let* ((window (subseq state-padded i (+ i 5))))
-               (if (gethash window rules)
-                 (setf (aref state-next (+ i 2))
-                       (char (gethash window rules) 0)))))
-    (list (+ (- center leftmost-plant) 4) state-next)))
-
-
-(defun solve-day12-1 (center state rules generations)
-  (loop for cur-gen from 1 to generations
-        do (let* ((ret (grow-plants center state rules))
-                  (center-next (first ret))
-                  (state-next (second ret)))
-             (setf center center-next
-                   state state-next)
-             (if (and
-                   (> cur-gen 10000)
-                   (= center center-next)
-                   (string= state state-next))
-               (progn
-                 (setf center (- center (- generations cur-gen)))
-                 (return)))))
-  (loop for i from 0 to (- (length state) 1)
-        when (char= (aref state i) #\#)
-        summing (- i center)))
-
-
-(defun day12-1 ()
-  (let* ((in (open "./day12.input"))
-         (lst (read-by-line in))
-         (result (solve-day12-1 0
-                                (parse-pots (first lst))
-                                (parse-rules (rest lst))
-                                20)))
-    (close in)
-    result))
-
-
-(defun day12-2 ()
-  (let* ((in (open "./day12.input"))
-         (lst (read-by-line in))
-         (result (solve-day12-1 0
-                                (parse-pots (first lst))
-                                (parse-rules (rest lst))
-                                50000000000)))
-    (close in)
-    result))
 
 
 (defun map-location (map x y)

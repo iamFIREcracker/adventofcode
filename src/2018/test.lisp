@@ -33,11 +33,6 @@
 ;; Day10-2
 (test 10831 (day10-2))
 
-;; Day12-1
-(test 4386 (day12-1))
-;; Day12-2
-(test 5450000001166 (day12-2))
-
 ;; Day13-1
 (test '((0 0 1 0 "left")) (parse-carts '(">")))
 (test '((0 0 0 1 "left")) (parse-carts '("v")))
