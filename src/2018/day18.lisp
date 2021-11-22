@@ -46,7 +46,7 @@
 (defun part2 (area)
   (destructuring-bind (cycles-at cycle-size area-new)
       (floyd #'area-next area :test 'equalp)
-    (let ((remaining (nth-value 1 (floor (- 1000000000 cycles-at) cycle-size))))
+    (let ((remaining (rem (- 1000000000 cycles-at) cycle-size)))
       (part1 area-new remaining))))
 
 
