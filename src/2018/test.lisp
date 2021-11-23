@@ -5,17 +5,6 @@
      (assert (equalp ,expected ,actual))
     t))
 
-;; Day 7-1
-(test '("C" "A") (parse-requirement "Step C must be finished before step A can begin."))
-(test '("C") (dependency-roots
-               '(("C" "A") ("C" "F") ("A" "B") ("A" "D") ("B" "E") ("D" "E") ("F" "E"))
-               (second (build-dependency-list '(("C" "A") ("C" "F") ("A" "B") ("A" "D") ("B" "E") ("D" "E") ("F" "E"))))))
-(test "CABDFE" (solve-day7-1 '(("C" "A") ("C" "F") ("A" "B") ("A" "D") ("B" "E") ("D" "E") ("F" "E"))))
-(test "GRTAHKLQVYWXMUBCZPIJFEDNSO" (day7-1))
-;; Day 7-2
-(test 15 (solve-day7-2 2 0 '(("C" "A") ("C" "F") ("A" "B") ("A" "D") ("B" "E") ("D" "E") ("F" "E"))))
-(test 1115 (day7-2))
-
 ;; Day 9-1
 (test 32 (solve-day9-1 '(9 25) 1))
 (test 8317 (solve-day9-1 '(10 1618) 1))
