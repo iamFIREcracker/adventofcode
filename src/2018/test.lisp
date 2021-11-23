@@ -27,12 +27,6 @@
 ;; Day 9-2
 ;;(test 3169872331 (day9-2))
 
-;; Day10-1
-(test '(9 1 0 2) (parse-star "position=< 9,  1> velocity=< 0,  2>"))
-(test '((9 3 0 2)) (move-stars '((9 1 0 2))))
-;; Day10-2
-(test 10831 (day10-2))
-
 ;; Day13-1
 (test '((0 0 1 0 "left")) (parse-carts '(">")))
 (test '((0 0 0 1 "left")) (parse-carts '("v")))

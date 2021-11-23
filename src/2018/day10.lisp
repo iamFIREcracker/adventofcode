@@ -1,40 +1,65 @@
 (defpackage :aoc/2018/10 #.cl-user::*aoc-use*)
 (in-package :aoc/2018/10)
 
-(defstruct star x y vx vy)
 
-(defun parse-star (str)
-  (let* ((parts (split-sequence:split-sequence #\< str))
-         (coordsstr (second parts))
-         (speedstr (third parts))
-         (coords-parts (split-sequence:split-sequence #\, coordsstr))
-         (speed-parts (split-sequence:split-sequence #\, speedstr)))
-    (make-star
-      :x (parse-integer (first coords-parts) :junk-allowed T)
-      :y (parse-integer (second coords-parts) :junk-allowed T)
-      :vx (parse-integer (first speed-parts) :junk-allowed T)
-      :vy (parse-integer (second speed-parts) :junk-allowed T))))
+(defstruct (star (:conc-name nil)) pos vel)
 
-(defun min-max (values)
-  (loop
-    :for v :in values
-    :minimizing v :into min-v
-    :maximizing v :into max-v
-    :finally (return (values min-v max-v))))
+(defun parse-sky (data)
+  (mapcar #'parse-star data))
 
-(defun parse-starrs (x)
-  (mapcar #'parse-star x))
+(defun parse-star (string)
+  (destructuring-bind (x y vx vy)
+      (mapcar #'parse-integer (cl-ppcre:all-matches-as-strings "-?\\d+" string))
+    (make-star :pos (list x y) :vel (list vx vy))))
 
-(defun bounding-box-area (points &optional (x 'first) (y 'second))
-  (multiple-value-bind (minx maxx) (min-max (mapcar x points))
-    (multiple-value-bind (miny maxy) (min-max (mapcar y points))
-      (* (- maxx minx)
-         (- maxy miny)))))
 
-(define-solution (2018 10) (data parse-stars)
-  (multiple-value-bind (players marbles) (parse-marble-setup data)
-    (values
-      (play players marbles)
-      (play players (* marbles 100)))))
+(defun find-message (input)
+  (loop :for time :from 0
+        :for sky-prev = input :then sky
+        :for sky = input :then (sky-next sky)
+        :when (> (sky-area sky) (sky-area sky-prev))
+        :return (values (sky-message sky-prev) (1- time))))
 
-(define-test (2018 10) (384892 3169872331))
+(defun sky-next (sky) (mapcar #'star-move sky))
+
+(defun star-move (star)
+  (with-slots (pos vel) star
+    (make-star :pos (mapcar #'+ pos vel) :vel vel)))
+
+(defun sky-area (sky)
+  (destructuring-bind ((x-min x-max) (y-min y-max)) (sky-box sky)
+    (* (- x-max x-min) (- y-max y-min))))
+
+(defun sky-message (sky)
+  (destructuring-bind ((x-min x-max) (y-min y-max)) (sky-box sky)
+    (let ((output (loop :repeat (1+ (- y-max y-min))
+                        :collect (make-string (1+ (- x-max x-min)) :initial-element #\Space))))
+      (loop :for star :in sky :for (x y) = (pos star)
+            :for row = (nth (- y y-min) output)
+            :do (setf (aref row (- x x-min)) #\#))
+      (with-output-to-string (s)
+        (format s "~%~{~a~^~%~}" output)))))
+
+(defun sky-box (sky)
+  (loop :for star :in sky :for (x y) = (pos star)
+        :minimize x :into x-min
+        :maximize x :into x-max
+        :minimize y :into y-min
+        :maximize y :into y-max
+        :finally (return (list (list x-min x-max) (list y-min y-max)))))
+
+
+(define-solution (2018 10) (sky parse-sky)
+  (find-message sky))
+
+(define-test (2018 10) ("
+#####   #    #  #####      ###   ####   #       #####   ######
+#    #  #    #  #    #      #   #    #  #       #    #  #     
+#    #  #    #  #    #      #   #       #       #    #  #     
+#    #  #    #  #    #      #   #       #       #    #  #     
+#####   ######  #####       #   #       #       #####   ##### 
+#    #  #    #  #           #   #  ###  #       #       #     
+#    #  #    #  #           #   #    #  #       #       #     
+#    #  #    #  #       #   #   #    #  #       #       #     
+#    #  #    #  #       #   #   #   ##  #       #       #     
+#####   #    #  #        ###     ### #  ######  #       ######" 10831))
