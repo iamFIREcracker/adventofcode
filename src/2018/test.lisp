@@ -5,20 +5,6 @@
      (assert (equalp ,expected ,actual))
     t))
 
-;; Day14-1
-(test '(0 1) (generate-next-board 0 1 (generate-first-board)))
-(test "5158916779" (solve-day14-1 9))
-(test "0124515891" (solve-day14-1 5))
-(test "9251071085" (solve-day14-1 18))
-(test "5941429882" (solve-day14-1 2018))
-(test "1191216109" (day14-1))
-;; Day14-2
-(test 9 (solve-day14-2 "51589"))
-(test 5 (solve-day14-2 "01245"))
-(test 18 (solve-day14-2 "92510"))
-(test 2018 (solve-day14-2 "59414"))
-(test 20268576 (day14-2))
-
 
 ;; Day15-1
 (defvar *cave*)

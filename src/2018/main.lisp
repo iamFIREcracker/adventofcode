@@ -13,69 +13,6 @@
   (loop for key being the hash-keys of hash-table collect key))
 
 
-(defun digits (number)
-  (labels ((recurse (number)
-             (if (< number 10)
-               (list number)
-               (cons (mod number 10) (recurse (floor number 10))))))
-    (nreverse (recurse number))))
-
-
-(defun generate-next-board (i j board)
-  (let* ((first-score (aref board i))
-         (second-score (aref board j))
-         (next-score (+ first-score second-score)))
-    (loop for d in (digits next-score)
-          do (vector-push-extend d board))
-    (list
-      (mod (+ i first-score 1) (length board))
-      (mod (+ j second-score 1) (length board)))))
-
-
-(defun generate-first-board ()
-    (make-array 2
-                :fill-pointer 2
-                :initial-contents '(3 7)))
-
-
-(defun solve-day14-1 (start-looking)
-  (let* ((board (generate-first-board))
-         (state (generate-next-board 0 1 board))
-         (ni (first state))
-         (nj (second state)))
-    (loop while (< (length board) (+ start-looking 10))
-          do (setf state (generate-next-board ni nj board)
-                   ni (first state)
-                   nj (second state)))
-    (format nil "~{~a~}" (coerce (subseq board start-looking (+ start-looking 10)) 'list))))
-
-
-(defun day14-1 ()
-  (solve-day14-1 190221))
-
-
-(defun solve-day14-2 (scores-pattern)
-  (let* ((board (generate-first-board))
-         (state (generate-next-board 0 1 board))
-         (ni (first state))
-         (nj (second state))
-         (offset 0))
-    (loop do (progn
-               (setf state (generate-next-board ni nj board)
-                     ni (first state)
-                     nj (second state))
-               (if (>= (length board) (length scores-pattern))
-                 (let* ((board-tail (subseq board offset (+ offset (length scores-pattern))))
-                        (board-tail-str (format nil "~{~a~}" (coerce board-tail 'list))))
-                   (if (string= scores-pattern board-tail-str)
-                     (return offset)
-                     (setf offset (+ offset 1)))))))))
-
-
-(defun day14-2 ()
-  (solve-day14-2 "190221"))
-
-
 (defun parse-goblins-cave (x &optional (elf-attack 3))
   (let* ((height (length x))
          (width (length (first x)))
