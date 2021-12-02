@@ -144,6 +144,10 @@
             (all-permutations (append (rest lst) (list (first lst))) (rest remain))))))
 
 
+(defun as-keyword (string)
+  "Converts `string` into a keyword symbol"
+  (make-keyword (string-upcase string)))
+
 ;;;; Control flow -------------------------------------------------------------
 
 (defmacro recursively (bindings &body body)

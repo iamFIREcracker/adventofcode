@@ -11,6 +11,7 @@
     :hamming-distance
     :manhattan-distance
     :all-permutations
+    :as-keyword
 
     :_
     :partial-1
