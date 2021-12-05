@@ -30,4 +30,5 @@
 (with-gensyms 1)
 (with-open-file 1)
 (with-output-to-string 1)
+(while-collecting 1)
 (with-slots 2)
