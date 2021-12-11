@@ -17,11 +17,7 @@
                   (t (return (incf error-score (syntax-error-score ch)))))
             finally (when stack
                       (push (completion-score stack) completion-scores)))))
-  (values
-    error-score
-    (let* ((completion-scores (sort completion-scores #'<))
-           (n (floor (length completion-scores) 2)))
-      (nth n completion-scores))))
+  (values error-score (median completion-scores)))
 
 
 (defparameter *syntax-error-table*
@@ -31,6 +27,10 @@
     (#\> . 25137)))
 
 (defun syntax-error-score (ch) (cdr (assoc ch *syntax-error-table*)))
+
+
+(defun median (scores &aux (scores (sort scores #'<)))
+  (nth (floor (length scores) 2) scores))
 
 
 (defparameter *point-value-table*
