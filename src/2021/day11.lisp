@@ -21,22 +21,19 @@
         when (= flashes 100) return (values part1 step)))
 
 
-(defun dance (curr &aux (flashed (make-hset nil :test 'equal)))
-  (loop for p being the hash-keys of curr
-        unless (hset-contains-p p flashed) do
-        (incf (gethash p curr))
-        (when (> (gethash p curr) 9)
-          (hset-add p flashed)
-          (loop with remaining = (neighbors curr p)
-                while remaining
-                for n = (pop remaining)
-                unless (hset-contains-p n flashed) do
-                (incf (gethash n curr))
-                (when (> (gethash n curr) 9)
-                  (hset-add n flashed)
-                  (setf remaining (append remaining (neighbors curr n)))))))
-  (loop for p being the hash-keys of curr using (hash-value e)
-        count (when (> e 9) (setf (gethash p curr) 0))))
+(defun dance (curr &aux remaining (flashed (make-hset nil :test 'equal)))
+  (flet ((flashesp (energy) (> energy 9))
+         (flash (p)
+           (hset-add p flashed)
+           (setf remaining (append (neighbors curr p) remaining))))
+    (loop for p being the hash-keys of curr
+          when (flashesp (incf (gethash p curr))) do (flash p))
+    (loop while remaining
+          for n = (pop remaining)
+          unless (hset-contains-p n flashed)
+          when (flashesp (incf (gethash n curr))) do (flash n))
+    (loop for p being the hash-keys of curr using (hash-value e)
+          count (when (flashesp e) (setf (gethash p curr) 0)))))
 
 
 (defparameter *nhood* '((-1 0) (-1 1) (0 1) (1 1) (1 0) (1 -1) (0 -1) (-1 -1)))
@@ -48,4 +45,4 @@
 
 (define-solution (2021 11) (octopuses parse-octopuses) (flash-dance octopuses))
 
-(define-test (2021 10) (1665 235))
+(define-test (2021 11) (1665 235))
