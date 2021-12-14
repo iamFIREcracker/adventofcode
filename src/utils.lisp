@@ -331,6 +331,27 @@
            (defun ,clear-memo-name ()
              (clrhash ,memo)))))))
 
+
+(defmacro while-summing (summers &body body)
+  (expand-while-summing summers body))
+
+(defun expand-while-summing (summers body)
+  (let* ((gen-syms (mapcar #'expand-while-summing-gensym summers))
+         (let-bindings (mapcar #'expand-while-summing-let-binding gen-syms))
+         (flet-bindings (mapcar #'expand-while-summing-flet-binding summers gen-syms)))
+    `(let* (,@let-bindings)
+      (flet (,@flet-bindings)
+        ,@body
+        (values ,@gen-syms)))))
+
+(defun expand-while-summing-gensym (name) (gensym (string name)))
+
+(defun expand-while-summing-let-binding (gensym) (list gensym 0))
+
+(defun expand-while-summing-flet-binding (name binding)
+  `(,name (&optional (delta 1))
+    (incf ,binding delta)))
+
 ;;;; Math ---------------------------------------------------------------------
 
 (defmacro with-complex-parts ((real img) c &body body)

@@ -19,6 +19,7 @@
     :_2
     :partial-2
     :defun/memo
+    :while-summing
 
     :with-complex-parts
     :complex-rotate-cw
@@ -60,6 +61,7 @@
     :enqueue
     :dequeue
 
+    :aref-or
     :make-summedarea-table
     :st-area-of
 
