@@ -9,16 +9,13 @@
   value-comp)
 
 
-(defun != (a b)
-  (not (= a b)))
-
 (defun parse-jump-instructions (x)
   (let ((comp-ops `(("<"  ,#'<)
                     (">"  ,#'>)
                     (">=" ,#'>=)
                     ("==" ,#'=)
                     ("<=" ,#'<=)
-                    ("!=" ,#'!=))))
+                    ("!=" ,#'/=))))
     (labels ((parse-instruction (s)
                (let* ((splits (split-sequence:split-sequence #\Space s))
                       (reg-inc (first splits))

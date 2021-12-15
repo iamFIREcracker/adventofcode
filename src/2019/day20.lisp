@@ -119,7 +119,7 @@
       (= (d-outer-boundary-max-y d) (imagpart pos))))
 
 (defun d-portal-active-p (d level pos)
-  (or (not (= 0 level)) (not (d-outer-boundary-p d pos))))
+  (or (/= 0 level) (not (d-outer-boundary-p d pos))))
 
 (defun d-neighbors-part2 (d state)
   (let ((pos (s-pos state))

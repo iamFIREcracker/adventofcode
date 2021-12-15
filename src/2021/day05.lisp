@@ -14,7 +14,7 @@
 
 (defun diagonalp (line)
   (destructuring-bind (x1 y1 x2 y2) line
-    (and (not (= x1 x2)) (not (= y1 y2)))))
+    (and (/= x1 x2) (/= y1 y2))))
 
 (defun count-overlaps (lines &optional (grid (make-hash-table :test 'equal)))
   (dolist (l lines)
