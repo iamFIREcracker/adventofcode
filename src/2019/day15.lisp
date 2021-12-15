@@ -45,12 +45,10 @@
 (define-solution (2019 15) (program intcode:read-program)
   (multiple-value-bind (start oxygen map)
       (build-map program)
-    (multiple-value-bind (end-state end-state-cost end-state-path cost-so-far)
-        (bfs oxygen
-             :neighbors (partial-1 #'neighbors map))
-      (declare (ignore end-state end-state-cost end-state-path))
+    (let ((costs-table (search-costs-table (bfs oxygen
+                                                :neighbors (partial-1 #'neighbors map)))))
       (values
-        (gethash start cost-so-far)
-        (reduce #'max (hash-table-values cost-so-far))))))
+        (gethash start costs-table)
+        (reduce #'max (hash-table-values costs-table))))))
 
 (define-test (2019 15) (336 360))

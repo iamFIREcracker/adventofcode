@@ -47,7 +47,7 @@
 (defstruct (state (:conc-name)) cur empty)
 
 (defun cost-to-make-space (grid fixed from to)
-  (nth-value 1 (a* from
+  (search-cost (a* from
                    :goal-state to
                    :neighbors (search-unit-cost (lambda (pos)
                                                   (loop for n in (adjacents pos)
@@ -70,7 +70,7 @@
          (grid (list-hash-table intechangeables #'pos))
          (init-state (make-state :cur (pos (find-target-node intechangeables))
                                  :empty (pos (find-empty-node intechangeables)))))
-    (nth-value 1 (a* init-state
+    (search-cost (a* init-state
                      :goalp (partial-1 #'= (cur _) 0)
                      :neighbors (partial-1 #'neighbors _ grid)
                      :heuristic (partial-1 #'manhattan-distance (cur _) 0)

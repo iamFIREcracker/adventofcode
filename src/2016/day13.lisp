@@ -25,16 +25,18 @@
 
 (defun part1 (favorite-number end-state)
   (let ((*favorite-number* favorite-number))
-    (nth-value 1 (a* #c(1 1) :goal-state end-state
+    (search-cost (a* #c(1 1)
+                     :goal-state end-state
                      :neighbors (search-unit-cost #'neighbors)
                      :heuristic (partial-1 #'manhattan-distance end-state)))))
 
 (defun part2 (favorite-number)
   (let ((*favorite-number* favorite-number))
-    (hash-table-count (nth-value 3 (bfs #c(1 1) :neighbors #'neighbors
-                                        :prunep #'(lambda (state cost)
-                                                   (declare (ignore state))
-                                                   (> cost 50)))))))
+    (hash-table-count (search-costs-table (bfs #c(1 1)
+                                               :neighbors #'neighbors
+                                               :prunep #'(lambda (state cost)
+                                                          (declare (ignore state))
+                                                          (> cost 50)))))))
 
 (define-solution (2016 13) (data)
   (values

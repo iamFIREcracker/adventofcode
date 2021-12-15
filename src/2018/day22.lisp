@@ -80,15 +80,13 @@
         :key #'area-type)
       (let* ((init-state (make-state #C(0 0) 'torch))
              (goal-state (make-state target 'torch)))
-        (multiple-value-bind (end-state end-state-cost)
-            (a* init-state
-                :goal-state goal-state
-                :heuristic (partial-1 #'manhattan-distance
-                                      (pos _)
-                                      (pos goal-state))
-                :neighbors (partial-1 #'cave-possible-moves target depth)
-                :test 'equalp)
-          (declare (ignore end-state))
-          end-state-cost)))))
+        (search-cost
+          (a* init-state
+              :goal-state goal-state
+              :heuristic (partial-1 #'manhattan-distance
+                                    (pos _)
+                                    (pos goal-state))
+              :neighbors (partial-1 #'cave-possible-moves target depth)
+              :test 'equalp))))))
 
 (define-test (2018 22) (5400 1048))

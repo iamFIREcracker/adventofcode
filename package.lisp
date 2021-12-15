@@ -66,7 +66,12 @@
     :st-area-of
 
     :adjacents
+    :dijkstra
     :a*
+    :search-state
+    :search-cost
+    :search-path
+    :search-costs-table
     :search-unit-cost
     :bfs
     :floyd

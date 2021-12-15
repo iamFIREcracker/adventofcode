@@ -35,11 +35,13 @@
   (uiop:while-collecting (acc!)
     (dolist (lp (low-points heights))
       (let ((size 0))
-        (bfs lp :test 'equal :neighbors (lambda (p)
-                                          (incf size)
-                                          (remove-if-not (lambda (n)
-                                                           (< (gethash n heights) 9))
-                                                         (neighbors heights p))))
+        (bfs lp
+             :test 'equal
+             :neighbors (lambda (p)
+                          (incf size)
+                          (remove-if-not (lambda (n)
+                                           (< (gethash n heights) 9))
+                                         (neighbors heights p))))
         (acc! size)))))
 
 

@@ -23,7 +23,8 @@
     blueprint))
 
 (defun find-path (walls from to)
-  (nth-value 1 (a* from :goal-state to
+  (search-cost (a* from
+                   :goal-state to
                    :neighbors (lambda (p)
                                 (loop for n in (adjacents p)
                                       unless (gethash n walls)
@@ -57,8 +58,8 @@
          (site-count (length (blueprint-sites blueprint)))
          (all-sites (1- (ash 1 site-count)))
          (paths (precompute-paths blueprint)))
-    (nth-value 1 (a* init-state :goalp (partial-1 #'= (visited _) all-sites)
-                     :neighbors (partial-1 #'neighbors paths site-count)))))
+    (search-cost (dijkstra init-state :goalp (partial-1 #'= (visited _) all-sites)
+                           :neighbors (partial-1 #'neighbors paths site-count)))))
 
 (defun visit-sites-part2 (blueprint)
   (let* ((init-state (make-state :robot 0 :visited 1))
@@ -68,8 +69,7 @@
     (multiple-value-bind (end-state end-state-cost)
         (a* init-state :goalp (partial-1 #'= (visited _) all-sites)
             :neighbors (partial-1 #'neighbors paths site-count)
-            :heuristic #'(lambda (s)
-                          (aref paths (robot s) 0)))
+            :heuristic #'(lambda (s) (aref paths (robot s) 0)))
       (+ end-state-cost (aref paths (robot end-state) 0)))))
 
 (define-solution (2016 24) (blueprint read-blueprint)

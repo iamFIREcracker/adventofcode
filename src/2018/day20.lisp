@@ -26,9 +26,9 @@
         :collect (+ pos d d)))
 
 (define-solution (2018 20) (doors parse-doors)
-  (let ((cost-so-far (nth-value 3 (bfs 0 :neighbors (partial-1 #'neighbors doors)))))
+  (let ((costs-table (search-costs-table (bfs 0 :neighbors (partial-1 #'neighbors doors)))))
     (values
-      (reduce #'max (hash-table-values cost-so-far))
-      (count-if (partial-1 #'>= _ 1000) (hash-table-values cost-so-far)))))
+      (reduce #'max (hash-table-values costs-table))
+      (count-if (partial-1 #'>= _ 1000) (hash-table-values costs-table)))))
 
 (define-test (2018 20) (3835 8520))

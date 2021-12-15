@@ -608,17 +608,21 @@
     (setf deltas *nhood-diagonal*))
   (mapcar (partial-1 #'+ pos) deltas))
 
-(defun search-backtrack (come-from curr)
-  (nreverse (recursively ((curr curr))
-              (when curr
-                (cons curr (recur (gethash curr come-from)))))))
+(defun dijkstra (init-state &key (init-cost 0) goal-state goalp neighbors
+                      (test 'eql) (prunep 'void))
+  (a* init-state
+      :init-cost init-cost
+      :goal-state goal-state
+      :goalp goalp
+      :neighbors neighbors
+      :heuristic (constantly 0)
+      :test test))
 
 (defun a* (init-state &key (init-cost 0) goal-state goalp neighbors
                       heuristic (test 'eql)
                       &aux (cost-so-far (make-hash-table :test test))
                       (come-from (make-hash-table :test test)))
   (when goal-state (setf goalp (partial-1 test goal-state)))
-  (unless heuristic (setf heuristic (constantly 0)))
   (flet ((calc-priority (state-cost state)
            (+ state-cost (funcall heuristic state))))
     (let (best-state)
@@ -649,6 +653,16 @@
         (search-backtrack come-from best-state)
         cost-so-far))))
 
+(defun search-backtrack (come-from curr)
+  (nreverse (recursively ((curr curr))
+              (when curr
+                (cons curr (recur (gethash curr come-from)))))))
+
+(defmacro search-state (&body body) `(nth-value 0 ,@body))
+(defmacro search-cost (&body body) `(nth-value 1 ,@body))
+(defmacro search-path (&body body) `(nth-value 2 ,@body))
+(defmacro search-costs-table (&body body) `(nth-value 3 ,@body))
+
 (defun search-unit-cost (neighbors)
   (lambda (state)
     (mapcar (partial-1 #'cons _ 1) (funcall neighbors state))))
@@ -678,6 +692,7 @@
       (gethash best-state cost-so-far)
       (search-backtrack come-from best-state)
       cost-so-far)))
+
 
 (defun floyd (next init-state &key (copier 'identity) (key 'identity) (test 'eql))
   "Also called the 'tortoise and the hare algorithm',"
