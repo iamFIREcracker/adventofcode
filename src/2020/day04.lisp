@@ -5,7 +5,7 @@
   (loop for part in (split-sequence:split-sequence #\Space string)
         for (name value) = (split-sequence:split-sequence #\: part)
         unless (string= name "cid")
-        append (list (make-keyword (string-upcase name)) value)))
+        append (list (as-keyword name) value)))
 
 (defun parse-passports (data)
   (let (passports current)

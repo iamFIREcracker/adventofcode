@@ -12,7 +12,7 @@
                                  (:cars . 2)
                                  (:perfumes . 1)))
 
-(defun compound-name (string) (make-keyword (string-upcase string)))
+(defun compound-name (string) (as-keyword string))
 
 (defun parse-compound (string)
   (cl-ppcre:register-groups-bind ((#'compound-name name) (#'parse-integer value))

@@ -4,7 +4,7 @@
 (defun parse-instruction (string)
   (destructuring-bind (name arg)
       (split-sequence:split-sequence #\Space string)
-    (cons (make-keyword (string-upcase name)) (parse-integer arg))))
+    (cons (as-keyword name) (parse-integer arg))))
 
 (defun parse-program (data)
   (map 'vector #'parse-instruction data))

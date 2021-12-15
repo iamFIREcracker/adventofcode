@@ -2,7 +2,7 @@
 (in-package :aoc/2020/07)
 
 (defun bag-type (string)
-  (make-keyword (string-upcase (substitute #\- #\Space string))))
+  (as-keyword (substitute #\- #\Space string)))
 
 (defun parse-bag-content (string)
   (cl-ppcre:register-groups-bind ((#'parse-integer number)

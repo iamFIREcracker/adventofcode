@@ -9,7 +9,7 @@
 (defun parse-instruction (string)
   (cl-ppcre:register-groups-bind (action (#'parse-coordinate-pair pair))
       ("(?:turn )?(\\w+) (.+)" string)
-    (cons (make-keyword (string-upcase action)) pair)))
+    (cons (as-keyword action) pair)))
 
 (defun parse-instructions (lines)
   (mapcar #'parse-instruction lines))
