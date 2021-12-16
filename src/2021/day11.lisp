@@ -36,10 +36,8 @@
           count (when (flashesp e) (setf (gethash p curr) 0)))))
 
 
-(defparameter *nhood* '((-1 0) (-1 1) (0 1) (1 1) (1 0) (1 -1) (0 -1) (-1 -1)))
-
 (defun neighbors (energies p)
-  (loop for d in *nhood* for n = (mapcar #'+ p d)
+  (loop for n in (adjacents p :include-diagonal t)
         when (gethash n energies) collect n))
 
 

@@ -592,21 +592,39 @@
 
 ;;;; Search -------------------------------------------------------------------
 
-(defparameter *nhood-d1* '(#C(0 1) #C(1 0) #C(0 -1) #C(-1 0)))
-(defparameter *nhood-diagonal* (concatenate 'list
-                                            *nhood-d1*
-                                            '(#C(1 1) #C(1 -1) #C(-1 -1) #C(-1 1))))
+(defgeneric adjacents (pos &key include-diagonal)
+  (:documentation
+   "Return all the adjacents positions of POS.
 
-(defun adjacents (pos &key include-diagonal
-                      &aux (deltas *nhood-d1*))
-  "Return all the adjacents positions of POS.
+    By default, only the 4 immediate adjacents positions are returned
+    (i.e. top, right, bottom, and left), but INCLUDE-DIAGONAL can be used to
+    also return diagonal positions too."))
 
-  By default, only the 4 immediate adjacents positions are returned
-  (i.e. top, right, bottom, and left), but INCLUDE-DIAGONAL can be used to
-  also return diagonal positions too."
+
+(defparameter *nhood-d1-complex* '(#C(0 1) #C(1 0) #C(0 -1) #C(-1 0)))
+(defparameter *nhood-diagonal-complex* (concatenate 'list
+                                                    *nhood-d1-complex*
+                                                    '(#C(1 1) #C(1 -1) #C(-1 -1) #C(-1 1))))
+(defmethod adjacents ((pos number)
+                      &key include-diagonal
+                      &aux (deltas *nhood-d1-complex*))
   (when include-diagonal
-    (setf deltas *nhood-diagonal*))
+    (setf deltas *nhood-diagonal-complex*))
   (mapcar (partial-1 #'+ pos) deltas))
+
+
+(defparameter *nhood-d1-list* '((-1 0) (0 1) (1 0) (0 -1)))
+(defparameter *nhood-diagonal-list* (concatenate 'list
+                                                    *nhood-d1-list*
+                                                    '((-1 1) (1 1) (1 -1) (-1 -1))))
+
+(defmethod adjacents ((pos list)
+                      &key include-diagonal
+                      &aux (deltas *nhood-d1-list*))
+  (when include-diagonal
+    (setf deltas *nhood-diagonal-list*))
+  (loop for d in deltas collect (mapcar #'+ pos d)))
+
 
 (defun dijkstra (init-state &key (init-cost 0) goal-state goalp neighbors
                       (test 'eql) (prunep 'void))

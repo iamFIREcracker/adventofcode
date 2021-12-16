@@ -1,6 +1,7 @@
 (defpackage :aoc/2021/09 #.cl-user::*aoc-use*)
 (in-package :aoc/2021/09)
 
+
 (defun parse-heights (data &aux (heights (make-hash-table :test 'equal)))
   (loop for r below (length data)
         for string in data do
@@ -21,10 +22,8 @@
         collect p))
 
 
-(defparameter *nhood* '((-1 0) (0 1) (1 0) (0 -1)))
-
 (defun neighbors (heights p)
-  (loop for d in *nhood* for n = (mapcar #'+ p d)
+  (loop for n in (adjacents p)
         when (gethash n heights) collect n))
 
 

@@ -8,10 +8,8 @@
             when (char= ch #\#) do (hset-add (complex col row) grid))
       (incf row))))
 
-(defparameter *nhood-deltas* '(#C(-1 1) #C(0 1) #C(1 1) #C(-1 0) #C(1 0) #C(-1 -1) #C(0 -1) #C(1 -1)))
-
 (defun neighbors (pos)
-  (loop for d in *nhood-deltas* for n = (+ pos d)
+  (loop for n in (adjacents pos :include-diagonal t)
         when (and (<= 1 (realpart n) 100) (<= 1 (imagpart n) 100))
         collect n))
 
