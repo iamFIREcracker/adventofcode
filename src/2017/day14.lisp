@@ -7,7 +7,7 @@
     :for i :below 128
     :for string = (mkstr data #\- i)
     :for hash = (knot-hash string)
-    :for binary = (hexadecimal-binary hash)
+    :for binary = (hexadecimal->binary hash)
     :collect binary))
 
 (defun init-sets (grid)

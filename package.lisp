@@ -6,7 +6,7 @@
     :find-max
     :dividesp
     :hexadecimal-string
-    :hexadecimal-binary
+    :hexadecimal->binary
     :frequencies
     :hamming-distance
     :manhattan-distance
