@@ -43,3 +43,4 @@
 - 2015/24: Properly verify that, once I find a combination of packages that fit
   into the first group, all the remaining packages can be evenly split into
   2 or 3 groups
+- 2021/18: Solve using Zippers!
