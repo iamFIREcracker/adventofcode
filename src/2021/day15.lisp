@@ -23,10 +23,8 @@
                    :heuristic (partial-1 #'manhattan-distance end))))
 
 
-(defparameter *nhood* '((-1 0) (0 1) (1 0) (0 -1)))
-
 (defun neighbors (levels p)
-  (loop for d in *nhood* for n = (mapcar #'+ p d)
+  (loop for n in (adjacents p)
         for level = (gethash n levels)
         when level collect (cons n level)))
 
