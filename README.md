@@ -44,3 +44,4 @@
   into the first group, all the remaining packages can be evenly split into
   2 or 3 groups
 - 2021/18: Solve using Zippers!
+- 2021/29: Speed things up -- 2 minutes to complete, plus `13,399,299,136 bytes consed`
