@@ -44,4 +44,6 @@
   into the first group, all the remaining packages can be evenly split into
   2 or 3 groups
 - 2021/18: Solve using Zippers!
-- 2021/29: Speed things up -- 2 minutes to complete, plus `13,399,299,136 bytes consed`
+- 2021/19: Speed things up -- 2 minutes to complete, plus `13,399,299,136 bytes consed`
+- 2021/20: 8 seconds to run, and conses a lot -- maybe use a 2d BIT array
+  instead of a HASH-TABLE of Ts and NILs?
