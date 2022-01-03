@@ -317,19 +317,40 @@
 
     102334155
   "
+  (expand-defun/memo name args body))
+
+(defun expand-defun/memo (name args body)
+  (let* ((memo (gensym  (mkstr name '-memo))))
+    `(let ((,memo (make-hash-table :test 'equalp)))
+      (values
+        ,(expand-defun/memo-memoized-fun memo name args body)
+        ,(expand-defun/memo-clear-memo-fun memo name)))))
+
+
+(defun expand-defun/memo-memoized-fun (memo name args body)
+  (with-gensyms (key result result-exists-p)
+    `(defun ,name ,args
+      (let ((,key (list ,@(expand-defun/memo-keyable-args args))))
+        (multiple-value-bind (,result ,result-exists-p) (gethash ,key ,memo)
+          (if ,result-exists-p
+            ,result
+            (setf (gethash ,key ,memo)
+                  ,@body)))))))
+
+(defun expand-defun/memo-keyable-args (args)
+  (uiop:while-collecting (collect)
+    (loop while args for a = (pop args) do
+          (cond ((eq a '&optional) nil)
+                ((eq a '&rest) (pop args))
+                ((eq a '&aux) (return))
+                ((consp a) (collect (car a)))
+                (t (collect a))))))
+
+
+(defun expand-defun/memo-clear-memo-fun (memo name)
   (let ((clear-memo-name (intern (mkstr name '/clear-memo))))
-    (with-gensyms (memo key result result-exists-p)
-      `(let ((,memo (make-hash-table :test 'equalp)))
-         (values
-           (defun ,name ,args
-             (let ((,key (list ,@args)))
-               (multiple-value-bind (,result ,result-exists-p)
-                   (gethash ,key ,memo)
-                 (if ,result-exists-p
-                   ,result
-                   (setf (gethash ,key ,memo) (progn ,@body))))))
-           (defun ,clear-memo-name ()
-             (clrhash ,memo)))))))
+    `(defun ,clear-memo-name ()
+      (clrhash ,memo))))
 
 
 (defmacro while-summing (summers &body body)

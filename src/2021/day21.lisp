@@ -32,24 +32,21 @@
   (destructuring-bind (wc1 . wc2) (count-wins (player1 positions) (player2 positions))
     (max wc1 wc2)))
 
-(defun count-wins (p1 p2
-                      &optional (s1 0) (s2 0) (dp (make-hash-table :test 'equal))
-                      &aux (key (list p1 s1 p2 s2)))
-  (uiop:if-let (wins (gethash key dp))
-    wins
-    (setf (gethash key dp)
-          (let ((wc1 0) (wc2 0))
-            (loop for d1 from 1 to 3 do
-                  (loop for d2 from 1 to 3 do
-                        (loop for d3 from 1 to 3
-                              for p1-next = (mod1 (+ p1 d1 d2 d3) 10)
-                              for s1-next = (+ s1 p1-next) do
-                              (if (>= s1-next 21)
-                                (incf wc1)
-                                (destructuring-bind (w2 . w1) (count-wins p2 p1-next s2 s1-next dp)
-                                  (incf wc1 w1)
-                                  (incf wc2 w2))))))
-            (cons wc1 wc2)))))
+
+(defun/memo count-wins (p1 p2 &optional (s1 0) (s2 0))
+  (let ((wc1 0) (wc2 0))
+    (loop for d1 from 1 to 3 do
+          (loop for d2 from 1 to 3 do
+                (loop for d3 from 1 to 3
+                      for p1-next = (mod1 (+ p1 d1 d2 d3) 10)
+                      for s1-next = (+ s1 p1-next) do
+                      (if (>= s1-next 21)
+                        (incf wc1)
+                        (destructuring-bind (w2 . w1) (count-wins p2 p1-next s2 s1-next)
+                          (incf wc1 w1)
+                          (incf wc2 w2))))))
+    (cons wc1 wc2)))
+
 
 (define-solution (2021 21) (positions parse-positions)
   (values (part1 positions) (part2 positions)))
