@@ -47,3 +47,6 @@
 - 2021/19: Speed things up -- 2 minutes to complete, plus `13,399,299,136 bytes consed`
 - 2021/20: 8 seconds to run, and conses a lot -- maybe use a 2d BIT array
   instead of a HASH-TABLE of Ts and NILs?
+- 2021/21: 15 seconds to run-- check out this
+  [comment](https://www.reddit.com/r/adventofcode/comments/rlxhmg/2021_day_22_solutions/hpkzqb5/)
+  full of alternate solutions to this problem

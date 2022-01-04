@@ -763,17 +763,14 @@
                 cycle-size (1+ cycle-size)))
     (list cycles-at cycle-size tortoise-state)))
 
-(defun binary-search (min-state max-state fun)
-  "XXX"
-  (recursively ((min-state min-state)
-                (max-state max-state))
-    (let ((mid-state (floor (+ max-state min-state) 2)))
-      (if (= min-state mid-state)
-        (values mid-state NIL)
-        (case (funcall fun mid-state)
-          (-1 (recur  mid-state max-state))
-          (0 (return-from binary-search (values mid-state T)))
-          (1 (recur min-state mid-state)))))))
+(defun binary-search (lo hi next)
+  (loop for mid = (floor (+ lo hi) 2)
+        when (< hi lo) return (values mid nil) do
+        (setf (values lo hi)
+              (case (funcall next mid)
+                (-1 (values (1+ mid) hi))
+                (+1 (values lo (1- mid)))
+                (0 (return (values mid t)))))))
 
 ;;;; Copy pasta ---------------------------------------------------------------
 
