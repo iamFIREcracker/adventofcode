@@ -3,11 +3,11 @@
 
 
 (defun parse-risk-levels (data &aux (levels (make-hash-table :test 'equal)))
-  (loop for r below (length data)
+  (loop for row below (length data)
         for string in data do
-        (loop for c below (length string)
+        (loop for col below (length string)
               for ch across string do
-              (setf (gethash (list r c) levels)
+              (setf (gethash (list row col) levels)
                     (- (char-code ch) (char-code #\0)))))
   levels)
 
