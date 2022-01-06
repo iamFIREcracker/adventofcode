@@ -2,7 +2,7 @@
 ;;;; See http://quickutil.org for details.
 
 ;;;; To regenerate:
-;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:COPY-HASH-TABLE :DIVF :FLATTEN :HASH-TABLE-ALIST :HASH-TABLE-KEYS :HASH-TABLE-VALUES :HASH-TABLE-KEY-EXISTS-P :IF-LET :IOTA :MAKE-KEYWORD :MKSTR :MULF :NCYCLE :SYMB :VOID :WHEN-LET :WITH-GENSYMS) :ensure-package T :package "AOC.QUICKUTILS")
+;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:COPY-ARRAY :COPY-HASH-TABLE :DIVF :FLATTEN :HASH-TABLE-ALIST :HASH-TABLE-KEYS :HASH-TABLE-VALUES :HASH-TABLE-KEY-EXISTS-P :IF-LET :IOTA :MAKE-KEYWORD :MKSTR :MULF :NCYCLE :SYMB :VOID :WHEN-LET :WITH-GENSYMS) :ensure-package T :package "AOC.QUICKUTILS")
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (unless (find-package "AOC.QUICKUTILS")
@@ -13,14 +13,32 @@
 (in-package "AOC.QUICKUTILS")
 
 (when (boundp '*utilities*)
-  (setf *utilities* (union *utilities* '(:COPY-HASH-TABLE :DIVF :FLATTEN
-                                         :HASH-TABLE-ALIST :MAPHASH-KEYS
-                                         :HASH-TABLE-KEYS :MAPHASH-VALUES
-                                         :HASH-TABLE-VALUES
+  (setf *utilities* (union *utilities* '(:COPY-ARRAY :COPY-HASH-TABLE :DIVF
+                                         :FLATTEN :HASH-TABLE-ALIST
+                                         :MAPHASH-KEYS :HASH-TABLE-KEYS
+                                         :MAPHASH-VALUES :HASH-TABLE-VALUES
                                          :HASH-TABLE-KEY-EXISTS-P :IF-LET :IOTA
                                          :MAKE-KEYWORD :MKSTR :MULF :NCYCLE
                                          :SYMB :VOID :WHEN-LET
                                          :STRING-DESIGNATOR :WITH-GENSYMS))))
+
+  (defun copy-array (array &key (element-type (array-element-type array))
+                                (fill-pointer (and (array-has-fill-pointer-p array)
+                                                   (fill-pointer array)))
+                                (adjustable (adjustable-array-p array)))
+    "Returns an undisplaced copy of `array`, with same `fill-pointer` and
+adjustability (if any) as the original, unless overridden by the keyword
+arguments."
+    (let* ((dimensions (array-dimensions array))
+           (new-array (make-array dimensions
+                                  :element-type element-type
+                                  :adjustable adjustable
+                                  :fill-pointer fill-pointer)))
+      (dotimes (i (array-total-size array))
+        (setf (row-major-aref new-array i)
+              (row-major-aref array i)))
+      new-array))
+  
 
   (defun copy-hash-table (table &key key test size
                                      rehash-size rehash-threshold)
@@ -301,9 +319,9 @@ unique symbol the named variable will be bound to."
     `(with-gensyms ,names ,@forms))
   
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (export '(copy-hash-table divf flatten hash-table-alist hash-table-keys
-            hash-table-values hash-table-key-exists-p if-let iota make-keyword
-            mkstr mulf ncycle symb void when-let when-let* with-gensyms
-            with-unique-names)))
+  (export '(copy-array copy-hash-table divf flatten hash-table-alist
+            hash-table-keys hash-table-values hash-table-key-exists-p if-let
+            iota make-keyword mkstr mulf ncycle symb void when-let when-let*
+            with-gensyms with-unique-names)))
 
 ;;;; END OF quickutils.lisp ;;;;

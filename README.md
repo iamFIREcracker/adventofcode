@@ -50,5 +50,3 @@
 - 2021/21: 15 seconds to run -- check out this
   [comment](https://www.reddit.com/r/adventofcode/comments/rlxhmg/2021_day_22_solutions/hpkzqb5/)
   full of alternate solutions to this problem
-- 2021/23: 18 seconds to run -- see if we can change the state representation
-  (from HASH-TABLE to 2D array) and with it avoid to use A* :state-key

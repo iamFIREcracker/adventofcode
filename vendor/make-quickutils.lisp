@@ -3,6 +3,7 @@
 (qtlc:save-utils-as
   "quickutils.lisp"
   :utilities '(
+               :copy-array
                :copy-hash-table
                :divf
                :flatten
