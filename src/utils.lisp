@@ -344,6 +344,7 @@
   (uiop:while-collecting (collect)
     (loop while args for a = (pop args) do
           (cond ((eq a '&optional) nil)
+                ((eq a '&key) nil)
                 ((eq a '&rest) (pop args))
                 ((eq a '&aux) (return))
                 ((consp a) (collect (car a)))
