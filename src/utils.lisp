@@ -650,49 +650,55 @@
     (setf deltas *nhood-diagonal-list*))
   (loop for d in deltas collect (mapcar #'+ pos d)))
 
-
 (defun dijkstra (init-state &key (init-cost 0) goal-state goalp neighbors
-                      (test 'eql) (prunep 'void))
+                            (test 'eql) state-key prune)
   (a* init-state
       :init-cost init-cost
       :goal-state goal-state
       :goalp goalp
       :neighbors neighbors
       :heuristic (constantly 0)
-      :test test))
+      :test test
+      :state-key state-key
+      :prune prune))
 
 (defun a* (init-state &key (init-cost 0) goal-state goalp neighbors
-                      heuristic (test 'eql)
+                      (heuristic (error "Heuristic is required"))
+                      (test 'eql) state-key prune
                       &aux (cost-so-far (make-hash-table :test test))
                       (come-from (make-hash-table :test test)))
   (when goal-state (setf goalp (partial-1 test goal-state)))
-  (flet ((calc-priority (state-cost state)
-           (+ state-cost (funcall heuristic state))))
+  (macrolet ((priority (state-cost state)
+               `(+ ,state-cost (funcall heuristic ,state)))
+             (key (state)
+               `(if state-key (funcall state-key ,state) ,state))
+             (prunep (state cost)
+               `(and prune (funcall prune ,state ,cost))))
     (let (best-state)
       (loop
         :with frontier = (make-hq :key #'cdr)
         :initially (progn
-                     (hash-table-insert cost-so-far init-state init-cost)
+                     (setf (gethash (key init-state) cost-so-far) init-cost)
                      (hq-insert frontier (cons (cons init-state init-cost)
-                                               (calc-priority init-cost init-state))))
+                                               (priority init-cost init-state))))
         :until (hq-empty-p frontier)
         :for (state . state-cost) = (car (hq-pop frontier))
         :when (funcall goalp state) :return (setf best-state state)
-        :do (when (= state-cost (gethash state cost-so-far))
+        :do (when (= (gethash (key state) cost-so-far) state-cost) ;; XXX is this check really needed?!?!?!?!
               (loop
                 :for (next-state . cost) :in (funcall neighbors state)
                 :for next-cost = (+ state-cost cost)
-                :do (multiple-value-bind (existing-cost present-p) (gethash next-state cost-so-far)
-                      (when (or (not present-p) (< next-cost existing-cost))
-                        (hash-table-insert cost-so-far next-state next-cost)
-                        (hash-table-insert come-from next-state state)
+                :do (multiple-value-bind (existing-cost present-p)
+                        (gethash (key next-state) cost-so-far)
+                      (when (and (or (not present-p) (< next-cost existing-cost))
+                                 (not (prunep next-state next-cost)))
+                        (setf (gethash (key next-state) cost-so-far) next-cost
+                              (gethash (key next-state) come-from) state)
                         (hq-insert frontier (cons (cons next-state next-cost)
-                                                  (calc-priority
-                                                    next-cost
-                                                    next-state))))))))
+                                                  (priority next-cost next-state))))))))
       (values
         best-state
-        (gethash best-state cost-so-far)
+        (gethash (key best-state) cost-so-far)
         (search-backtrack come-from best-state)
         cost-so-far))))
 
@@ -710,31 +716,39 @@
   (lambda (state)
     (mapcar (partial-1 #'cons _ 1) (funcall neighbors state))))
 
-(defun bfs (init-state &key (init-cost 0) goal-state (goalp #'void) neighbors
-                       (test 'eql) (prunep #'void)
+(defun bfs (init-state &key (init-cost 0) goal-state (goalp 'void) neighbors
+                       (test 'eql) state-key prune
                        &aux (cost-so-far (make-hash-table :test test))
                        (come-from (make-hash-table :test test)))
   (when goal-state (setf goalp (partial-1 test goal-state)))
-  (let (best-state)
-    (loop
-      :initially (hash-table-insert cost-so-far init-state init-cost)
-      :with frontier = (enqueue init-state (make-queue))
-      :until (queue-empty-p frontier)
-      :for state = (dequeue frontier)
-      :for state-cost = (gethash state cost-so-far)
-      :when (funcall goalp state) :return (setf best-state state)
-      :do (loop
-            :for next-state :in (funcall neighbors state)
-            :do (unless (or (gethash next-state cost-so-far)
-                            (funcall prunep next-state (1+ state-cost)))
-                  (hash-table-insert cost-so-far next-state (1+ state-cost))
-                  (hash-table-insert come-from next-state state)
-                  (enqueue next-state frontier))))
-    (values
-      best-state
-      (gethash best-state cost-so-far)
-      (search-backtrack come-from best-state)
-      cost-so-far)))
+  (macrolet ((key (state)
+               `(if state-key (funcall state-key ,state) ,state))
+             (prunep (state cost)
+               `(and prune (funcall prune ,state ,cost))))
+    (let (best-state)
+      (loop
+        :with frontier = (enqueue init-state (make-queue))
+        :initially (setf (gethash (key init-state) cost-so-far) init-cost)
+        :until (queue-empty-p frontier)
+        :for state = (dequeue frontier)
+        :for state-cost = (gethash (key state) cost-so-far)
+        :when (funcall goalp state) :return (setf best-state state)
+        :do (loop
+              :for next-state :in (funcall neighbors state)
+              :for next-cost = (1+ state-cost)
+              :do (multiple-value-bind (existing-cost present-p)
+                      (gethash (key next-state) cost-so-far)
+                    (declare (ignore existing-cost))
+                    (when (and (not present-p)
+                               (not (prunep next-state next-cost)))
+                      (setf (gethash (key next-state) cost-so-far) next-cost
+                            (gethash (key next-state) come-from) state)
+                      (enqueue next-state frontier)))))
+      (values
+        best-state
+        (gethash (key best-state) cost-so-far)
+        (search-backtrack come-from best-state)
+        cost-so-far))))
 
 
 (defun floyd (next init-state &key (copier 'identity) (key 'identity) (test 'eql))
