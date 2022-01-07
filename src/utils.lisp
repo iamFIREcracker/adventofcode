@@ -124,15 +124,18 @@
 (defun manhattan-distance (a b)
   "Calculate the manthattan distance between `a` and `b`.
 
-  If `a` is a `NUMBER`, its real and imaginary parts will be used as X and Y values (same for `b`).
+  If `a` is a NUMBER, its real and imaginary parts will be used as X and Y values (same for `b`).
 
   Otherwise, `a` and `b` are treated as multi-dimensional sequencies."
-  (if (numberp a)
-    (+ (abs (- (realpart a)
-               (realpart b)))
-       (abs (- (imagpart a)
-               (imagpart b))))
-    (reduce #'+ (mapcar #'abs (mapcar #'- a b)))))
+  (cond ((numberp a) (+ (abs (- (realpart a)
+                                (realpart b)))
+                        (abs (- (imagpart a)
+                                (imagpart b)))))
+        ((not (third a)) (+ (abs (- (car a)
+                              (cadr b)))
+                      (abs (- (car a)
+                              (cadr b)))))
+        (t (reduce #'+ (mapcar #'abs (mapcar #'- a b))))))
 
 ;;; https://stackoverflow.com/a/8448611/348524
 (defun all-permutations (lst &optional (remain lst))
