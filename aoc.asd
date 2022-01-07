@@ -1,10 +1,16 @@
-(defclass auto-module (module) ())
+(defclass auto-module (module)
+  ((file-cache :initform (make-hash-table))))
 
-(defmethod component-children ((self auto-module))
-  (mapcar (lambda (p) (make-instance 'cl-source-file :type "lisp"
-                        :pathname p
-                        :name (pathname-name p)
-                        :parent (component-parent self)))
+(defmethod component-children ((self auto-module)
+                               &aux (file-cache (slot-value self 'file-cache)))
+  (mapcar (lambda (p &aux (existing (gethash p file-cache)))
+            (if existing
+                existing
+                (setf (gethash p file-cache)
+                      (make-instance 'cl-source-file :type "lisp"
+                                     :pathname p
+                                     :name (pathname-name p)
+                                     :parent (component-parent self)))))
           (directory-files (component-pathname self)
                            (make-pathname :directory nil :name *wild* :type "lisp"))))
 
