@@ -132,9 +132,9 @@
                         (abs (- (imagpart a)
                                 (imagpart b)))))
         ((not (third a)) (+ (abs (- (car a)
-                              (cadr b)))
-                      (abs (- (car a)
-                              (cadr b)))))
+                                    (car b)))
+                            (abs (- (cadr a)
+                                    (cadr b)))))
         (t (reduce #'+ (mapcar #'abs (mapcar #'- a b))))))
 
 ;;; https://stackoverflow.com/a/8448611/348524
