@@ -32,11 +32,12 @@
 
 (defun part2 (favorite-number)
   (let ((*favorite-number* favorite-number))
-    (hash-table-count (search-costs-table (bfs #c(1 1)
-                                               :neighbors #'neighbors
-                                               :prunep #'(lambda (state cost)
-                                                          (declare (ignore state))
-                                                          (> cost 50)))))))
+    (hash-table-count (search-costs-table
+                        (bfs #c(1 1)
+                             :neighbors #'neighbors
+                             :prune #'(lambda (state cost)
+                                       (declare (ignore state))
+                                       (> cost 50)))))))
 
 (define-solution (2016 13) (data)
   (values
