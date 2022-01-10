@@ -35,24 +35,20 @@
              :neighbors (partial-1 #'neighbors seed)
              :test 'equalp)))
 
-(defun part2 (seed)
-  (let (max)
-    (bfs (make-state :pos #c(0 0) :path "")
-         :prunep #'(lambda (state cost)
-                    (when (null state) (break))
-                    (with-slots (pos) state
-                      (when (= pos #c(3 -3))
-                        (when (or (null max)
-                                  (> cost max))
-                          (setf max cost))
-                        t)))
-         :neighbors (partial-1 #'neighbors seed)
-         :test 'equalp)
-    max))
+(defun part2 (seed &aux max)
+  (bfs (make-state :pos #c(0 0) :path "")
+       :prune #'(lambda (state cost)
+                 (when (null state) (break))
+                 (with-slots (pos) state
+                   (when (= pos #c(3 -3))
+                     (when (or (null max) (> cost max))
+                       (setf max cost))
+                     t)))
+       :neighbors (partial-1 #'neighbors seed)
+       :test 'equalp)
+  max)
 
 (define-solution (2016 17) (seed first)
-  (values
-    (part1 seed)
-    (part2 seed)))
+  (values (part1 seed) (part2 seed)))
 
 (define-test (2016 17) ("DUDDRLRRRD" 578))
