@@ -9,6 +9,13 @@
                             (read-from-string string nil nil :start start)))))
 
 
+(define-modify-macro execf (other op) exec)
+(defun exec (rand1 rand2 rator)
+  (if-let (it (simplify rator rand1 rand2))
+    it
+    (list rator rand1 rand2)))
+
+
 (defun read-monad (lines &aux
                          (instructions (read-instructions lines))
                          (vars (make-array 4 :initial-element 0)))
@@ -32,13 +39,6 @@
       (add (compile-into-lambda (aref vars (offset 'z)))))))
 
 (defun b= (n1 n2) (if (= n1 n2) 1 0))
-
-
-(define-modify-macro execf (other op) exec)
-(defun exec (rand1 rand2 rator)
-  (if-let (it (simplify rator rand1 rand2))
-    it
-    (list rator rand1 rand2)))
 
 
 (defun simplify (rator rand1 rand2)
