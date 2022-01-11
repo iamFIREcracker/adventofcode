@@ -898,6 +898,7 @@
           (multiple-value-bind (actual-part1 actual-part2) (,runner-name)
             (1am:is (equal ,expected-part1 actual-part1))
             (when actual-part2
-              (1am:is (equal ,expected-part2 actual-part2))))))
+              (1am:is (equal ,expected-part2 actual-part2)))
+            (values))))
       (defun ,test-runner-name ()
         (,test-name)))))
