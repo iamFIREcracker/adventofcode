@@ -3,70 +3,54 @@
 
 
 (defun parse-input (data)
-  (list (parse-enhancement-algorightm (first data)) (parse-image (cddr data))))
+  (cons (parse-enhancement-algorightm (car data)) (parse-image (cddr data))))
 
 (defun parse-enhancement-algorightm (string)
-  (map 'vector (partial-1 #'eql #\#) string))
+  (make-array (length string) :element-type 'bit
+              :initial-contents (loop for ch across string
+                                      collect (as-bit ch))))
 
-(defun parse-image (data &aux (image (make-hash-table :test 'equal)))
-  (loop for r below (length data)
-        for string in data do
-        (loop for c below (length string)
-              for ch across string
-              when (eql ch #\#) do (setf (gethash (list r c) image) t)))
-  image)
+(defun parse-image (data &aux (rows (length data)) (cols (length (car data))))
+  (make-array (list rows cols) :element-type 'bit
+              :initial-contents (loop for string in data collect
+                                      (loop for ch across string
+                                            collect (as-bit ch)))))
 
-(defun enhancement-algorithm (input) (first input))
-(defun image (input) (second input))
-
-
-(defun enhance (iterations input &aux (algo (enhancement-algorithm input)) (curr (image input)))
-  (dotimes (i iterations)
-    (setf curr (enhance-step algo curr (oddp i))))
-  (loop for state being the hash-values of curr count state))
+(defun as-bit (ch) (if (eql ch #\#) 1 0))
 
 
-(defun enhance-step (algo curr background-lit-p &aux
-                          (next (make-hash-table :test 'equal))
-                          (row-min (loop for (r _) being the hash-keys of curr minimize r))
-                          (row-max (loop for (r _) being the hash-keys of curr maximize r))
-                          (col-min (loop for (_ c) being the hash-keys of curr minimize c))
-                          (col-max (loop for (_ c) being the hash-keys of curr maximize c)))
-  (flet ((block-3x3 (pos)
-           (mapcar (partial-1 #'gethash _ curr background-lit-p)
-                   (neighbors9 pos))))
-    (loop for row from (- row-min 3) to (+ row-max 3) do
-          (loop for col from (- col-min 3) to (+ col-max 3)
-            for pos = (list row col)
-            for i = (as-binary (block-3x3 pos)) do
-            (setf (gethash pos next) (aref algo i)))))
+(defun enhance (iterations input)
+  (destructuring-bind (algo . curr) input
+    (dotimes (i iterations)
+      (setf curr (enhance-step algo curr (if (oddp i) 1 0))))
+    (loop for i below (array-total-size curr) count (= (row-major-aref curr i) 1))))
+
+
+(defun enhance-step (algo curr bgcolor &aux
+                          (rows (array-dimension curr 0))
+                          (cols (array-dimension curr 1))
+                          (next (make-array (list (+ rows 2) (+ cols 2))
+                                            :element-type 'bit)))
+  (labels ((pixel (i j)
+             (if (array-in-bounds-p curr i j) (aref curr i j) bgcolor))
+           (index (i j &aux (pos 8) (rez 0))
+             (loop for ii from (1- i) upto (1+ i) do
+                   (loop for jj from (1- j) upto (1+ j)
+                         do (setf rez (dpb (pixel ii jj) (byte 1 pos) rez)
+                                  pos (1- pos))))
+             rez))
+    (dotimes (i (+ rows 2))
+      (dotimes (j (+ cols 2))
+        (setf (aref next i j) (aref algo (index (1- i) (1- j)))))))
   next)
 
 
-(defparameter *nhood* '((-1 -1) (-1  0) (-1 1)
-                        ( 0 -1) ( 0  0) ( 0 1)
-                        ( 1 -1) ( 1  0) ( 1 1)))
-
-(defun neighbors9 (pos)
-  (loop for d in *nhood* collect (mapcar #'+ pos d)))
-
-
-(defun as-binary (list &aux (number 0))
-  (loop for ch in list for i from 8 downto 0 when ch do
-        (setf number (dpb 1 (byte 1 i) number)))
-  number)
-
-
-#+#:excluded (defun print-image (image &aux
-                          (row-min (loop for (r _) being the hash-keys of image minimize r))
-                          (row-max (loop for (r _) being the hash-keys of image maximize r))
-                          (col-min (loop for (_ c) being the hash-keys of image minimize c))
-                          (col-max (loop for (_ c) being the hash-keys of image maximize c)))
-  (loop for row from (- row-min 2) to (+ row-max 2) do
-        (loop for col from (- col-min 2) to (+ col-max 2) do
-              (princ (if (gethash (list row col) image) #\# #\.)))
-        (terpri))
-  (terpri))
+#+#:excluded (defun print-image (image)
+  (destructuring-bind (rows cols) (array-dimensions image)
+    (dotimes (row rows)
+      (dotimes (col cols)
+        (princ (if (= (aref image row col) 1) #\# #\.)))
+      (terpri))))
 
 
 (define-solution (2021 20) (input parse-input)
