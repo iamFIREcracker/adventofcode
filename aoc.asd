@@ -84,4 +84,4 @@
   :license  "MIT"
   :version "0.0.1"
   :depends-on (#:aoc)
-  :perform (test-op (o c) (uiop:symbol-call :1am '#:run)))
+  :perform (test-op (o c) (uiop:symbol-call :aoc '#:run)))

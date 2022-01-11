@@ -876,13 +876,24 @@
     :name (format nil "day~2,'0D" day)
     :type "txt"))
 
+(defvar *tests* nil "A list of tests; the default argument to RUN.")
+
+(defun run () (1am:run *tests*))
+
+(defmacro deftest (name &body body)
+  "Define a test function and add it to `*tests*`."
+  `(progn
+     (let ((1am:*tests* nil))
+       (1am:test ,name ,@body))
+     (pushnew ',name *tests*)))
+
 (defmacro define-test ((year day) (expected-part1 &optional expected-part2))
   (let ((package-name (symb (format nil "AOC/~D/~2,'0D" year day)))
         (test-name (symb (format nil "TEST-~D/~2,'0D" year day)))
         (test-runner-name (symb 'test-run))
         (runner-name (symb 'solution-run)))
     `(values
-      (1am:test ,test-name
+      (deftest ,test-name
         (let ((*package* (find-package ',package-name)))
           (multiple-value-bind (actual-part1 actual-part2) (,runner-name)
             (1am:is (equal ,expected-part1 actual-part1))
