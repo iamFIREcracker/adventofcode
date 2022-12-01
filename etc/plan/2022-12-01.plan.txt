@@ -1,0 +1,103 @@
+* Solve [2022/01](https://adventofcode.com/2022/day/1)
+  - Background
+    > Santa's reindeer typically eat regular reindeer food, but they need a lot of magical energy to deliver presents on Christmas.  For that, their favorite snack is a special type of star fruit that only grows deep in the jungle. The Elves have brought you on their annual expedition to the grove where the fruit grows.
+  - Today's story
+    - The expedition can be long, so each elf has brought some snacks; each snack has a certain amount of calories
+    - We are given a list numbers representing the calories of each snack of each elf (one elf's snacks are separated by the next one's, with an empty string)
+      ```
+1000
+2000
+3000
+
+4000
+
+5000
+6000
+
+7000
+8000
+9000
+
+10000
+```
+    - Part 1: Find the Elf carrying the most Calories. How many total Calories is that Elf carrying?
+      - First let's split the input into groups (SPLIT-SEQUENCE:SPLIT-SEQUENCE), and then create numbers out of all these strings
+        ```
+(defpackage :aoc/2022/01 #.cl-user::*aoc-use*)
+(in-package :aoc/2022/01)
+
+(defun elf-bags (strings)
+  (mapcar [mapcar #'parse-integer _]
+          (split-sequence:split-sequence "" strings :test #'string=)))
+ ```
+      - Then let's write a small utility function to calculate the calories a elf is carrying
+        ```
+(defun bag-cals (bag) (reduce #'+ bag))
+```
+      - With this, solving part 1 is a matter of calling REDUCE with the _right_ arguments:
+        ```
+(defun part1 (bags) (reduce #'max bags :key #'bag-cals))
+```
+    - Part 2: Find the top three Elves carrying the most Calories. How many Calories are those Elves carrying in total?
+      - We calculate how many calories each elf is carrying (MAPCAR w/ #'BAG-CAL)
+      - We SORT the result in decreasing (>) order
+      - Lastly we sum (+) the first 3 elements (SUBSEQ)
+        ```
+(defun part2 (bags)
+  (let ((cals (sort (mapcar #'bag-cals bags) #'>)))
+    (apply #'+ (subseq cals 0 3))))
+```
+    - Final plumbing
+      ```
+(defun part2 (bags)
+  (let ((cals (sort (mapcar #'bag-cals bags) #'>)))
+    (apply #'+ (subseq cals 0 3))))
+
+(define-solution (2022 01) (bags elf-bags)
+  (values (part1 bags) (part2 bags)))
+
+(define-test (2022 01) (75501 215594))
+```
+    - Testing
+      ```
+> (time (solution-run))
+Evaluation took:
+  0.002 seconds of real time
+  0.002085 seconds of total run time (0.001421 user, 0.000664 system)
+  100.00% CPU
+  259,696 bytes consed
+
+75501
+215594
+```
+    - Notes
+      - Slow at parsing input - I hate parsing lists into groups
+      - For the life of me I swear I will never remember about the existence of STRING/= (I tried STRING!=, STRING<>, but nothing...)
+      - Flipped the ordering for part 2, so ended up having to wait for 1 minute before I could try again; I should have realized, by looking at the output, that something was wrong...but whatever
+      - REPL buffer
+        ```
+(loop with groups = nil with group = nil
+      for (s n) on (uiop:read-file-lines #P"src/2022/day01.txt")
+      if (and n (string/= s "")) do (push (parse-integer s) group)
+      if (or (string= s "") (not n)) do (progn (push group groups) (setf group nil))
+      finally (return groups))
+(reduce #'max * :key (lambda (group) (reduce #'+ group)))
+
+(loop with groups = nil with group = nil
+      for (s n) on (uiop:read-file-lines #P"src/2022/day01.txt")
+      if (and n (string/= s "")) do (push (parse-integer s) group)
+      if (or (string= s "") (not n)) do (progn (push group groups) (setf group nil))
+      finally (return groups))
+(sort * #'> :key (lambda (group) (reduce #'+ group)))
+(+ (reduce #'+ (first *))
+   (reduce #'+ (second *))
+   (reduce #'+ (third *)))
+```
+      - Even though I think I like the SPLIT-SEQUENCE solution better, here is another way of parsing _groups_: note how we are appending an empty string to the input so we don have to code extra to account for the _last_ bag
+        ```
+(defun elf-bags (strings &aux bs b)
+  (dolist (s (append strings '("")) bs)
+    (if (string= s "")
+      (setf bs (cons b bs) b nil)
+      (push (parse-integer s) b))))
+```
