@@ -3,7 +3,7 @@
 
 
 (defun elf-bags (strings)
-  (mapcar (lambda (bb) (mapcar #'parse-integer bb))
+  (mapcar [mapcar #'parse-integer _]
           (split-sequence:split-sequence "" strings :test #'string=)))
 
 (defun bag-cals (bag) (reduce #'+ bag))
@@ -15,7 +15,6 @@
 (defun part2 (bags)
   (let ((cals (sort (mapcar #'bag-cals bags) #'>)))
     (apply #'+ (subseq cals 0 3))))
-
 
 (define-solution (2022 01) (bags elf-bags)
   (values (part1 bags) (part2 bags)))

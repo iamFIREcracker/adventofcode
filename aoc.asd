@@ -43,6 +43,7 @@
                  (:file "hset")
                  (:file "dset")))
    (:file "package")
+   (:file "syntax")
    (:module "src"
     :serial t
     :components ((:file "utils")
