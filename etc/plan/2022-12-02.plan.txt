@@ -1,0 +1,2 @@
+* Solve [2022/02](https://adventofcode.com/2022/day/2)
+  - Did not carefully read the text, and ended up keeping track of both our score and the opponent's one
