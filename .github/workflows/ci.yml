@@ -57,10 +57,10 @@ jobs:
     strategy:
       fail-fast: false # Let the workflow continue as much as possible
       matrix:
-        lisp: [ abcl, allegro, ccl, cmucl, ecl ]
+        lisp: [] #[ abcl, allegro, ccl, cmucl, ecl ]
         experimental: [ true ]
         include:
-          - lisp: sbcl-bin/2.1.10
+          - lisp: sbcl-bin/2.2.11
             experimental: false
     env:
       LISP: ${{ matrix.lisp }}
@@ -87,7 +87,7 @@ jobs:
     strategy:
       fail-fast: false # Let the workflow continue as much as possible
       matrix:
-        lisp: [ abcl, allegro, ccl, cmucl, ecl ]
+        lisp: [] #[ abcl, allegro, ccl, cmucl, ecl ]
         include:
           - lisp: sbcl-bin/2.1.10
     env:
