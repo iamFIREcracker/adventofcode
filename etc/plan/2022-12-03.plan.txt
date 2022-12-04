@@ -1,0 +1,4 @@
+* Solve [2022/03](https://adventofcode.com/2022/day/3)
+  - I did not realize the misplaced item could appear twice within the same compartment
+  - That (at 6am and after just 4 hours of sleep), made me question everything -- including my ability to split a string in two
+  - In the heath of the moment I was not smart enough to try and look up a given char inside an alphabet-like string -- I went crazy with CHAR-CODE calls instead

@@ -1,0 +1,3 @@
+* Solve [2022/04](https://adventofcode.com/2022/day/4)
+  - Quite happy with the first version of my solution
+  - Too bad it took me like forever to fully get what was I asked to do

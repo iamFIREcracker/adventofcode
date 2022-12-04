@@ -151,6 +151,15 @@
   "Converts `string` into a keyword symbol"
   (make-keyword (string-upcase string)))
 
+
+(defun split (seq pos)
+  "Partitions 'seq' at index 'pos'."
+  (check-type pos (integer 0 *))
+  (if (> (length seq) pos)
+    (list (subseq seq 0 pos) (subseq seq pos))
+    (list seq '())))
+
+
 ;;;; Control flow -------------------------------------------------------------
 
 (defmacro recursively (bindings &body body)

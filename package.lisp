@@ -12,6 +12,7 @@
     :manhattan-distance
     :all-permutations
     :as-keyword
+    :split
 
     :_
     :partial-1
