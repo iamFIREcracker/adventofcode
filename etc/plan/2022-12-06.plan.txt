@@ -1,0 +1,5 @@
+* Solve [2022/06](https://adventofcode.com/2022/day/6)
+  - First implementation, after 9 minutes, was giving me off-by-1 errors 
+  - So I reimplemented it using a stack to keep track of the processed characters
+  - Lost 1 minute for part 2 because I forgot to update a hard-coded number...shame on me
+  - SUBSEQ indices always trip me up
