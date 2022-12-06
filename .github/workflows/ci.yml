@@ -56,12 +56,15 @@ jobs:
     if: needs.ci-config.outputs.enabled == 'yes'
     strategy:
       fail-fast: false # Let the workflow continue as much as possible
+      # matrix:
+      #   lisp: [ abcl, allegro, ccl, cmucl, ecl ]
+      #   experimental: [ true ]
+      #   include:
+      #     - lisp: sbcl-bin/2.2.11
+      #       experimental: false
       matrix:
-        lisp: [ ccl ] #[ abcl, allegro, cmucl, ecl ]
-        experimental: [ true ]
-        include:
-          - lisp: sbcl-bin/2.2.11
-            experimental: false
+        lisp: [ sbcl-bin/2.2.11 ]
+        experimental: [ false ]
     env:
       LISP: ${{ matrix.lisp }}
     defaults:
@@ -86,10 +89,12 @@ jobs:
     if: needs.ci-config.outputs.enabled == 'yes'
     strategy:
       fail-fast: false # Let the workflow continue as much as possible
+      # matrix:
+      #   lisp: [ abcl, allegro, ccl, cmucl, ecl ]
+      #   include:
+      #     - lisp: sbcl-bin/2.2.11
       matrix:
-        lisp: [ ccl ] #[ abcl, allegro, cmucl, ecl ]
-        include:
-          - lisp: sbcl-bin/2.1.10
+        lisp: [ sbcl-bin/2.2.11 ]
     env:
       LISP: ${{ matrix.lisp }}
     defaults:
