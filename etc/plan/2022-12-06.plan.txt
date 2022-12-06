@@ -3,3 +3,17 @@
   - So I reimplemented it using a stack to keep track of the processed characters
   - Lost 1 minute for part 2 because I forgot to update a hard-coded number...shame on me
   - SUBSEQ indices always trip me up
+* Fixed problem with 2018/23
+  - Inside MAKE-BOX we were asserting that the newly created box had a volume which was a power of 2
+  - This is how we were doing it: `(= (log volume 2) (floor (log volume 2)))`
+  - However, the HyperSpec says that it's up to the implementation to decide if LOG should return the exact number or a float
+    ```
+* (log (expt 2 13) 2)
+=> 12.999999
+```
+  - So I ended up implementing the pow2 check, properly
+    ```
+(defun pow2p (n)
+  (and (/= n 0) (zerop (logand n (1- n)))))
+```
+  - Guess something changed, recently, in SBCL, that made this problem emerge

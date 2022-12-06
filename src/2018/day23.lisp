@@ -34,8 +34,11 @@
                          :range-y (list y-min y-max)
                          :range-z (list z-min z-max)))
          (volume (box-volume box)))
-    (assert (or (= volume 0) (= (log volume 2) (floor (log volume 2)))))
+    (assert (or (= volume 0) (pow2p volume)))
     box))
+
+(defun pow2p (n)
+  (and (/= n 0) (zerop (logand n (1- n)))))
 
 (defun bots-box (bots)
   (loop :for bot :in bots :for pos = (pos bot)
