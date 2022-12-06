@@ -1,0 +1,3 @@
+* Solve [2022/05](https://adventofcode.com/2022/day/5)
+  - Shamefully got my stars by hard-coding the configuration of the stacks of crates
+  - The proper input parser would only came in later
