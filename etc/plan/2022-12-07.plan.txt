@@ -1,0 +1,3 @@
+* Solve [2022/07](https://adventofcode.com/2022/day/7)
+  - Wasted too much time trying to implement a single recursive function returning not only a given directory size, but also whether it should be added to the final answer or not
+  - Instead, I should have created a mapping between directory and their size -- with that, solving both part 1 and part 2 would have been trivial
