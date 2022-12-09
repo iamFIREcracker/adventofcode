@@ -1,5 +1,5 @@
 (defpackage :aoc
-  (:use :cl :pmdb :aoc.quickutils :aoc.quickutils.local :hset :dset)
+  (:use :cl :pmdb :aoc.quickutils :aoc.quickutils.local :amacro :hset :dset)
   (:export
     :array-elements
     :find-min
@@ -91,4 +91,4 @@
     :define-test))
 
 
-(defparameter *aoc-use* '(:use :cl :pmdb :aoc :aoc.quickutils :aoc.quickutils.local :hset :dset))
+(defparameter *aoc-use* '(:use :cl :pmdb :aoc :aoc.quickutils :aoc.quickutils.local :amacro :hset :dset))

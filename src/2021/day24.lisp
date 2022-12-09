@@ -11,7 +11,7 @@
 
 (define-modify-macro execf (other op) exec)
 (defun exec (rand1 rand2 rator)
-  (if-let (it (simplify rator rand1 rand2))
+  (aif (simplify rator rand1 rand2)
     it
     (list rator rand1 rand2)))
 

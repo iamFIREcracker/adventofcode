@@ -40,6 +40,7 @@
    (:module "upstream"
     :serial t
     :components ((:file "quickutils-local")
+                 (:file "amacro")
                  (:file "hset")
                  (:file "dset")))
    (:file "package")
