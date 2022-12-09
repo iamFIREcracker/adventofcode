@@ -58,7 +58,7 @@
 (defun part2 (pkt)
   (labels ((recur (pkt &aux (literal (getf pkt :literal)))
              (cond (literal literal)
-                   (t (apply ;; replace with CONS to _visualize_ your solution
+                   (t (apply ; replace with CONS to _visualize_ your solution
                         (aref #(+ * min max identity b> b< b=) (getf pkt :type))
                         (loop for next in (getf pkt :sub-packets)
                               collect (recur next)))))))
