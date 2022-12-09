@@ -1,0 +1,15 @@
+* Solve [2022/09](https://adventofcode.com/2022/day/9)
+  - Typo in the input parsing logic that caused the "move the head down" motions to be interpreted as if they were "move the head up" instead
+  - I took a shortcut for part 1: when `head` moved and `tail` wound up being out of range, I simply moved `tail` where `head` previously was; that does not work in case you had multiple knots, so to solve part 2 I basically had to start from scratch
+  - Flipped LOOP FOR initialization logic, and because of that the first knot only ended up getting pulled to the head
+      ```
+      ;; Here `prev` always point to the current `knot`
+      ;; (except for the first iteration, where `prev` points to `head`)
+      (loop for knot in tail do
+            for prev = head then knot
+      ;; Here `knot` properly _tracks_ the previously used knot
+      ;; (i.e. `head` for the first iteration; `knot` otherwise)
+      (loop for prev = head then knot
+            for knot in tail do
+      ```
+  - I ended up _mutating_ the rope knots in place; I was also adding the last rope knot to `visited`, but since its reference did not change (I was not _copying_ the object before pushing into the HASH-TABLE) CL assumed the entry was already there and refused to add it; fun!
