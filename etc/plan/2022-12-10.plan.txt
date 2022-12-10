@@ -1,0 +1,4 @@
+* Solve [2022/10](https://adventofcode.com/2022/day/10)
+  - I initialized `x` to `4` instead of `1`...no wonder my answer was incorrect
+  - Totally over-engineered solution for part 1: stored all the different values of `x` using run-length encoding, and then implemented a function to pull the vlaue of `x` at a given time / cycle
+  - Because of the above, to get my second star I decided to re-implement my solution for part 1 first; with that done, implementing the CRT refresh logic was kind of trivial
