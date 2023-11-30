@@ -31,7 +31,7 @@
 
 
 (defun basins (heights)
-  (uiop:while-collecting (acc!)
+  (looping
     (dolist (lp (low-points heights))
       (let ((size 0))
         (bfs lp
@@ -41,7 +41,7 @@
                           (remove-if-not (lambda (n)
                                            (< (gethash n heights) 9))
                                          (neighbors heights p))))
-        (acc! size)))))
+        (collect! size)))))
 
 
 #+#:alternate-solution-with-union-find (defun basins (heights &aux

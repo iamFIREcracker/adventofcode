@@ -23,6 +23,7 @@
                :hash-table-values
                :if-let
                :iota
+               :looping
                :make-keyword
                :mkstr
                :mulf

@@ -20,7 +20,6 @@
     :_2
     :partial-2
     :defun/memo
-    :while-summing
 
     :with-complex-parts
     :complex-rotate-cw

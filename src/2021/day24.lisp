@@ -22,11 +22,11 @@
   (labels ((offset (v) (ecase v (w 0) (x 1) (y 2) (z 3)))
            (value (v) (if (numberp v) v (aref vars (offset v))))
            (compile-into-lambda (e) (compile nil `(lambda (? z) ,e))))
-    (uiop:while-collecting (add)
+    (looping
       (loop for (cmd a b) in instructions do
         (ecase cmd
           (inp (unless (eql (aref vars (offset 'z)) 0)
-                 (add (compile-into-lambda (aref vars (offset 'z)))))
+                 (collect! (compile-into-lambda (aref vars (offset 'z)))))
                (setf (aref vars 0) 'w (aref vars 1) 'x
                      (aref vars 2) 'y (aref vars 3) 'z)
                (setf (aref vars (offset a)) '?))
@@ -36,7 +36,7 @@
           (mod (execf (aref vars (offset a)) (value b) 'mod))
           (eql (execf (aref vars (offset a)) (value b) 'b=))))
       ;; Make sure to pick up all the 14 ALU stages
-      (add (compile-into-lambda (aref vars (offset 'z)))))))
+      (collect! (compile-into-lambda (aref vars (offset 'z)))))))
 
 (defun b= (n1 n2) (if (= n1 n2) 1 0))
 

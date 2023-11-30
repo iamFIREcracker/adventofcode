@@ -15,9 +15,9 @@
 
 
 (defun walk (map &optional (visitablep #'visitablep))
-  (while-summing (path#)
+  (looping
     (labels ((recur (path)
-               (cond ((eq (car path) :|end|) (path#))
+               (cond ((eq (car path) :|end|) (count! t))
                      (t (loop for next in (gethash (car path) map)
                               when (funcall visitablep path next) do
                               (recur (cons next path)))))))

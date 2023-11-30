@@ -14,9 +14,9 @@
 
 (defun gamma-rate (strings &aux (n (length (first strings))))
   (coerce
-    (uiop:while-collecting (bit!)
+    (looping
       (dotimes (i n)
-        (bit! (most-common-ch-at strings i))))
+        (collect! (most-common-ch-at strings i))))
     'string))
 
 (defun most-common-ch-at (strings i)

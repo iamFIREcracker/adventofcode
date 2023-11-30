@@ -19,9 +19,9 @@
                                          :HASH-TABLE-KEY-EXISTS-P :MAPHASH-KEYS
                                          :HASH-TABLE-KEYS :MAPHASH-VALUES
                                          :HASH-TABLE-VALUES :IF-LET :IOTA
-                                         :MAKE-KEYWORD :MKSTR :MULF :NCYCLE
-                                         :REPEAT :SYMB :VOID :WHEN-LET
-                                         :STRING-DESIGNATOR :WITH-GENSYMS))))
+                                         :MKSTR :SYMB :STRING-DESIGNATOR
+                                         :WITH-GENSYMS :LOOPING :MAKE-KEYWORD
+                                         :MULF :NCYCLE :REPEAT :VOID :WHEN-LET))))
 
   (defmacro let1 (var val &body body)
     "Bind VAR to VAL within BODY. Equivalent to LET with one binding."
@@ -299,17 +299,138 @@ Examples:
           collect i))
   
 
-  (defun make-keyword (name)
-    "Interns the string designated by `name` in the `keyword` package."
-    (intern (string name) :keyword))
-  
-
   (defun mkstr (&rest args)
     "Receives any number of objects (string, symbol, keyword, char, number), extracts all printed representations, and concatenates them all into one string.
 
 Extracted from _On Lisp_, chapter 4."
     (with-output-to-string (s)
       (dolist (a args) (princ a s))))
+  
+
+  (defun symb (&rest args)
+    "Receives any number of objects, concatenates all into one string with `#'mkstr` and converts them to symbol.
+
+Extracted from _On Lisp_, chapter 4.
+
+See also: `symbolicate`"
+    (values (intern (apply #'mkstr args))))
+  
+
+  (deftype string-designator ()
+    "A string designator type. A string designator is either a string, a symbol,
+or a character."
+    `(or symbol string character))
+  
+
+  (defmacro with-gensyms (names &body forms)
+    "Binds each variable named by a symbol in `names` to a unique symbol around
+`forms`. Each of `names` must either be either a symbol, or of the form:
+
+    (symbol string-designator)
+
+Bare symbols appearing in `names` are equivalent to:
+
+    (symbol symbol)
+
+The string-designator is used as the argument to `gensym` when constructing the
+unique symbol the named variable will be bound to."
+    `(let ,(mapcar (lambda (name)
+                     (multiple-value-bind (symbol string)
+                         (etypecase name
+                           (symbol
+                            (values name (symbol-name name)))
+                           ((cons symbol (cons string-designator null))
+                            (values (first name) (string (second name)))))
+                       `(,symbol (gensym ,string))))
+            names)
+       ,@forms))
+
+  (defmacro with-unique-names (names &body forms)
+    "Binds each variable named by a symbol in `names` to a unique symbol around
+`forms`. Each of `names` must either be either a symbol, or of the form:
+
+    (symbol string-designator)
+
+Bare symbols appearing in `names` are equivalent to:
+
+    (symbol symbol)
+
+The string-designator is used as the argument to `gensym` when constructing the
+unique symbol the named variable will be bound to."
+    `(with-gensyms ,names ,@forms))
+  
+
+  (defmacro looping (&body body)
+    "Run `body` in an environment where the symbols COLLECT!, SUM!, and
+COUNT! are bound to functions that can be used to collect, sum, or count things
+respectively.
+
+Mixed usage of COLLECT!, SUM!, and COUNT! is not supported
+
+Examples:
+
+  (looping
+    (dotimes (i 5)
+      (if (oddp i)
+        (collect! i))))
+  =>
+  (1 3)
+
+  (looping
+    (dotimes (i 5)
+      (if (oddp i)
+        (sum! i))))
+  =>
+  4
+
+  (looping
+    (dotimes (i 5)
+      (count! (oddp i))))
+  =>
+  2
+
+  (looping
+    (dotimes (i 5)
+      (sum! i)
+      (count! (oddp i))))
+  ;; Signals an ERROR: Cannot use COUNT! together with SUM!
+  "
+    (with-gensyms (loop-type result)
+      `(let (,loop-type ,result)
+         (flet ((,(symb "COLLECT!") (item)
+                 (if (and ,loop-type (not (eql ,loop-type 'collect!)))
+                   (error "Cannot use COLLECT! together with ~A" ,loop-type)
+                   (progn
+                     (if (not ,loop-type)
+                       (setf ,loop-type 'collect! ,result nil))
+                     (push item ,result)
+                     item)))
+                (,(symb "SUM!") (item)
+                 (if (and ,loop-type (not (eql ,loop-type 'sum!)))
+                   (error "Cannot use SUM! together with ~A" ,loop-type)
+                   (progn
+                     (if (not ,loop-type)
+                       (setf ,loop-type 'sum! ,result 0))
+                     (incf ,result item)
+                     item)))
+                (,(symb "COUNT!") (item)
+                 (if (and ,loop-type (not (eql ,loop-type 'count!)))
+                   (error "Cannot use COUNT! together with ~A" ,loop-type)
+                   (progn
+                     (if (not ,loop-type)
+                       (setf ,loop-type 'count! ,result 0))
+                     (when item
+                       (incf ,result)
+                       item)))))
+           ,@body)
+         (if (eql ,loop-type 'collect!)
+           (nreverse ,result)
+           ,result))))
+  
+
+  (defun make-keyword (name)
+    "Interns the string designated by `name` in the `keyword` package."
+    (intern (string name) :keyword))
   
 
   (define-modify-macro mulf (&optional (ratio 2)) *
@@ -324,15 +445,6 @@ Extracted from _On Lisp_, chapter 4."
   (defmacro repeat (n &body body)
     "Runs BODY N times."
     `(loop repeat ,n do ,@body))
-  
-
-  (defun symb (&rest args)
-    "Receives any number of objects, concatenates all into one string with `#'mkstr` and converts them to symbol.
-
-Extracted from _On Lisp_, chapter 4.
-
-See also: `symbolicate`"
-    (values (intern (apply #'mkstr args))))
   
 
   (defun void (&rest args)
@@ -402,54 +514,11 @@ PROGN."
            (when ,(caar binding-list)
              ,@(bind (cdr binding-list) forms))))))
   
-
-  (deftype string-designator ()
-    "A string designator type. A string designator is either a string, a symbol,
-or a character."
-    `(or symbol string character))
-  
-
-  (defmacro with-gensyms (names &body forms)
-    "Binds each variable named by a symbol in `names` to a unique symbol around
-`forms`. Each of `names` must either be either a symbol, or of the form:
-
-    (symbol string-designator)
-
-Bare symbols appearing in `names` are equivalent to:
-
-    (symbol symbol)
-
-The string-designator is used as the argument to `gensym` when constructing the
-unique symbol the named variable will be bound to."
-    `(let ,(mapcar (lambda (name)
-                     (multiple-value-bind (symbol string)
-                         (etypecase name
-                           (symbol
-                            (values name (symbol-name name)))
-                           ((cons symbol (cons string-designator null))
-                            (values (first name) (string (second name)))))
-                       `(,symbol (gensym ,string))))
-            names)
-       ,@forms))
-
-  (defmacro with-unique-names (names &body forms)
-    "Binds each variable named by a symbol in `names` to a unique symbol around
-`forms`. Each of `names` must either be either a symbol, or of the form:
-
-    (symbol string-designator)
-
-Bare symbols appearing in `names` are equivalent to:
-
-    (symbol symbol)
-
-The string-designator is used as the argument to `gensym` when constructing the
-unique symbol the named variable will be bound to."
-    `(with-gensyms ,names ,@forms))
-  
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (export '(aif awhen bnd* bnd1 copy-array copy-hash-table digits divf flatten
             hash-table-alist hash-table-key-exists-p hash-table-keys
-            hash-table-values if-let iota make-keyword mkstr mulf ncycle repeat
-            symb void when-let when-let* with-gensyms with-unique-names)))
+            hash-table-values if-let iota looping make-keyword mkstr mulf
+            ncycle repeat symb void when-let when-let* with-gensyms
+            with-unique-names)))
 
 ;;;; END OF quickutils.lisp ;;;;

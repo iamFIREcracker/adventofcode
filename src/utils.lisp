@@ -352,14 +352,14 @@
                   ,@body)))))))
 
 (defun expand-defun/memo-keyable-args (args)
-  (uiop:while-collecting (collect)
+  (looping
     (loop while args for a = (pop args) do
           (cond ((eq a '&optional) nil)
                 ((eq a '&key) nil)
                 ((eq a '&rest) (pop args))
                 ((eq a '&aux) (return))
-                ((consp a) (collect (car a)))
-                (t (collect a))))))
+                ((consp a) (collect! (car a)))
+                (t (collect! a))))))
 
 
 (defun expand-defun/memo-clear-memo-fun (memo name)
@@ -367,26 +367,6 @@
     `(defun ,clear-memo-name ()
       (clrhash ,memo))))
 
-
-(defmacro while-summing (summers &body body)
-  (expand-while-summing summers body))
-
-(defun expand-while-summing (summers body)
-  (let* ((gen-syms (mapcar #'expand-while-summing-gensym summers))
-         (let-bindings (mapcar #'expand-while-summing-let-binding gen-syms))
-         (flet-bindings (mapcar #'expand-while-summing-flet-binding summers gen-syms)))
-    `(let* (,@let-bindings)
-      (flet (,@flet-bindings)
-        ,@body
-        (values ,@gen-syms)))))
-
-(defun expand-while-summing-gensym (name) (gensym (string name)))
-
-(defun expand-while-summing-let-binding (gensym) (list gensym 0))
-
-(defun expand-while-summing-flet-binding (name binding)
-  `(,name (&optional (delta 1))
-    (incf ,binding delta)))
 
 ;;;; Math ---------------------------------------------------------------------
 

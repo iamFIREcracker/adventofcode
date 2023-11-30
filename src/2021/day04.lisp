@@ -17,10 +17,10 @@
       (make-array '(5 5)
                   :initial-contents
                   (let ((lines (subseq data 1 6)))
-                    (uiop:while-collecting (rows)
+                    (looping
                       (dolist (s lines)
                         (let ((row (extract-integers s)))
-                          (rows row))))))
+                          (collect! row))))))
       (parse-boards (subseq data 6)))))
 
 (defun extract-integers (s)
@@ -28,12 +28,12 @@
 
 
 (defun play (game)
-  (uiop:while-collecting (scores)
+  (looping
     (with-slots (to-draw boards) game
       (dolist (n to-draw)
         (dolist (b boards)
           (when (mark-number b n)
-            (scores (* (score b) n))
+            (collect! (* (score b) n))
             (setf boards (remove b boards))))))))
 
 
