@@ -43,7 +43,7 @@ jobs:
             # XXX remove this override (i.e. put "latest" back in) after the
             # following roswell issue has been solved:
             # https://github.com/roswell/roswell/issues/497
-            asdf_version=latest
+            # asdf_version=latest
             asdf_version=3.3.5.3
             qlot_version=latest
           fi
@@ -56,15 +56,12 @@ jobs:
     if: needs.ci-config.outputs.enabled == 'yes'
     strategy:
       fail-fast: false # Let the workflow continue as much as possible
-      # matrix:
-      #   lisp: [ abcl, allegro, ccl, cmucl, ecl ]
-      #   experimental: [ true ]
-      #   include:
-      #     - lisp: sbcl-bin/2.2.11
-      #       experimental: false
       matrix:
-        lisp: [ sbcl-bin/2.2.11 ]
-        experimental: [ false ]
+        lisp: [ abcl, allegro, ccl, cmucl, ecl ]
+        experimental: [ true ]
+        include:
+          - lisp: sbcl-bin/2.1.10
+            experimental: false
     env:
       LISP: ${{ matrix.lisp }}
     defaults:
@@ -89,12 +86,10 @@ jobs:
     if: needs.ci-config.outputs.enabled == 'yes'
     strategy:
       fail-fast: false # Let the workflow continue as much as possible
-      # matrix:
-      #   lisp: [ abcl, allegro, ccl, cmucl, ecl ]
-      #   include:
-      #     - lisp: sbcl-bin/2.2.11
       matrix:
-        lisp: [ sbcl-bin/2.2.11 ]
+        lisp: [ abcl, allegro, ccl, cmucl, ecl ]
+        include:
+          - lisp: sbcl-bin/2.1.10
     env:
       LISP: ${{ matrix.lisp }}
     defaults:

@@ -1,0 +1,125 @@
+(defpackage :aoc/2022/25 #.cl-user::*aoc-use*)
+(in-package :aoc/2022/25)
+
+
+#+#:excluded (defun parse-snafu (s)
+               (loop for m = 1 then (* m 5)
+                     for c across s for n = (ecase c
+                                              (#\0 0)
+                                              (#\1 1)
+                                              (#\2 2)
+                                              (#\= -2)
+                                              (#\- -1))
+                     collect n))
+#+#:excluded (parse-snafu "1")
+#+#:excluded (parse-snafu "2")
+#+#:excluded (parse-snafu "1=")
+
+#+#:excluded (defun snafus (&optional (file #P"src/2022/day25.txt"))
+               (mapcar #'parse-snafu (uiop:read-file-lines file)))
+
+(defun snafu->decimal (s)
+  (loop for m = 1 then (* m 5)
+        for c across s for n = (ecase c
+                                 (#\0 0)
+                                 (#\1 1)
+                                 (#\2 2)
+                                 (#\= -2)
+                                 (#\- -1))
+        for sum = n then (+ (* sum 5) n)
+        finally (return sum)))
+#+#:excluded (snafu->decimal "1121-1110-1=0")
+
+(defun snafus (&optional (file #P"src/2022/day25.txt"))
+  (mapcar #'snafu->decimal (uiop:read-file-lines file)))
+
+
+(defun snafu+ (n1 n2)
+  (labels ((recur (n1 n2 c)
+             (pr '----------)
+             (pr n1 n2 c)
+             (cond ((and (not n1) (not n2) (zerop c)) nil)
+                   (t (bnd1 (n (+ (or (car n1) 0)
+                                  (or (car n2) 0)
+                                  c))
+                        (if (> n 2)
+                          (cons (pr (- n 5)) (recur (cdr n1) (cdr n2) 1))
+                          (if (< n -2)
+                            (cons (pr (- -5 n)) (recur (cdr n1) (cdr n2) -1))
+                            (cons (pr n) (recur (cdr n1) (cdr n2) 0)))))))))
+    (reverse (recur (reverse n1) (reverse n2) 0))))
+
+
+(defun print-snafu (n)
+  (coerce (loop for d in n for ch = (ecase d
+                               (-2 #\=)
+                               (-1 #\=)
+                               (0 #\0)
+                               (1 #\1)
+                               (2 #\2))
+         collect ch)
+          'string))
+
+
+(defun number->snafu (n)
+  (labels ((recur (n)
+             (pr n (truncate n 5) (mod n 5))
+             (unless (zerop n)
+               (multiple-value-bind (n rem) (truncate n 5)
+                 (ecase rem
+                   (0 (cons #\0 (number->snafu n)))
+                   (1 (cons #\1 (number->snafu n)))
+                   (2 (cons #\2 (number->snafu n)))
+                   (3 (cons #\= (number->snafu (1+ n))))
+                   (4 (cons #\- (number->snafu (1+ n))))))) ))
+    (reverse (recur n))))
+
+(defun number->snafu (n)
+  (loop for p from (pr (ceiling (log n 5))) downto 1
+        for d = (pr (expt 5 p))
+        do (pr (truncate n p) (mod n p))))
+(nume)
+
+(number->snafu 3)
+(number->snafu 4)
+(number->snafu 7)
+(number->snafu 107)
+(number->snafu 198)
+(snafu->decimal "100")
+(log 126 5)
+(digits 37 5)
+(digits 107 5)
+(digits 353 5)
+
+(defun number->snafu (n)
+  (coerce
+    (reverse
+      (loop with carry = 0 with digits = (digits n 5) with ch
+            for d = (pop digits) for m = (+ (or d 0) carry)
+            do (pr d carry '-> m)
+            do (if (= m 5)
+                 (setf carry 1 ch #\0)
+                 (if (> m 2)
+                   (setf carry 1 ch (if (= m 3) #\= #\-))
+                   (setf carry 0 ch (code-char (+ (char-code #\0) m)))))
+            collect ch
+            until (and (zerop carry) (not digits))))
+    'string))
+
+#; Scratch
+(number->snafu 314159265)
+(reduce #'+ (snafus))
+(number->snafu *)
+(print-snafu *)
+
+(snafu->decimal "1=-0-2")
+(snafu->decimal  "12111")
+(snafu->decimal  "    =")
+(snafu+ (parse-snafu "22")
+        (parse-snafu "22"))
+(print-snafu *)
+
+(+ (snafu->decimal "22")
+   (snafu->decimal "22"))
+
+(truncate 2022 125)

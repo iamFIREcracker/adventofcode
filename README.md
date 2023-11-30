@@ -48,3 +48,9 @@
 - 2021/21: 15 seconds to run -- check out this
   [comment](https://www.reddit.com/r/adventofcode/comments/rlxhmg/2021_day_22_solutions/hpkzqb5/)
   full of alternate solutions to this problem
+- Should PARTIAL-1 locally bind all its free arguments? For example: `(partial-1 #'function
+  (some-expensive-function))` should the result of the invocation of
+  SOME-EXPENSIVE-FUNCTION be cached, or instead should the function be invoked
+  each time the PARTIAL-1 lambda gets called
+- Review all 2022 solutions -- I gave up moping things up on the 10th, so they
+  loop more like scratch buffers than anything functional

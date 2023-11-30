@@ -1,0 +1,228 @@
+(defpackage :aoc/2022/16 #.cl-user::*aoc-use*)
+(in-package :aoc/2022/16)
+
+(defstruct (valve :conc-name)
+  name rate connected-to)
+
+(defun parse-valve (s)
+  (let ((names (mapcar #'symb (cl-ppcre:all-matches-as-strings "[A-Z]{2}" s)))
+        (rate (first (mapcar #'parse-integer (cl-ppcre:all-matches-as-strings "\\d+" s)))))
+    (make-valve :name (car names)
+                :rate rate
+                :connected-to (rest names))))
+
+(defun valves (&optional (file #P"src/2022/day16.txt"))
+  (let* ((valves (mapcar #'parse-valve (uiop:read-file-lines file)))
+         (map (make-hash-table)))
+    (dolist (v valves)
+      (setf (gethash (name v) map) v)
+      (setf (connected-to v)
+            (mapcar [find _ valves :key #'name ] ; XXX space required to make vim happy
+                    (connected-to v))))
+    map))
+#+#:excluded (valves)
+#+#:excluded (valves #P"scratch.txt")
+
+(defun find-valve (valves name) (gethash name valves ))
+#+#:excluded (find-valve (valves) 'aa)
+#+#:excluded (find-valve (valves) 'at)
+
+(defun compact (valves)
+  (bnd1 (compact (make-hash-table))
+    (loop for v1 being the hash-values of valves when (or (plusp (rate v1))
+                                                          (eq (name v1) 'aa))
+          do (loop for v2 being the hash-values of valves when (and (plusp (rate v2))
+                                                                    (not (eq v1 v2)))
+                   do (bnd1 (cost (search-cost
+                                    (bfs v1
+                                         :goal-state v2 :test 'equalp
+                                         :neighbors #'connected-to)))
+                        (push (cons v2 cost) (gethash (name v1) compact)))))
+    compact))
+#+#:excluded (compact (valves))
+
+
+(defstruct (state :conc-name)
+  current visited opened released elapsed)
+
+(defun init-state (&optional (current 'aa))
+  (make-state :current current
+              :visited ()
+              :opened ()
+              :released 0
+              :elapsed 0))
+
+(defun already-opened-p (state &optional other-state)
+  (or (member (current state) (opened state))
+      (and other-state (member (current state) (opened other-state)))))
+#+#:excluded (already-opened-p (init-state))
+#+#:excluded (already-opened-p (init-state) (init-state))
+#+#:excluded (already-opened-p (init-state) (make-state :current 'at
+                                                        :visited ()
+                                                        :opened '(aa)
+                                                        :released 0
+                                                        :elapsed 14))
+
+(defun opened-next (state)
+  (sort (union (list (current state)) (opened state)) #'string<))
+#+#:excluded (opened-next (init-state))
+#+#:excluded (opened-next (make-state :current 'at
+                                      :visited '(aa)
+                                      :opened '()
+                                      :released 0
+                                      :elapsed 1))
+#+#:excluded (opened-next (make-state :current 'at
+                                      :visited '(zz aa)
+                                      :opened '(zz)
+                                      :released 0
+                                      :elapsed 20))
+
+(defun released-next (valves state &optional (ticks 1))
+  (+ (released state)
+     (loop for name in (opened state) for v = (find-valve valves name)
+           sum (* (rate v) ticks))))
+#+#:excluded (released-next (valves) (init-state))
+#+#:excluded (released-next (valves)
+                            (make-state :current 'at
+                                        :visited ()
+                                        :opened '(at)
+                                        :released 0
+                                        :elapsed 0))
+#+#:excluded (released-next (valves)
+                            (make-state :current 'at
+                                        :visited ()
+                                        :opened '(at)
+                                        :released 10
+                                        :elapsed 0)
+                            10)
+
+(defun elapsed-next (state &optional (ticks 1))
+  (+ (elapsed state) ticks))
+#+#:excluded (elapsed-next (init-state))
+#+#:excluded (elapsed-next (init-state) 29)
+
+(defun open-valve (valves state &optional other-state)
+  (bnd1 (valve (find-valve valves (current state)))
+    (unless (or (zerop (rate valve))
+                (already-opened-p state other-state))
+      (list
+        (make-state :current (current state)
+                    :visited (visited state)
+                    :opened (opened-next state)
+                    :released (released-next valves state)
+                    :elapsed (elapsed-next state))))))
+#+#:excluded (open-valve (valves) (init-state))
+#+#:excluded (open-valve (valves) (make-state :current 'at
+                                              :visited '(aa)
+                                              :opened ()
+                                              :released 0
+                                              :elapsed 14))
+#+#:excluded (open-valve (valves) (make-state :current 'at
+                                              :visited '(aa)
+                                              :opened '(at)
+                                              :released 0
+                                              :elapsed 15))
+
+(defun already-visited-p (state name)
+  (or (eq (current state) name)
+      (member name (visited state))))
+#+#:excluded (already-visited-p (init-state) 'aa)
+#+#:excluded (already-visited-p (make-state :current 'aa
+                                            :visited '(at)
+                                            :opened ()
+                                            :released 0
+                                            :elapsed 10)
+                                'at)
+
+(defun visited-next (state)
+  (sort (copy-seq (union (list (current state)) (visited state))) #'string<))
+#+#:excluded (visited-next (init-state))
+
+(defun change-room (valves compact limit state &aux (remaining (- limit (elapsed state))))
+  (mapcan (lambda (adj)
+            (destructuring-bind (to . cost) adj
+              (unless (or (already-visited-p state (name to))
+                          (> cost remaining))
+                (list
+                  (make-state :current (name to)
+                              :visited (visited-next state)
+                              :opened (opened state)
+                              :released (released-next valves state cost)
+                              :elapsed (elapsed-next state cost))))))
+          (gethash (current state) compact)))
+#+#:excluded (change-room (valves) (compact (valves)) 30 (init-state))
+
+(defun stay-put (valves limit state &aux (remaining (- limit (elapsed state))))
+  (when (opened state)
+    (list
+      (make-state :current (current state)
+                  :visited (visited state)
+                  :opened (opened state)
+                  :released (released-next valves state remaining)
+                  :elapsed (elapsed-next state remaining)))))
+#+#:excluded (stay-put (valves) 30 (init-state))
+#+#:excluded (stay-put (valves) 30 (make-state :current 'at
+                                               :visited '(aa)
+                                               :opened '(at)
+                                               :released 0
+                                               :elapsed 15))
+
+(defun neighbors (valves compact limit state)
+  (append
+    (open-valve valves state)
+    (change-room valves compact limit state)
+    (stay-put valves limit state)))
+#+#:excluded (neighbors (valves) (compact (valves)) 30 (init-state))
+#+#:excluded (neighbors (valves) (compact (valves)) 30 (make-state :current 'at
+                                                                   :visited '(aa)
+                                                                   :opened '(at)
+                                                                   :released 0
+                                                                   :elapsed 15))
+
+
+(define-modify-macro maxf (&rest others) max)
+
+(defun state-key (state)
+  (list (current state)
+        (opened state)
+        (released state)))
+
+#; Scratch
+
+;; Part1
+(let* ((valves (valves #P"scratch.txt"))
+       (compact (compact valves))
+       (already-seen (make-hash-table :test 'equal))
+       (best 0))
+  (labels ((recur (state &aux (key (state-key state)))
+             (bnd1 (existing (gethash key already-seen))
+               (cond ((and existing (<= existing (elapsed state))) nil)
+                     ((= (elapsed state) 30) (maxf best (released state)))
+                     (t (assert (< (elapsed state) 30))
+                        (setf (gethash key already-seen) (elapsed state))
+                        (dolist (next (neighbors valves compact 30 state))
+                          (recur next)))))))
+    (recur (init-state))
+    best))
+
+(sb-ext:gc :full t)
+
+;; Part2
+(let* ((valves (valves #P"scratch.txt"))
+       (compact (compact valves))
+       (already-seen (make-hash-table :test 'equal))
+       (best 0))
+  (labels ((recur (state &aux (key (state-key state)))
+             (bnd1 (existing (gethash key already-seen))
+               (cond ((and existing (<= existing (elapsed state))) nil)
+                     ((= (elapsed state) 26) (if (> (released state) best) (pr (maxf best (released state)))))
+                     (t (assert (< (elapsed state) 26))
+                        (setf (gethash key already-seen) (elapsed state))
+                        (dolist (next (neighbors valves compact 26 state))
+                          (recur next)))))))
+    (recur (init-state (list 'aa 'aa)))
+    best))
+
+(sb-ext:gc :full t)
+;;; was not moving me elephant simoultaneously
+;;; one can open a valve while the other can move

@@ -1,0 +1,135 @@
+(defpackage :aoc/2022/19 #.cl-user::*aoc-use*)
+(in-package :aoc/2022/19)
+
+(defstruct (blueprint :conc-name)
+  id costs)
+
+(defun parse-blueprint (string)
+  (destructuring-bind (id ore-robot-cost clay-robot-cost
+                          obsidian-robot-ore-cost obsidian-robot-clay-cost
+                          geode-robot-ore-cost geode-robot-obsidian-cost)
+      (mapcar #'parse-integer (cl-ppcre:all-matches-as-strings "\\d+" string))
+    (make-blueprint :id id
+                    :costs (list
+                             (list
+                               (list ore-robot-cost 0 0 0)
+                               (list 1 0 0 0))
+                             (list
+                               (list clay-robot-cost 0 0 0)
+                               (list 0 1 0 0))
+                             (list
+                               (list obsidian-robot-ore-cost
+                                     obsidian-robot-clay-cost
+                                     0
+                                     0)
+                               (list 0 0 1 0))
+                             (list
+                               (list geode-robot-ore-cost
+                                     0
+                                     geode-robot-obsidian-cost
+                                     0)
+                               (list 0 0 0 1)))
+                    )))
+
+(defun blueprints (&optional (file #P"src/2022/day19.txt"))
+  (mapcar #'parse-blueprint (uiop:read-file-lines file)))
+
+
+(defstruct (state :conc-name)
+  resources robots)
+
+(defun init-state ()
+  (make-state :resources (list 0 0 0 0)
+              :robots (list 1 0 0 0)))
+
+(defun potential-robots (resources cost-input)
+  (loop for r in resources for c in cost-input
+        when (plusp c) minimize (floor r c)))
+#+#:excluded (potential-robots (list 100 0 0) (list 10 0 0))
+
+(defun update-resources (resources cost-input n)
+  (loop for r in resources for c in cost-input
+        for cn = (- r (* c n)) do (assert (>= cn 0))
+        collect cn))
+#+#:excluded (update-resources (list 100 0 0 0) (list 10 0 0 0) 10)
+
+(defun build-robots (resources costs)
+  (labels ((recur (remaining costs resources)
+             (cond ((null costs) (list (list nil resources)))
+                   (t (bnd1 (cost-input (caar costs))
+                        (loop for n from 0 upto (min (potential-robots resources cost-input) remaining)
+                              append (loop for (robots-built resources-left) in (recur (- remaining n)
+                                                                               (cdr costs)
+                                                                               (update-resources resources
+                                                                                                 cost-input
+                                                                                                 n))
+                                           collect (list (cons n robots-built) resources-left))))))))
+    (recur 1 costs resources)))
+#+#:excluded (build-robots (list 100 100 100 0) (costs (car (blueprints))))
+#+#:excluded (build-robots (list 0 0 0 0) (costs (car (blueprints))))
+
+(defun can-build-p (resources cost-input)
+  (loop for r in resources for c in cost-input always (>= r c)))
+
+(defun build-robots (resources costs)
+  (loop for (cost-input robots-output) in costs
+        when (can-build-p resources cost-input)
+        collect (list robots-output (update-resources resources
+                                                      cost-input
+                                                      1))))
+
+(defun collect-resources (resources robots)
+  (loop for res in resources
+        for rbt in robots collect (+ res rbt)))
+#+#:excluded (collect-resources (list 0 0 0 0) (list 1 0 0 0))
+#+#:excluded (collect-resources (list 1 0 0 0) (list 1 0 0 0))
+#+#:excluded (collect-resources (list 1 0 0 0) (list 2 0 0 0))
+
+(define-modify-macro maxf (&rest others) max)
+
+(defun simulate (blueprint limit)
+  (let ((already-seen (make-hash-table :test 'equalp))
+        (best 0))
+    (labels ((recur (remaining state)
+               (bnd1 (existing (gethash state already-seen))
+                 (when (or (not existing) (> remaining existing))
+                   #+#:excluded (when (>= (hash-table-count already-seen) 2000000)
+                                  (clrhash already-seen))
+                   (setf (gethash state already-seen) remaining)
+                   (if (zerop remaining)
+                     (maxf best (car (last (resources state))))
+                     (loop for (robots-built resources-left) in (build-robots (resources state)
+                                                                              (costs blueprint))
+                           for resources-next = (collect-resources resources-left (robots state))
+                           do (recur (1- remaining)
+                                     (make-state :resources resources-next
+                                                 :robots (loop for r1 in (robots state)
+                                                               for r2 in robots-built
+                                                               collect (+ r1 r2))))))))))
+      (recur limit (init-state)))
+    best))
+
+(defun quality-level (blueprint cracked) (* (id blueprint) cracked))
+
+#; Scratch
+
+(blueprints #P"scratch.txt")
+
+(init-state)
+
+(simulate (car (blueprints)) 24)
+(simulate (cadr (blueprints)) 24)
+(simulate (caddr (blueprints)) 24)
+(simulate (cadddr (blueprints)) 24)
+(simulate (caddddr (blueprints)) 24)
+(loop for b in (blueprints) do (pr (id b) (simulate b 24)))
+
+(simulate (car (blueprints #P"scratch.txt")) 24)
+(simulate (cadr (blueprints #P"scratch.txt")) 24)
+
+(loop for b in (blueprints) do (pr (simulate b 24)))
+(sb-ext:gc :full t)
+#+#:excluded (&optional (file #P"src/2022/day19.txt"))
+#P"scratch.txt"
+
+;;; thought I could build lots of robots in one turn...

@@ -1,0 +1,152 @@
+(defpackage :aoc/2022/19 #.cl-user::*aoc-use*)
+(in-package :aoc/2022/19)
+
+(defstruct (blueprint :conc-name)
+  id costs)
+
+(defun parse-blueprint (string)
+  (destructuring-bind (id ore-robot-cost clay-robot-cost
+                          obsidian-robot-ore-cost obsidian-robot-clay-cost
+                          geode-robot-ore-cost geode-robot-obsidian-cost)
+      (mapcar #'parse-integer (cl-ppcre:all-matches-as-strings "\\d+" string))
+    (make-blueprint :id id
+                    :costs (list
+                             (list
+                               (list ore-robot-cost 0 0 0)
+                               (list 1 0 0 0))
+                             (list
+                               (list clay-robot-cost 0 0 0)
+                               (list 0 1 0 0))
+                             (list
+                               (list obsidian-robot-ore-cost
+                                     obsidian-robot-clay-cost
+                                     0
+                                     0)
+                               (list 0 0 1 0))
+                             (list
+                               (list geode-robot-ore-cost
+                                     0
+                                     geode-robot-obsidian-cost
+                                     0)
+                               (list 0 0 0 1)))
+                    )))
+
+(defun blueprints (&optional (file #P"src/2022/day19.txt"))
+  (mapcar #'parse-blueprint (uiop:read-file-lines file)))
+
+
+(defstruct (state :conc-name)
+  resources robots)
+
+(defun init-state ()
+  (make-state :resources (list 0 0 0 0)
+              :robots (list 1 0 0 0)))
+
+(defun update-resources (resources cost-input n)
+  (loop for r in resources for c in cost-input
+        for cn = (- r (* c n)) do (assert (>= cn 0))
+        collect cn))
+#+#:excluded (update-resources (list 100 0 0 0) (list 10 0 0 0) 10)
+
+(defun can-build-p (resources cost-input)
+  (loop for r in resources for c in cost-input always (>= r c)))
+
+(defun build-robots (resources costs)
+  (reverse
+    (loop for (cost-input robots-output) in costs
+          when (can-build-p resources cost-input)
+          collect (list robots-output (update-resources resources cost-input 1)))))
+#+#:excluded (build-robots (list 100 100 100 0) (costs (car (blueprints))))
+#+#:excluded (build-robots (list 0 0 0 0) (costs (car (blueprints))))
+
+
+(defun collect-resources (resources robots)
+  (loop for res in resources
+        for rbt in robots collect (+ res rbt)))
+#+#:excluded (collect-resources (list 0 0 0 0) (list 1 0 0 0))
+#+#:excluded (collect-resources (list 1 0 0 0) (list 1 0 0 0))
+#+#:excluded (collect-resources (list 1 0 0 0) (list 2 0 0 0))
+
+(define-modify-macro maxf (&rest others) max)
+
+(defun tick (blueprint state)
+  (cons
+    (make-state :resources (collect-resources (resources state) (robots state))
+                :robots (robots state))
+    (loop for (robots-built resources-left) in (build-robots (resources state)
+                                                             (costs blueprint))
+          collect (make-state :resources (collect-resources resources-left
+                                                            (robots state))
+                              :robots (loop for r1 in (robots state)
+                                            for r2 in robots-built
+                                            collect (+ r1 r2))))))
+#+#:excluded (tick (car (blueprints)) (init-state))
+
+(defun simulate (limit blueprint)
+  (bnd1 (queue (list (init-state)))
+    (loop repeat limit
+          do (pr (length queue))
+          do (setf queue (remove-duplicates
+                           (loop for s in queue
+                                 nconc (tick blueprint s))
+                           :test 'equalp)))
+    (bnd1 (max (reduce #'max queue :key [fourth (resources _)]))
+      (loop for s in queue
+            when (= (fourth (resources s)) max)
+            do (pr s)))))
+
+#+#:excluded (defun simulate (limit blueprint)
+               (let ((already-seen (make-hash-table :test 'equalp))
+                     (fcalls 0)
+                     (best 0))
+                 (labels ((recur (remaining state)
+                            (incf fcalls)
+                            (bnd1 (existing (gethash state already-seen))
+                              (when (or (not existing) (> remaining existing))
+                                (setf (gethash state already-seen) remaining)
+                                (if (zerop remaining)
+                                  (maxf best (car (last (resources state))))
+                                  (progn
+                                    (recur (1- remaining)
+                                           (make-state :resources (collect-resources (resources state) (robots state))
+                                                       :robots (robots state)))
+                                    (loop for (robots-built resources-left) in (build-robots (resources state) (costs blueprint))
+                                          do (recur (1- remaining)
+                                                    (make-state :resources (collect-resources resources-left (robots state))
+                                                                :robots (loop for r1 in (robots state)
+                                                                              for r2 in robots-built
+                                                                              collect (+ r1 r2)))))))))))
+                   (recur limit (init-state)))
+                 (pr fcalls)
+                 best))
+
+(defun quality-level (blueprint cracked) (* (id blueprint) cracked))
+
+#; Scratch
+
+(blueprints #P"scratch.txt")
+
+(init-state)
+
+(simulate 24 (car (blueprints)))
+(simulate 24 (cadr (blueprints)))
+(simulate 24 (caddr (blueprints)))
+(simulate 24 (cadddr (blueprints)))
+(simulate 24 (caddddr (blueprints)))
+(loop for b in (blueprints) do (pr (id b) (simulate 24 b)))
+
+(simulate 18 (car (blueprints #P"scratch.txt")))
+(simulate 19 (car (blueprints #P"scratch.txt")))
+(simulate 20 (car (blueprints #P"scratch.txt")))
+(simulate 21 (car (blueprints #P"scratch.txt")))
+(simulate 22 (car (blueprints #P"scratch.txt"))) ; 5
+(simulate 23 (car (blueprints #P"scratch.txt")))
+(simulate 24 (car (blueprints #P"scratch.txt")))
+(simulate 24 (cadr (blueprints #P"scratch.txt")))
+
+(loop for b in (blueprints) do (pr (simulate b 24)))
+(sb-ext:gc :full t)
+#+#:excluded (&optional (file #P"src/2022/day19.txt"))
+#P"scratch.txt"
+
+;;; thought I could build lots of robots in one turn...

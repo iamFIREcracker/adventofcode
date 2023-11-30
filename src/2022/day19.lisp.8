@@ -1,0 +1,160 @@
+(defpackage :aoc/2022/19 #.cl-user::*aoc-use*)
+(in-package :aoc/2022/19)
+
+
+(defstruct (blueprint :conc-name)
+  id ore clay obsidian geode)
+
+(defun parse-blueprint (string)
+  (bnd1 (nums (mapcar #'parse-integer (cl-ppcre:all-matches-as-strings "\\d+" string)))
+    (make-blueprint :id (elt nums 0)
+                    :ore (subseq nums 1 2)
+                    :clay (subseq nums 2 3)
+                    :obsidian (subseq nums 3 5)
+                    :geode (subseq nums 5 7))))
+
+(defun blueprints (&optional (file #P"src/2022/day19.txt"))
+  (mapcar #'parse-blueprint (uiop:read-file-lines file)))
+
+
+(defun time-for-ore-resources (blueprint amount time)
+  (loop for robots-count from 1 upto amount
+        for collect-time = (ceiling amount robots-count)
+        for assembly-time = (time-for-ore-robots blueprint
+                                                 robots-count
+                                                 (- time collect-time))
+        when assembly-time minimize (+ assembly-time collect-time)))
+
+(defun time-for-ore-robots (blueprint robots-count time)
+  (acond ((< time 0) nil)
+         ((= robots-count 1) 0)
+         (t
+           (when-let (assembly-time (time-for-ore-robots blueprint
+                                                         (1- robots-count)
+                                                         (1- time)))
+             (when-let (collect-time (time-for-ore-resources blueprint
+                                                             (first (ore blueprint))
+                                                             (1- time)))
+               (when (<= (+ assembly-time collect-time 1) time)
+                 (+ assembly-time collect-time 1)))))))
+#+#:excluded (assert (= (time-for-ore-resources (car (blueprints #P"scratch.txt")) 1 1)
+                        1))
+#+#:excluded (assert (= (time-for-ore-resources (car (blueprints #P"scratch.txt")) 2 2)
+                        2))
+#+#:excluded (assert (= (time-for-ore-resources (car (blueprints #P"scratch.txt")) 3 3)
+                        3))
+#+#:excluded (assert (= (time-for-ore-resources (car (blueprints #P"scratch.txt")) 4 4)
+                        4))
+#+#:excluded (assert (= (time-for-ore-resources (car (blueprints #P"scratch.txt")) 5 5)
+                        5))
+#+#:excluded (assert (= (time-for-ore-robots (car (blueprints #P"scratch.txt")) 1 4)
+                        0))
+#+#:excluded (assert (null (time-for-ore-robots (car (blueprints #P"scratch.txt")) 2 4)))
+#+#:excluded (time-for-ore-robots (car (blueprints #P"scratch.txt")) 2 5)
+#+#:excluded (time-for-ore-robots (car (blueprints #P"scratch.txt")) 2 6)
+#+#:excluded (time-for-ore-robots (car (blueprints #P"scratch.txt")) 3 6) ; <- this should be false!
+#+#:excluded (time-for-ore-robots (car (blueprints #P"scratch.txt")) 3 7)
+#+#:excluded (time-for-ore-robots (car (blueprints #P"scratch.txt")) 3 8) ; <- this should be true
+#+#:excluded (time-for-ore-robots (car (blueprints #P"scratch.txt")) 3 9) ; <- this should be true
+
+(defun/memo can-collect-clay? (blueprint amount time)
+  (loop for robots-count from 1 upto amount
+        for built-by = (- time (ceiling amount robots-count))
+        thereis (can-have-clay-robots? blueprint robots-count built-by)))
+
+(defun/memo can-have-clay-robots? (blueprint robots-count time)
+  (unless (< time 0)
+    (or
+      ;; Sane default
+      (= robots-count 0)
+      ;; Already got those robots
+      (can-have-clay-robots? blueprint robots-count (1- time))
+      ;; We are short of one robot, but have enough resources to to build it
+      (and (can-have-clay-robots? blueprint (1- robots-count) (1- time))
+           (can-collect-ore? blueprint (first (clay blueprint)) (1- time))))))
+#+#:excluded (can-have-clay-robots? (car (blueprints #P"scratch.txt")) 2 2)
+#+#:excluded (can-have-clay-robots? (car (blueprints #P"scratch.txt")) 1 3)
+#+#:excluded (can-have-clay-robots? (car (blueprints #P"scratch.txt")) 2 6)
+
+
+(defun/memo can-collect-obsidian? (blueprint amount time)
+  (loop for robots-count from 1 upto amount
+        for built-by = (- time (ceiling amount robots-count))
+        thereis (can-have-obsidian-robots? blueprint robots-count built-by)))
+
+(defun/memo can-have-obsidian-robots? (blueprint robots-count time)
+  (unless (< time 0)
+    (or
+      ;; Sane default
+      (= robots-count 0)
+      ;; Already got those robots
+      (can-have-obsidian-robots? blueprint robots-count (1- time))
+      ;; We are short of one robot, but have enough resources to to build it
+      (and (can-have-obsidian-robots? blueprint (1- robots-count) (1- time))
+           (can-collect-ore? blueprint (first (obsidian blueprint)) (1- time))
+           (can-collect-clay? blueprint (second (obsidian blueprint)) (1- time))))))
+#+#:excluded (can-have-obsidian-robots? (car (blueprints #P"scratch.txt")) 2 2)
+#+#:excluded (can-have-obsidian-robots? (car (blueprints #P"scratch.txt")) 1 3)
+#+#:excluded (can-have-obsidian-robots? (car (blueprints #P"scratch.txt")) 2 6)
+
+
+(defun/memo can-crack-geode? (blueprint rocks &optional (time 24))
+  (loop for robots-count from 1 upto rocks
+        for built-by = (- time (ceiling rocks robots-count))
+        thereis (can-have-geode-robots? blueprint robots-count built-by)))
+
+(defun/memo can-have-geode-robots? (blueprint robots-count time)
+  (unless (< time 0)
+    (or
+      ;; Sane default
+      (= robots-count 0)
+      ;; Already got those robots
+      (can-have-geode-robots? blueprint robots-count (1- time))
+      ;; We are short of one robot, but have enough resources to to build it
+      (and (can-have-geode-robots? blueprint (1- robots-count) (1- time))
+           (can-collect-ore? blueprint (first (geode blueprint)) (1- time))
+           (can-collect-obsidian? blueprint (second (geode blueprint)) (1- time))))))
+
+
+(defun maximize (blueprint &optional (limit 24))
+  (loop for n from 1 unless (can-crack-geode? blueprint n limit) return (1- n)))
+
+(defun quality-level (blueprint cracked) (* (id blueprint) cracked))
+
+#; Scratch
+
+(loop for b in (blueprints #P"scratch.txt") for cracked = (maximize b)
+      do (pr cracked b)
+      sum (quality-level b cracked))
+
+(can-crack-geode? (car (blueprints #P"scratch.txt")) 1 24)
+(maximize (car (blueprints #P"scratch.txt")) 24)
+(maximize (car (blueprints #P"scratch.txt")) 23)
+(maximize (cadr (blueprints #P"scratch.txt")) 30)
+
+(init-state)
+
+(simulate 24 (car (blueprints)))
+(simulate 24 (cadr (blueprints)))
+(simulate 24 (caddr (blueprints)))
+(simulate 24 (cadddr (blueprints)))
+(simulate 24 (caddddr (blueprints)))
+(loop for b in (blueprints) do (pr (id b) (simulate 24 b)))
+
+(can-crack-geode? (car (blueprints #P"scratch.txt")) 4 24)
+
+(simulate 18 (car (blueprints #P"scratch.txt")))
+(simulate 19 (car (blueprints #P"scratch.txt")))
+(simulate 20 (car (blueprints #P"scratch.txt")))
+(simulate 21 (car (blueprints #P"scratch.txt")))
+(simulate 22 (car (blueprints #P"scratch.txt"))) ; 5
+(simulate 23 (car (blueprints #P"scratch.txt")))
+(simulate 24 (car (blueprints #P"scratch.txt")))
+(simulate 24 (cadr (blueprints #P"scratch.txt")))
+
+(loop for b in (blueprints) do (pr (simulate b 24)))
+(sb-ext:gc :full t)
+#+#:excluded (&optional (file #P"src/2022/day19.txt"))
+#P"scratch.txt"
+
+;;; thought I could build lots of robots in one turn...

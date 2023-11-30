@@ -2,7 +2,7 @@
 ;;;; See http://quickutil.org for details.
 
 ;;;; To regenerate:
-;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:COPY-ARRAY :COPY-HASH-TABLE :DIVF :FLATTEN :HASH-TABLE-ALIST :HASH-TABLE-KEYS :HASH-TABLE-VALUES :HASH-TABLE-KEY-EXISTS-P :IF-LET :IOTA :MAKE-KEYWORD :MKSTR :MULF :NCYCLE :SYMB :VOID :WHEN-LET :WITH-GENSYMS) :ensure-package T :package "AOC.QUICKUTILS")
+;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:AIF :AWHEN :BND* :BND1 :COPY-ARRAY :COPY-HASH-TABLE :DIGITS :DIVF :FLATTEN :HASH-TABLE-ALIST ...) :ensure-package T :package "AOC.QUICKUTILS")
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (unless (find-package "AOC.QUICKUTILS")
@@ -13,14 +13,118 @@
 (in-package "AOC.QUICKUTILS")
 
 (when (boundp '*utilities*)
-  (setf *utilities* (union *utilities* '(:COPY-ARRAY :COPY-HASH-TABLE :DIVF
-                                         :FLATTEN :HASH-TABLE-ALIST
-                                         :MAPHASH-KEYS :HASH-TABLE-KEYS
-                                         :MAPHASH-VALUES :HASH-TABLE-VALUES
-                                         :HASH-TABLE-KEY-EXISTS-P :IF-LET :IOTA
+  (setf *utilities* (union *utilities* '(:LET1 :AIF :AWHEN :BND* :BND1
+                                         :COPY-ARRAY :COPY-HASH-TABLE :DIGITS
+                                         :DIVF :FLATTEN :HASH-TABLE-ALIST
+                                         :HASH-TABLE-KEY-EXISTS-P :MAPHASH-KEYS
+                                         :HASH-TABLE-KEYS :MAPHASH-VALUES
+                                         :HASH-TABLE-VALUES :IF-LET :IOTA
                                          :MAKE-KEYWORD :MKSTR :MULF :NCYCLE
-                                         :SYMB :VOID :WHEN-LET
+                                         :REPEAT :SYMB :VOID :WHEN-LET
                                          :STRING-DESIGNATOR :WITH-GENSYMS))))
+
+  (defmacro let1 (var val &body body)
+    "Bind VAR to VAL within BODY. Equivalent to LET with one binding."
+    `(let ((,var ,val))
+       ,@body))
+  
+
+  (defmacro aif (test then &optional else)
+    "Like IF, except binds the result of `test` to IT (via LET) for the scope of `then` and `else` expressions."
+    (aif-expand test then else))
+
+  (eval-when (:compile-toplevel :load-toplevel :execute)
+    (defun aif-expand (test then &optional else)
+      (let1 it (intern "IT")
+        `(let1 ,it ,test
+           (if ,it ,then ,else)))))
+  
+
+  (defmacro awhen (test &body body)
+    "Like WHEN, except binds the result of `test` to IT (via LET) for the scope of `body`."
+    (awhen-expand test body))
+
+  (eval-when (:compile-toplevel :load-toplevel :execute)
+    (defun awhen-expand (test body)
+      (let1 it (intern "IT")
+        `(let1 ,it ,test
+           (when ,it
+             ,@body)))))
+  
+
+  (defmacro bnd* (bindings &body body)
+    "Like LET*, but more powerful.
+
+Use a symbol as the name of the binding to expand to a standard LET:
+
+(bnd* (x
+       (y (list 1 2 3)))
+  (list x y)) ≡
+(let (x)
+  (let ((y (list 1 2 3)))
+    (list x y)))
+
+Use a list as the name of the binding to enable special type of expansions.
+
+If the CAR of the list is the symbol VALUES, expand to MULTIPLE-VALUE-BIND
+call:
+
+(bnd* (((values f r) (floor 130 11)))
+  (list f r)) ≡
+(multiple-value-bind (f r)
+     (floor 130 11)
+   (list f r))
+
+If the CAR of the list is the symbol WITH-SLOTS, expand to a WITH-SLOTS call:
+
+(bnd* (((with-slots x y) thing))
+  (incf x) (incf y))
+≡
+(with-slots (x y) thing
+  (incf x) (incf y))
+
+Otherwise, if the name of the binding is a list but none of the above applies,
+BND* will expand to a DESTRUCTURING-BIND call:
+
+(bnd* (((a b) '(1 2)))
+  (list a b))
+≡
+(destructuring-bind (a b)
+    '(1 2)
+  (list a b))"
+    (labels ((mklist (x) (if (atom x) (list x) x))
+             (expand (bb)
+               (cond ((null bb) (signal 'unexpected))
+                     (t (let* ((b (mklist (car bb)))
+                               (var (car b))
+                               (val (cadr b)))
+                          (cond ((symbolp var)
+                                 `(let (,b)
+                                    ,@(if (rest bb)
+                                        (list (expand (rest bb)))
+                                        body)))
+                                ((eq (car var) 'values)
+                                 `(multiple-value-bind ,(rest var) ,val
+                                    ,@(if (rest bb)
+                                        (list (expand (rest bb)))
+                                        body)))
+                                ((eq (car var) 'with-slots)
+                                 `(with-slots ,(rest var) ,val
+                                    ,@(if (rest bb)
+                                        (list (expand (rest bb)))
+                                        body)))
+                                (t `(destructuring-bind ,@b
+                                      ,@(if (rest bb)
+                                          (list (expand (rest bb)))
+                                          body)))))))))
+      (expand bindings)))
+  
+
+  (defmacro bnd1 (binding &body body)
+    "Equivalent to BND* with one binding."
+    `(bnd* (,binding)
+       ,@body))
+  
 
   (defun copy-array (array &key (element-type (array-element-type array))
                                 (fill-pointer (and (array-has-fill-pointer-p array)
@@ -63,6 +167,25 @@ copy is returned by default."
       copy))
   
 
+  (defun digits (n &optional (base 10))
+    "Return a list of the digits of the non-negative integer `n` in base
+`base`. By default, decimal digits are returned.
+
+The order of the digits is such that the `k`th element of the list refers to the coefficient of `base^k`. In other words, given the resulting list
+
+    (c0 c1 c2 ... ck)
+
+the following identity holds:
+
+    n = c0 + c1*base + c2*base^2 + ... + ck*base^k."
+    (check-type n (integer 0))
+    (check-type base (integer 2))
+    (loop :with remainder
+          :do (setf (values n remainder) (truncate n base))
+          :collect remainder
+          :until (zerop n)))
+  
+
   (define-modify-macro divf (&optional (1/ratio 2)) /
     "A modifying version of division, similar to `decf`.")
   
@@ -84,6 +207,11 @@ copy is returned by default."
                  (push (cons k v) alist))
                table)
       alist))
+  
+
+  (defun hash-table-key-exists-p (hash-table key)
+    "Does `key` exist in `hash-table`?"
+    (nth-value 1 (gethash key hash-table)))
   
 
   (declaim (inline maphash-keys))
@@ -120,11 +248,6 @@ copy is returned by default."
                         (push v values))
                       table)
       values))
-  
-
-  (defun hash-table-key-exists-p (hash-table key)
-    "Does `key` exist in `hash-table`?"
-    (nth-value 1 (gethash key hash-table)))
   
 
   (defmacro if-let (bindings &body (then-form &optional else-form))
@@ -196,6 +319,11 @@ Extracted from _On Lisp_, chapter 4."
   (defun ncycle (list)
     "Mutate `list` into a circlular list."
     (nconc list list))
+  
+
+  (defmacro repeat (n &body body)
+    "Runs BODY N times."
+    `(loop repeat ,n do ,@body))
   
 
   (defun symb (&rest args)
@@ -319,9 +447,9 @@ unique symbol the named variable will be bound to."
     `(with-gensyms ,names ,@forms))
   
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (export '(copy-array copy-hash-table divf flatten hash-table-alist
-            hash-table-keys hash-table-values hash-table-key-exists-p if-let
-            iota make-keyword mkstr mulf ncycle symb void when-let when-let*
-            with-gensyms with-unique-names)))
+  (export '(aif awhen bnd* bnd1 copy-array copy-hash-table digits divf flatten
+            hash-table-alist hash-table-key-exists-p hash-table-keys
+            hash-table-values if-let iota make-keyword mkstr mulf ncycle repeat
+            symb void when-let when-let* with-gensyms with-unique-names)))
 
 ;;;; END OF quickutils.lisp ;;;;

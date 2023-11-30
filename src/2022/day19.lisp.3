@@ -1,0 +1,83 @@
+(defpackage :aoc/2022/19 #.cl-user::*aoc-use*)
+(in-package :aoc/2022/19)
+
+(defstruct (blueprint :conc-name)
+  id ore clay obsidian geode)
+
+(defun parse-blueprint (string)
+  (destructuring-bind (id ore-robot-cost clay-robot-cost
+                          obsidian-robot-ore-cost obsidian-robot-clay-cost
+                          geode-robot-ore-cost geode-robot-obsidian-cost)
+      (mapcar #'parse-integer (cl-ppcre:all-matches-as-strings "\\d+" string))
+    (make-blueprint :id id
+                    :ore (list ore-robot-cost 0 0)
+                    :clay (list clay-robot-cost 0 0)
+                    :obsidian (list obsidian-robot-ore-cost obsidian-robot-clay-cost 0)
+                    :geode (list geode-robot-ore-cost 0 geode-robot-obsidian-cost))))
+
+(defun blueprints (&optional (file #P"src/2022/day19.txt"))
+  (mapcar #'parse-blueprint (uiop:read-file-lines file)))
+
+(defmacro while (test-form &body body)
+  `(loop while ,test-form ,@body))
+
+(defun can-collect-ore? (target blueprint remaining)
+  (cond ((< remaining 0) nil)
+        ((<= target remaining) t)
+        (t (awhen (can-build-ore? blueprint remaining)
+             (decf remaining it)
+             ))))
+
+(defun can-build-ore? (blueprint remaining)
+  (and (every [can-collect? blueprint remaining _] (ore blueprint))
+       (first (ore blueprint))))
+
+(defun can-collect? (blueprint remaining resources)
+  (and
+    (can-collect-ore? blueprint remaining (car resources))
+    ; XXX others
+    ))
+(can-collect-ore? 2 (car (blueprints)) 1)
+
+(defun can-crack-geode? (target blueprint remaining)
+  (labels (((loop for n from 1
+         thereis (loop ))))
+(defun maximize (limit blueprint)
+  (labels ((recur (target costs elapsed)
+             (cond ((null costs) nil)
+                   ((= elapsed limit) nil)
+                   (t ()))))
+    (loop for n from 1
+          for solvable? = (recur n (reverse (costs blueprint)) 0)
+          unless solvable? return (quality-level blueprint (1- n)))))
+
+(defun quality-level (blueprint cracked) (* (id blueprint) cracked))
+
+#; Scratch
+
+(blueprints #P"scratch.txt")
+
+(init-state)
+
+(simulate 24 (car (blueprints)))
+(simulate 24 (cadr (blueprints)))
+(simulate 24 (caddr (blueprints)))
+(simulate 24 (cadddr (blueprints)))
+(simulate 24 (caddddr (blueprints)))
+(loop for b in (blueprints) do (pr (id b) (simulate 24 b)))
+
+(simulate 18 (car (blueprints #P"scratch.txt")))
+(simulate 19 (car (blueprints #P"scratch.txt")))
+(simulate 20 (car (blueprints #P"scratch.txt")))
+(simulate 21 (car (blueprints #P"scratch.txt")))
+(simulate 22 (car (blueprints #P"scratch.txt"))) ; 5
+(simulate 23 (car (blueprints #P"scratch.txt")))
+(simulate 24 (car (blueprints #P"scratch.txt")))
+(simulate 24 (cadr (blueprints #P"scratch.txt")))
+
+(loop for b in (blueprints) do (pr (simulate b 24)))
+(sb-ext:gc :full t)
+#+#:excluded (&optional (file #P"src/2022/day19.txt"))
+#P"scratch.txt"
+
+;;; thought I could build lots of robots in one turn...

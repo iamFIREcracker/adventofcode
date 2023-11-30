@@ -7,8 +7,10 @@ all: test
 vendor: vendor/pmdb.lisp vendor/quickutils.lisp
 vendor/pmdb.lisp:
 	cp ~/.lisp/pmdb.lisp vendor/pmdb.lisp
-vendor/quickutils.lisp: vendor/make-quickutils.lisp
+vendor/quickutils.lisp: vendor/quickutil vendor/make-quickutils.lisp
 	cd vendor && sbcl --noinform --load "make-quickutils.lisp"  --non-interactive
+vendor/quickutil:
+	ln -sf ~/Workspace/quickutil vendor/quickutil
 
 # Info ------------------------------------------------------------------------
 .PHONY: lisp-info
@@ -36,7 +38,7 @@ test-ros: $(lisps)
 	ros run \
 		--load "build/setup.lisp" \
 		--load "build/test.lisp"
-	
+
 # Report warnings ------------------------------------------------------------
 .PHONY: report-warnings
 report-warnings: report-warnings-sbcl

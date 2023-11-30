@@ -1,29 +1,10 @@
 (defpackage "AOC.QUICKUTILS.LOCAL"
   (:use :cl)
   (:export
-    :digits
     :list-hash-table
     ))
 
 (in-package "AOC.QUICKUTILS.LOCAL")
-
-(defun digits (n &optional (base 10))
-  "Return a list of the digits of the non-negative integer `n` in base
-`base`. By default, decimal digits are returned.
-
-The order of the digits is such that the `k`th element of the list refers to the coefficient of `base^k`. In other words, given the resulting list
-
-    (c0 c1 c2 ... ck)
-
-the following identity holds:
-
-    n = c0 + c1*base + c2*base^2 + ... + ck*base^k."
-  (check-type n (integer 0))
-  (check-type base (integer 2))
-  (loop :with remainder
-        :do (setf (values n remainder) (truncate n base))
-        :collect remainder
-        :until (zerop n)))
 
 (defun list-hash-table (list key &rest hash-table-initargs)
   "Creates a hash table starting from the elements of `list`.

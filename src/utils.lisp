@@ -86,13 +86,15 @@
   1
   3
   "
-  (values-list
-    (reduce
-      #'(lambda (acc each &aux (value (funcall key each)))
-         (if (or (not acc) (funcall predicate value (second acc)))
-           (list each value)
-           acc))
-      x :initial-value nil)))
+  (if (not x)
+    (values 0)
+    (values-list
+      (reduce
+        #'(lambda (acc each &aux (value (funcall key each)))
+           (if (or (not acc) (funcall predicate value (second acc)))
+             (list each value)
+             acc))
+        x :initial-value nil))))
 
 (defun dividesp (divisor number)
   "Returns `T` if `DIVISOR` divies `NUMBER`."
@@ -659,7 +661,7 @@
     (setf deltas *nhood-diagonal-list*))
   (loop for d in deltas collect (mapcar #'+ pos d)))
 
-(defun dijkstra (init-state &key (init-cost 0) goal-state goalp neighbors
+(defun dijkstra (init-state &key (init-cost 0) goal-state (goalp 'void) neighbors
                             (test 'eql) state-key prune)
   (a* init-state
       :init-cost init-cost
@@ -671,7 +673,7 @@
       :state-key state-key
       :prune prune))
 
-(defun a* (init-state &key (init-cost 0) goal-state goalp neighbors
+(defun a* (init-state &key (init-cost 0) goal-state (goalp 'void) neighbors
                       (heuristic (error "Heuristic is required"))
                       (test 'eql) state-key prune
                       &aux (cost-so-far (make-hash-table :test test))
@@ -707,7 +709,7 @@
                                                   (priority next-cost next-state))))))))
       (values
         best-state
-        (gethash (key best-state) cost-so-far)
+        (and best-state (gethash (key best-state) cost-so-far))
         (search-backtrack come-from best-state)
         cost-so-far))))
 
@@ -755,7 +757,7 @@
                       (enqueue next-state frontier)))))
       (values
         best-state
-        (gethash (key best-state) cost-so-far)
+        (and best-state (gethash (key best-state) cost-so-far))
         (search-backtrack come-from best-state)
         cost-so-far))))
 
@@ -806,6 +808,7 @@
   (with-output-to-string (s)
     (format s "~{~a~^,~}" args)))
 
+;; XXX remove
 (defmacro gathering (&body body)
   "Run `body` to gather some things and return a fresh list of them.
 

@@ -32,7 +32,7 @@
     :when (= n 100)
     :return (firt-8-digits digits)))
 
-(defun repeat (message times)
+(defun srepeat (message times)
   (loop
     :for i :from 1 :to times
     :appending message))
@@ -48,7 +48,7 @@
     :collecting (rem sum 10) into output
     :finally (return (nreverse output))))
 
-(defun solve-part2 (message &aux (message-digits (repeat (reverse (digits message)) 10000)))
+(defun solve-part2 (message &aux (message-digits (srepeat (reverse (digits message)) 10000)))
   (loop
     :with offset = (firt-7-digits-as-integer message-digits)
     :for n = 0 :then (1+ n)

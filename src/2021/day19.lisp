@@ -94,6 +94,9 @@
   (loop for row in matrix collect (dot-product row point)))
 (defun locate (b1 b2 m) (v- b1 (rotate b2 m)))
 
+(defun v+ (v1 v2) (mapcar #'+ v1 v2))
+(defun v- (v1 v2) (mapcar #'- v1 v2))
+
 
 #+#:excluded (find-beacons (mapcar #'parse-scanner (cl-ppcre:split "\\n\\n" (uiop:read-file-string "src/2021/day19.txt"))))
 #+#:excluded (setq beacons *)

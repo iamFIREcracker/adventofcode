@@ -1,0 +1,78 @@
+(defpackage :aoc/2022/20 #.cl-user::*aoc-use*)
+(in-package :aoc/2022/20)
+
+(defun numbers (&optional (file #P"src/2022/day20.txt"))
+  (uiop:read-file-forms file))
+
+(defstruct (state (:conc-name))
+  refs ring)
+
+(defun make-cyclic-dlink (content)
+  (bnd1 (d (make-dlink :content content))
+    (setf (dlink-prev d) d
+          (dlink-next d) d)
+    d))
+
+(defun init-state (&optional (numbers (numbers)))
+  (let* ((head (make-cyclic-dlink (car numbers)))
+         (refs (list head)))
+    (dolist (each (cdr numbers))
+      (push (dlink-insertf (car refs) each) refs))
+    (make-state :refs (reverse refs)
+                :ring head)))
+
+(defun dlink-move-after (elem target)
+  (bnd1 (next (dlink-next target))
+    (dlink-removef elem)
+    (setf (dlink-next target) elem
+          (dlink-prev elem)   target
+          (dlink-next elem)   next
+          (dlink-prev next)   elem)))
+
+(defun print-state (state)
+  (bnd1 (first (car (refs state)))
+    (pr (loop for i from 0 for each = first then (dlink-next each)
+              collect (dlink-content each)
+              if (> i 10000) do (error "FUCK")
+              until (eq (dlink-next each) first)))
+    (values)))
+
+(defun mix (state)
+  (flet ((move (each &aux (target each))
+           (unless (zerop (dlink-content each))
+             (if (< (dlink-content each) 0)
+               (setf target (dlink-prev target)))
+             (repeat (abs (dlink-content each))
+               (if (< (dlink-content each) 0)
+                 (setf target (dlink-prev target))
+                 (setf target (dlink-next target))))
+             (unless (eq (dlink-next target) each)
+               (if (eq each target)
+                 (dlink-move-after each (dlink-next each))
+                 (dlink-move-after each target))))))
+    (dolist (each (refs state))
+      (move each))
+    state))
+
+(defun coordinates (state)
+  (bnd1 (zero (find-if [= _ 0] (refs state) :key #'dlink-content))
+    (loop for i from 0 for each = zero then (dlink-next each)
+          when (member i (list 1000 2000 3000)) sum (pr (dlink-content each))
+          until (= i 3001))))
+
+#; Scratch
+(numbers)
+(length (numbers))
+
+(mapcar #'dlink-content (refs (init-state (numbers #P"scratch.txt"))))
+(print-state (init-state (numbers #P"scratch.txt")))
+
+(print-state (mix (init-state (list -1 0 1 2))))
+(print-state (mix (init-state (list 4 0 1 2))))
+(coordinates (mix (init-state (numbers #P"scratch.txt"))))
+(coordinates (mix (init-state (numbers))))
+
+(refs (init-state))
+(&optional (file #P"src/2022/day20.txt"))
+#P"scratch.txt"
+-10381

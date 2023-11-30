@@ -1,0 +1,225 @@
+(defpackage :aoc/2022/15 #.cl-user::*aoc-use*)
+(in-package :aoc/2022/15)
+
+#+#:excluded (&optional (file #P"src/2022/day15.txt"))
+#+#:excluded #P"scratch.txt"
+
+(defun parse-input (&optional (file #P"src/2022/day15.txt"))
+  (loop for s in (uiop:read-file-lines file)
+        for (sx sy bx by) = (cl-ppcre:all-matches-as-strings "-?\\d+" s)
+        collect (mapcar #'parse-integer (list sx sy bx by))))
+(defun bounding-box (&optional (input (parse-input)))
+  (loop for (sx sy bx by) in input
+        minimize sx into min-x maximize sx into max-x
+        minimize bx into min-x maximize bx into max-x
+        minimize sy into min-y maximize sy into max-y
+        minimize by into min-y maximize by into max-y
+        finally (return (list min-x max-x min-y max-y))))
+
+; (bounding-box)
+(defun solve (&optional (input (parse-input)) (y 2000000))
+  (destructuring-bind (min-x max-x min-y max-y) (bounding-box input)
+    (- max-x min-x
+       (loop for x from min-x upto max-x
+             count (loop for (sx sy bx by) in input
+                         never (or (equal (list x y) (list sx sy))
+                                   (equal (list x y) (list bx by))
+                                   (in-range-p (list x y)
+                                               (list sx sy)
+                                               (list bx by))))))))
+
+(defun in-range-p (coord sensor beacon)
+  (<= (manhattan-distance coord sensor)
+      (manhattan-distance sensor beacon)))
+
+#+#:excluded (solve (parse-input #P"scratch.txt") 10)
+#+#:excluded (solve (parse-input #+#:excluded #P"scratch.txt") #+#:excluded 10)
+3818018
+;;; submitted with y=10...
+3818017
+;;; nope
+
+#; Scratch 
+(defun parse-input (&optional (file #P"src/2022/day15.txt"))
+  (loop for s in (uiop:read-file-lines file)
+        for (sx sy bx by) = (mapcar #'parse-integer
+                                    (cl-ppcre:all-matches-as-strings "-?\\d+" s))
+        collect (list (list sx sy) (list bx by))))
+(defun bounding-box (&optional (input (parse-input)))
+  (loop for (sensor beacon) in input
+        for (sx sy) = sensor for (bx by) = beacon
+        for d = (manhattan-distance sensor beacon)
+        minimize (- sx d) into min-x maximize (+ sx d) into max-x
+        minimize bx into min-x maximize bx into max-x
+        minimize (- sy d) into min-y maximize (+ sy d) into max-y
+        minimize by into min-y maximize by into max-y
+        finally (return (list min-x max-x min-y max-y))))
+
+; (bounding-box)
+(defun solve (&optional (input (parse-input)) (y 2000000))
+  (destructuring-bind (min-x max-x min-y max-y) (bounding-box input)
+    (- max-x min-x
+       (loop for x from min-x upto max-x
+             for candidate = (list x y)
+             count (loop for (sensor beacon) in input
+                         never (or (equal candidate sensor)
+                                   (equal candidate beacon)
+                                   (in-range-p (list x y)
+                                               sensor
+                                               beacon)))))))
+
+(defun in-range-p (coord sensor beacon)
+  (<= (manhattan-distance coord sensor)
+      (manhattan-distance sensor beacon)))
+
+#+#:excluded (solve (parse-input #P"scratch.txt") 10)
+#+#:excluded (solve (parse-input #+#:excluded #P"scratch.txt") #+#:excluded 10)
+5508234
+
+(defun tuning-frequency (x y) (+ (* x 4000000) y))
+
+(loop for x from 0 to 20
+      do (loop for y from 0 to 20 for candidate = (list x y)
+               do (loop for (sensor beacon) in (parse-input #P"scratch.txt")
+                        never (or (equal candidate sensor)
+                                  (equal candidate beacon)
+                                  (in-range-p (list x y)
+                                              sensor
+                                              beacon))
+                        finally (pr (tuning-frequency x y)))))
+(tuning-frequency 14 11)
+
+(defstruct (nanobot (:type list)
+                    :conc-name)
+  pos r)
+(defun x (pos) (first pos))
+(defun y (pos) (second pos))
+(defun parse-nanobot (string)
+  (destructuring-bind (sx sy bx by)
+      (mapcar #'parse-integer (cl-ppcre:all-matches-as-strings "-?\\d+" string))
+    (make-nanobot :pos (list sx sy) :r (manhattan-distance (list sx sy)
+                                                           (list bx by)))))
+
+(defstruct (box (:type list)
+                (:constructor make-box%))
+  range-x range-y)
+
+(defun make-box (x-min x-max y-min y-max)
+  (let* ((box (make-box% :range-x (list x-min x-max)
+                         :range-y (list y-min y-max)))
+         (area (box-area box)))
+    (assert (or (= area 0) (pow2p area)))
+    box))
+
+(defun pow2p (n)
+  (and (/= n 0) (zerop (logand n (1- n)))))
+
+(defun make-pow2 (number)
+  (expt 2 (ceiling (log number 2))))
+
+
+(defstruct (state (:type list)
+                  (:constructor make-state%)
+                  :conc-name)
+  box num-in-range area)
+
+(defun make-state (bots box)
+  (make-state% :box box
+               :num-in-range (count-in-range bots box)
+               :area (box-area box)))
+
+
+(defun count-in-range (nanobots box)
+  (count-if [nanobot-overlaps-p _ box] nanobots))
+
+(defun nanobot-overlaps-p (nb box)
+  (loop :with distance = 0
+        :for (v-min v-max) :in box
+        :for v :in (pos nb)
+        :if (< v v-min) :do (incf distance (- v-min v))
+        :else if (> v v-max) :do (incf distance (- v v-max))
+        :never (> distance (r nb))))
+
+(defun box-area (box)
+  (destructuring-bind ((x-min x-max) (y-min y-max)) box
+    (* (- x-max x-min) (- y-max y-min))))
+
+
+(defun part2 (&optional (bots (mapcar #'parse-nanobot (uiop:read-file-lines #P"src/2022/day15.txt"))))
+  (let ((box (make-box 0 (make-pow2 4000000) 0 (make-pow2 4000000))))
+    (loop :with queue = (make-hq :predicate #'state-better-p)
+          :initially (hq-insert queue (make-state bots box))
+          :until (hq-empty-p queue)
+          :for state = (hq-pop queue)
+          :count (box-point-p (box state)) into processed
+          :do (if (box-point-p (box state))
+                (if (zerop (num-in-range state))
+                  (destructuring-bind (x-range y-range) (box state)
+                    (return (tuning-frequency (car x-range) (car y-range))))
+                  (if (zerop (mod processed 100000)) (pr processed)))
+                (dolist (subbox (box-subdivisions (box state)))
+                  (hq-insert queue (make-state bots subbox)))))))
+
+#+#:excluded (part2)
+
+
+(defun state-better-p (state other)
+  (destructuring-bind (num-nanobots area) (rest state)
+    (destructuring-bind (o-num-nanobots o-area) (rest other)
+      (or (< num-nanobots o-num-nanobots)
+          (and (= num-nanobots o-num-nanobots)
+               (or (< area o-area)))))))
+
+(defun box-point-p (box)
+  (loop :for (min max) :in box
+        :always (= min max)))
+
+(defun box-subdivisions (box)
+  (unless (box-point-p box)
+    #+#:excluded (assert (plusp (box-area box)))
+    (if (= (box-area box) 1)
+      (loop :for (x y) :in (box-vertices box)
+            :collect (make-box x x y y))
+      (destructuring-bind ((x-min x-max) (y-min y-max)) box
+        (let ((x-mid (+ x-min (floor (- x-max x-min) 2)))
+              (y-mid (+ y-min (floor (- y-max y-min) 2))))
+          (loop :for (x-min x-max) :on (list x-min x-mid x-max)
+                :when x-max :append
+                (loop :for (y-min y-max) :on (list y-min y-mid y-max)
+                      :when y-max :collect (make-box x-min x-max
+                                                     y-min y-max))))))))
+
+(box-area '((524287 524288) (524287 524287)))
+(box-subdivisions '((524287 524288) (524287 524287)))
+
+(box-subdivisions '((0 4) (0 4)))
+(box-subdivisions '((0 2) (0 2)))
+
+(defun box-vertices (box)
+  (destructuring-bind (x-range y-range) box
+    (list (list (car x-range) (car y-range)))
+    #+#:excluded (loop :for x :in x-range :append
+                       (loop :for y :in y-range :collect (list x y)))))
+
+(box-area '((0 0) (1 1)))
+#+#:excluded (part2)
+
+01234
+01234
+01234
+01234
+
+(box-vertices '((524198 524199) (524187 524188)))
+
+(defun part2 (&optional (bots (mapcar #'parse-nanobot (uiop:read-file-lines #P"src/2022/day15.txt"))))
+  (let ((box (make-box 0 4000000 0 4000000)))
+    (count-in-range  bots box)))
+
+(defun make-box (x-min x-max y-min y-max)
+  (let* ((box (make-box% :range-x (list x-min x-max)
+                         :range-y (list y-min y-max)))
+         (area (box-area box)))
+    #+#:excluded (assert (or (= area 0) (pow2p area)))
+    box))
+
+#+#:excluded (part2)
