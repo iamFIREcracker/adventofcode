@@ -1,0 +1,30 @@
+(defpackage :aoc/2023/01 #.cl-user::*aoc-use*)
+(in-package :aoc/2023/01)
+
+(defun calibration-value (string)
+  (parse-integer (mkstr (find-if #'digit-char-p string)
+                        (find-if #'digit-char-p string :from-end t))))
+#+#:excluded (mapcar #'calibration-value (uiop:read-file-lines #P"src/2023/day01.txt"))
+#+#:excluded (reduce #'+ *)
+
+(defun find-digit (string &key from-end &aux (indices (iota (length string))))
+  (dolist (start (if from-end (reverse indices) indices))
+    (if (digit-char-p (char string start))
+      (return (- (char-code (char string start)) (char-code #\0)))
+      (let ((digit 1))
+        (dolist (s (list "one" "two" "three" "four" "five" "six" "seven" "eight" "nine"))
+          (if (>= (- (length string) start) (length s))
+            (if (string= s (subseq string start (+ (length s) start)))
+              (return-from find-digit digit)))
+          (incf digit))))))
+
+(defun calibration-value-p2 (string)
+  (parse-integer (mkstr (find-digit string)
+                        (find-digit string :from-end t))))
+#+#:excluded (calibration-value-p2 "7pqrstsixteen")
+
+(define-solution (2023 01) (strings)
+  (values (reduce #'+ (mapcar #'calibration-value strings))
+          (reduce #'+ (mapcar #'calibration-value-p2 strings))))
+
+(define-test (2023 01) (54630 54770))
