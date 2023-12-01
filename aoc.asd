@@ -77,7 +77,8 @@
                  (:auto-module "2019")
                  (:auto-module "2020")
                  (:auto-module "2021")
-                 (:auto-module "2022"))))
+                 (:auto-module "2022")
+                 (:auto-module "2023"))))
   :in-order-to ((test-op (test-op :aoc/tests))))
 
 (asdf:defsystem :aoc/tests
