@@ -33,6 +33,7 @@
                :mulf
                :ncycle
                :repeat
+               :string-starts-with-p
                :symb
                :void
                :when-let

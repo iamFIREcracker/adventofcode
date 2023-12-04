@@ -2,7 +2,7 @@
 ;;;; See http://quickutil.org for details.
 
 ;;;; To regenerate:
-;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:AIF :AWHEN :BND* :BND1 :COPY-ARRAY :COPY-HASH-TABLE :DIGITS :DIVF :DOLIST+ :DORANGE :DORANGEI :DOSEQ :FLATTEN :HASH-TABLE-ALIST :HASH-TABLE-KEY-EXISTS-P :HASH-TABLE-KEYS :HASH-TABLE-VALUES :IF-LET :IOTA :LOOPING :MAKE-KEYWORD :MKSTR :MULF :NCYCLE :REPEAT :SYMB :VOID :WHEN-LET :WITH-GENSYMS) :ensure-package T :package "AOC.QUICKUTILS")
+;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:AIF :AWHEN :BND* :BND1 :COPY-ARRAY :COPY-HASH-TABLE :DIGITS :DIVF :DOLIST+ :DORANGE :DORANGEI :DOSEQ :FLATTEN :HASH-TABLE-ALIST :HASH-TABLE-KEY-EXISTS-P :HASH-TABLE-KEYS :HASH-TABLE-VALUES :IF-LET :IOTA :LOOPING :MAKE-KEYWORD :MKSTR :MULF :NCYCLE :REPEAT :STRING-STARTS-WITH-P :SYMB :VOID :WHEN-LET :WITH-GENSYMS) :ensure-package T :package "AOC.QUICKUTILS")
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (unless (find-package "AOC.QUICKUTILS")
@@ -22,7 +22,8 @@
                                          :HASH-TABLE-VALUES :IF-LET :IOTA
                                          :MKSTR :SYMB :STRING-DESIGNATOR
                                          :WITH-GENSYMS :LOOPING :MAKE-KEYWORD
-                                         :MULF :NCYCLE :REPEAT :VOID :WHEN-LET))))
+                                         :MULF :NCYCLE :REPEAT
+                                         :STRING-STARTS-WITH-P :VOID :WHEN-LET))))
 
   (defmacro let1 (var val &body body)
     "Bind VAR to VAL within BODY. Equivalent to LET with one binding."
@@ -499,6 +500,12 @@ Examples:
     `(loop repeat ,n do ,@body))
   
 
+  (defun string-starts-with-p (prefix s)
+    "Returns T if the first few characters of `s` are equalt to `prefix`."
+    (and (<= (length prefix) (length s))
+         (string= prefix s :end2 (length prefix))))
+  
+
   (defun void (&rest args)
     "Do absolutely nothing, and return absolutely nothing."
     (declare (ignore args))
@@ -570,7 +577,8 @@ PROGN."
   (export '(aif awhen bnd* bnd1 copy-array copy-hash-table digits divf dolist+
             dorange dorangei doseq flatten hash-table-alist
             hash-table-key-exists-p hash-table-keys hash-table-values if-let
-            iota looping make-keyword mkstr mulf ncycle repeat symb void
-            when-let when-let* with-gensyms with-unique-names)))
+            iota looping make-keyword mkstr mulf ncycle repeat
+            string-starts-with-p symb void when-let when-let* with-gensyms
+            with-unique-names)))
 
 ;;;; END OF quickutils.lisp ;;;;
