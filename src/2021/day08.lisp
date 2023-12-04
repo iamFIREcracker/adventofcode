@@ -34,7 +34,7 @@
                                    (9 . #b1101111)))
 
 (defun signal->digit (mapping s &aux (segments-mask 0))
-  (dovector (ch s)
+  (doseq (ch s)
     (let ((i (position ch mapping)))
       (setf segments-mask (dpb 1 (byte 1 i) segments-mask))))
   (car (rassoc segments-mask *digits->segments*)))

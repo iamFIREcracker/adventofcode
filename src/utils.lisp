@@ -395,42 +395,6 @@
   1 when n > m"
   (signum (- n m)))
 
-;;;; Iterators ----------------------------------------------------------------
-
-(defmacro dorange ((var from to &optional (delta 1)) &body body)
-  "Perform `body` on the given range of values.
-  During iteration `body` will be executed with `var` bound to successive values
-  in the range [`from`, `to`).
-
-  Example:
-    (dorange (x 5 8)
-      (pr x))
-    ; =>
-    5
-    6
-    7
-  "
-  (with-gensyms (lto ldelta comp)
-    `(let* ((,lto ,to)
-            (,ldelta ,delta)
-            (,comp (if (> ,ldelta 0) '< '>)))
-        (loop
-          :for ,var = ,from :then (+ ,var ,ldelta)
-          :while (funcall ,comp ,var ,lto)
-          :do (progn ,@body)))))
-
-(defmacro doirange ((var from to &optional (delta 1)) &body body)
-  "Similar to `DORANGE`, but `TO` is now included in the range."
-  (let ((to-form (list (if (> delta 0) '1+ '1-) to)))
-    `(dorange (,var ,from ,to-form ,delta)
-      ,@body)))
-
-(defmacro dovector ((var vector &optional ret) &body body)
-  "Perform `body` on all the elements of `vector`."
-  `(loop :for ,var :across ,vector
-         :do ,@body
-         :finally (return ,ret)))
-
 ;;;; Hash tables --------------------------------------------------------------
 
 (defun hash-table-insert (ht key value) ;; XXX this cannot be defined as macro, somehow..
@@ -452,8 +416,8 @@
         (max-x (reduce #'max (hash-table-keys h) :key #'realpart))
         (min-y (reduce #'min (hash-table-keys h) :key #'imagpart))
         (max-y (reduce #'max (hash-table-keys h) :key #'imagpart)))
-    (doirange (y max-y min-y -1)
-      (doirange (x min-x max-x)
+    (dorangei (y max-y min-y -1)
+      (dorangei (x min-x max-x)
         (let ((pos (complex x y)))
           (format stream "~a" (funcall key (gethash pos h) pos))))
       (format stream "~&"))))

@@ -16,6 +16,10 @@
                :copy-hash-table
                :digits
                :divf
+               :dolist+
+               :dorange
+               :dorangei
+               :doseq
                :flatten
                :hash-table-alist
                :hash-table-key-exists-p

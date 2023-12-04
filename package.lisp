@@ -30,10 +30,6 @@
     :-><
     :with-slots-as-list
 
-    :dorange
-    :doirange
-    :dovector
-
     :hash-table-insert
     :print-hash-table
     :print-hash-table-map

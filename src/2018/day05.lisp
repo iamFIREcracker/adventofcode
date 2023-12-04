@@ -8,7 +8,7 @@
 
 (defun reduce-polymer (polymer)
   (let (reduced)
-    (dovector (c polymer (coerce (nreverse reduced) 'string))
+    (doseq (c polymer (coerce (nreverse reduced) 'string))
       (if (and reduced (char-different-case-p (first reduced) c))
         (pop reduced)
         (push c reduced)))))
