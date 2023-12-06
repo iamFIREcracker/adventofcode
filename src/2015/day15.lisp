@@ -1,8 +1,7 @@
 (defpackage :aoc/2015/15 #.cl-user::*aoc-use*)
 (in-package :aoc/2015/15)
 
-(defun parse-properties (string)
-  (mapcar #'parse-integer (cl-ppcre:all-matches-as-strings "-?\\d+" string)))
+(defun parse-properties (string) (extract-integers string))
 (defun calories (props) (nth 4 props))
 
 (defun parse-ingredient (string)

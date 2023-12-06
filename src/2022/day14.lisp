@@ -9,7 +9,7 @@
 (defun parse-cave (&optional (file #P"src/2022/day14.txt"))
   (let ((cave (make-hash-table :test 'equal)))
     (dolist (s (uiop:read-file-lines file))
-      (loop for (from-col from-row to-col to-row) on (mapcar #'parse-integer (cl-ppcre:all-matches-as-strings "\\d+" s)) by #'cddr
+      (loop for (from-col from-row to-col to-row) on (extract-positive-integers s) by #'cddr
             while to-row do  (loop with delta-row = (<=> to-row from-row)
                                    with delta-col = (<=> to-col from-col)
                                    for row = from-row then (+ row delta-row)

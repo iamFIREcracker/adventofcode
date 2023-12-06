@@ -81,6 +81,8 @@
     :parse-integers
     :read-integer
     :parse-char
+    :extract-positive-integers
+    :extract-integers
 
     :define-solution
     :define-test))

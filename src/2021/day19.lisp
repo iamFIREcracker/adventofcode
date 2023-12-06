@@ -4,11 +4,9 @@
 
 ;; Input
 (defun parse-scanner (paragraph &aux (paragraph (cl-ppcre:split "\\n" paragraph)))
-  (flet ((numbers (string)
-           (mapcar #'parse-integer (cl-ppcre:all-matches-as-strings "-?\\d+" string))))
-    (cons
-      (first (numbers (first paragraph)))
-      (mapcar #'numbers (rest paragraph)))))
+  (cons
+    (first (extract-integers (first paragraph)))
+    (mapcar #'extract-integers (rest paragraph))))
 (defun id (scn) (car scn))
 (defun beacons (scn) (cdr scn))
 

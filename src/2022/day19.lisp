@@ -12,7 +12,7 @@
   (destructuring-bind (id ore-robot-cost clay-robot-cost
                           obsidian-robot-ore-cost obsidian-robot-clay-cost
                           geode-robot-ore-cost geode-robot-obsidian-cost)
-      (mapcar #'parse-integer (cl-ppcre:all-matches-as-strings "\\d+" string))
+      (extract-positive-integers string)
     (make-blueprint :id id
                     :costs (list
                              (list

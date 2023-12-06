@@ -1,2 +1,7 @@
+/.DS_Store
 /.common-lisp/
 /.quicklisp/
+/src/.DS_Store
+/vendor/.common-lisp/
+/vendor/.quicklisp/
+/vendor/quickutil

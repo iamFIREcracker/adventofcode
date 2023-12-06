@@ -7,7 +7,7 @@
   boards)
 
 (defun parse-bingo (data)
-  (let ((to-draw (extract-integers (car data)))
+  (let ((to-draw (extract-positive-integers (car data)))
         (boards (parse-boards (cdr data))))
     (make-bingo :to-draw to-draw :boards boards)))
 
@@ -19,12 +19,9 @@
                   (let ((lines (subseq data 1 6)))
                     (looping
                       (dolist (s lines)
-                        (let ((row (extract-integers s)))
+                        (let ((row (extract-positive-integers s)))
                           (collect! row))))))
       (parse-boards (subseq data 6)))))
-
-(defun extract-integers (s)
-  (mapcar #'parse-integer (cl-ppcre:all-matches-as-strings "\\d+" s)))
 
 
 (defun play (game)

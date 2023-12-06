@@ -8,7 +8,7 @@
   (destructuring-bind (id ore-robot-cost clay-robot-cost
                           obsidian-robot-ore-cost obsidian-robot-clay-cost
                           geode-robot-ore-cost geode-robot-obsidian-cost)
-      (mapcar #'parse-integer (cl-ppcre:all-matches-as-strings "\\d+" string))
+      (extract-positive-integers string)
     (make-blueprint :id id
                     :ore (list ore-robot-cost 0 0)
                     :clay (list clay-robot-cost 0 0)
@@ -17,9 +17,6 @@
 
 (defun blueprints (&optional (file #P"src/2022/day19.txt"))
   (mapcar #'parse-blueprint (uiop:read-file-lines file)))
-
-(defmacro while (test-form &body body)
-  `(loop while ,test-form ,@body))
 
 (defun can-collect-ore? (target blueprint remaining)
   (cond ((< remaining 0) nil)

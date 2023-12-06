@@ -37,6 +37,7 @@
                :symb
                :void
                :when-let
+               :while
                :with-gensyms
 
                )

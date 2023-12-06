@@ -3,7 +3,7 @@
 
 
 (defun assignment-pairs ()
-  (mapcar [mapcar #'parse-integer (cl-ppcre:all-matches-as-strings "\\d+" _)]
+  (mapcar [extract-positive-integers _]
           (uiop:read-file-lines #P"src/2022/day04.txt")))
 
 (defun solution-run ()

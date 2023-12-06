@@ -14,8 +14,7 @@
                 for i from 1 do
                 (setf (aref array i) (loop for ch in stack when (alpha-char-p ch) collect ch)))
           array)
-        (mapcar [mapcar #'parse-integer (cl-ppcre:all-matches-as-strings "\\d+" _)]
-                moves)))))
+        (mapcar [extract-positive-integers _] moves)))))
 
 (defun top-crates (stacks)
   (format nil "~{~A~}" (map 'list #'car (subseq stacks 1))))

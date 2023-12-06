@@ -84,7 +84,6 @@
            (< (realpart c1) (realpart c2)))))
 
 (defun cart-move (cart track)
-  (declare (optimize (speed 3)))
   (with-slots (pos dir choices) cart
     (incf pos dir)
     (let ((ch (gethash pos track)))

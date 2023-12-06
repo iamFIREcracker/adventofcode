@@ -2,7 +2,7 @@
 ;;;; See http://quickutil.org for details.
 
 ;;;; To regenerate:
-;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:AIF :AWHEN :BND* :BND1 :COPY-ARRAY :COPY-HASH-TABLE :DIGITS :DIVF :DOLIST+ :DORANGE :DORANGEI :DOSEQ :FLATTEN :HASH-TABLE-ALIST :HASH-TABLE-KEY-EXISTS-P :HASH-TABLE-KEYS :HASH-TABLE-VALUES :IF-LET :IOTA :LOOPING :MAKE-KEYWORD :MKSTR :MULF :NCYCLE :REPEAT :STRING-STARTS-WITH-P :SYMB :VOID :WHEN-LET :WITH-GENSYMS) :ensure-package T :package "AOC.QUICKUTILS")
+;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:AIF :AWHEN :BND* :BND1 :COPY-ARRAY :COPY-HASH-TABLE :DIGITS :DIVF :DOLIST+ :DORANGE :DORANGEI :DOSEQ :FLATTEN :HASH-TABLE-ALIST :HASH-TABLE-KEY-EXISTS-P :HASH-TABLE-KEYS :HASH-TABLE-VALUES :IF-LET :IOTA :LOOPING :MAKE-KEYWORD :MKSTR :MULF :NCYCLE :REPEAT :STRING-STARTS-WITH-P :SYMB :VOID :WHEN-LET :WHILE :WITH-GENSYMS) :ensure-package T :package "AOC.QUICKUTILS")
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (unless (find-package "AOC.QUICKUTILS")
@@ -23,7 +23,8 @@
                                          :MKSTR :SYMB :STRING-DESIGNATOR
                                          :WITH-GENSYMS :LOOPING :MAKE-KEYWORD
                                          :MULF :NCYCLE :REPEAT
-                                         :STRING-STARTS-WITH-P :VOID :WHEN-LET))))
+                                         :STRING-STARTS-WITH-P :VOID :WHEN-LET
+                                         :WHILE))))
 
   (defmacro let1 (var val &body body)
     "Bind VAR to VAL within BODY. Equivalent to LET with one binding."
@@ -414,11 +415,11 @@ unique symbol the named variable will be bound to."
   
 
   (defmacro looping (&body body)
-    "Run `body` in an environment where the symbols COLLECT!, SUM!, and
-COUNT! are bound to functions that can be used to collect, sum, or count things
-respectively.
+    "Run `body` in an environment where the symbols COLLECT!, SUM!, COUNT!, MIN!
+and MAX! are bound to functions that can be used to collect, sum, count,
+minimize or maximize things respectively.
 
-Mixed usage of COLLECT!, SUM!, and COUNT! is not supported
+Mixed usage of COLLECT!, SUM!, COUNT!, MIN! and MAX! is not supported.
 
 Examples:
 
@@ -474,9 +475,23 @@ Examples:
                        (setf ,loop-type 'count! ,result 0))
                      (when item
                        (incf ,result)
-                       item)))))
+                       item))))
+                (,(symb "MIN!") (item)
+                 (if (and ,loop-type (not (eql ,loop-type 'min!)))
+                   (error "Cannot use MIN! together with ~A" ,loop-type)
+                   (progn
+                     (if (not ,loop-type)
+                       (setf ,loop-type 'min! ,result item))
+                     (setf ,result (min ,result item)))))
+                (,(symb "MAX!") (item)
+                 (if (and ,loop-type (not (eql ,loop-type 'max!)))
+                   (error "Cannot use MAX! together with ~A" ,loop-type)
+                   (progn
+                     (if (not ,loop-type)
+                       (setf ,loop-type 'max! ,result item))
+                     (setf ,result (max ,result item))))))
            ,@body)
-         (if (eql ,loop-type 'collect!)
+         (if (eq ,loop-type 'collect!)
            (nreverse ,result)
            ,result))))
   
@@ -573,12 +588,18 @@ PROGN."
            (when ,(caar binding-list)
              ,@(bind (cdr binding-list) forms))))))
   
+
+  (defmacro while (expression &body body)
+    "Executes `body` while `expression` is true."
+    `(loop while ,expression do
+       ,@body))
+  
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (export '(aif awhen bnd* bnd1 copy-array copy-hash-table digits divf dolist+
             dorange dorangei doseq flatten hash-table-alist
             hash-table-key-exists-p hash-table-keys hash-table-values if-let
             iota looping make-keyword mkstr mulf ncycle repeat
-            string-starts-with-p symb void when-let when-let* with-gensyms
-            with-unique-names)))
+            string-starts-with-p symb void when-let when-let* while
+            with-gensyms with-unique-names)))
 
 ;;;; END OF quickutils.lisp ;;;;

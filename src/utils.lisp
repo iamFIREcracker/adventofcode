@@ -812,6 +812,12 @@
   "Return the first character of `string`"
   (char string 0))
 
+(defun extract-positive-integers (s)
+  (mapcar #'parse-integer (cl-ppcre:all-matches-as-strings "\\d+" s)))
+
+(defun extract-integers (s)
+  (mapcar #'parse-integer (cl-ppcre:all-matches-as-strings "-?\\d+" s)))
+
 ;;;; Problems -----------------------------------------------------------------
 (defmacro define-solution ((year day)
                            (arg &optional (reader 'identity))

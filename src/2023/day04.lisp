@@ -4,9 +4,9 @@
 
 (defun winning-numbers (s)
   (bnd1 (numbers (second (split-sequence:split-sequence #\: s)))
-    (destructuring-bind (winning-numbers your-numbers) (split-sequence:split-sequence #\| numbers)
-      (intersection (mapcar #'parse-integer (cl-ppcre:all-matches-as-strings "\\d+" winning-numbers))
-                    (mapcar #'parse-integer (cl-ppcre:all-matches-as-strings "\\d+" your-numbers))))))
+    (destructuring-bind (winning yours) (split-sequence:split-sequence #\| numbers)
+      (intersection (extract-positive-integers winning)
+                    (extract-positive-integers yours)))))
 
 (defun card-points (s) (ash 1 (1- (length (winning-numbers s)))))
 #+#:excluded (card-points "Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53")

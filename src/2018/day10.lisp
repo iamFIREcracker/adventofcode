@@ -8,8 +8,7 @@
   (mapcar #'parse-star data))
 
 (defun parse-star (string)
-  (destructuring-bind (x y vx vy)
-      (mapcar #'parse-integer (cl-ppcre:all-matches-as-strings "-?\\d+" string))
+  (destructuring-bind (x y vx vy) (extract-integers string)
     (make-star :pos (list x y) :vel (list vx vy))))
 
 

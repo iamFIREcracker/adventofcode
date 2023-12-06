@@ -9,13 +9,11 @@
 (defun r (s) (manhattan-distance (pos s) (beacon s)))
 
 (defun parse-sensor (string)
-  (destructuring-bind (sx sy bx by)
-      (mapcar #'parse-integer (cl-ppcre:all-matches-as-strings "-?\\d+" string))
+  (destructuring-bind (sx sy bx by) (extract-integers string)
     (make-sensor :pos (list sx sy) :beacon (list bx by))))
 
 (defun sensors (&optional (file #P"src/2022/day15.txt"))
   (mapcar #'parse-sensor (uiop:read-file-lines file)))
-
 
 (defun bounding-square (sensors)
   (loop for s in sensors

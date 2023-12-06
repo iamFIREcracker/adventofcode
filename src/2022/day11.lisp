@@ -21,8 +21,7 @@
   throw-if-not-div)
 
 (defun parse-number (s) (car (parse-numbers s)))
-(defun parse-numbers (s)
-  (mapcar #'parse-integer (cl-ppcre:all-matches-as-strings "\\d+" s)))
+(defun parse-numbers (s) (extract-positive-integers s))
 
 (defun parse-operation (s)
   (bnd1 (old (symb "_"))
@@ -121,8 +120,7 @@
   throw-if-not-div)
 
 (defun parse-number (s) (car (parse-numbers s)))
-(defun parse-numbers (s)
-  (mapcar #'parse-integer (cl-ppcre:all-matches-as-strings "\\d+" s)))
+(defun parse-numbers (s) (extract-positive-integers s))
 
 (defun parse-operation (s)
   (bnd1 (old (symb "_"))

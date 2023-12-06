@@ -20,10 +20,8 @@
                         ("Defense +2"   40     0       2)
                         ("Defense +3"   80     0       3)))
 
-(defun parse-boss (lines)
-  (mapcar #'parse-integer
-          (cl-ppcre:all-matches-as-strings "\\d+"
-                                           (format nil "~{~A ~}" lines))))
+(defun parse-boss (&optional (lines (uiop:read-file-lines #P"src/2015/day21.txt")))
+  (extract-positive-integers (format nil "~{~A ~}" lines)))
 
 (defun all-items-combinations ()
   (loop for w in *weapons* append

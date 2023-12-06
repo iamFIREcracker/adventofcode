@@ -6,7 +6,7 @@
 
 (defun parse-valve (s)
   (let ((names (mapcar #'symb (cl-ppcre:all-matches-as-strings "[A-Z]{2}" s)))
-        (rate (first (mapcar #'parse-integer (cl-ppcre:all-matches-as-strings "\\d+" s)))))
+        (rate (first (extract-positive-integers s))))
     (make-valve :name (car names)
                 :rate rate
                 :connected-to (rest names))))

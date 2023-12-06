@@ -56,10 +56,9 @@
 ;; Boss logic
 (defstruct (boss (:type list)) life damage)
 
-(defun parse-boss (lines)
-  (mapcar #'parse-integer
-          (cl-ppcre:all-matches-as-strings "\\d+"
-                                           (format nil "~{~A ~}" lines))))
+(defun parse-boss (&optional (lines (uiop:read-file-lines #P"src/2015/day22.txt")))
+  (extract-positive-integers (format nil "~{~A ~}" lines)))
+
 (defun boss-attack (boss player)
   (max 1 (- (boss-damage boss) (player-armor-effect player))))
 

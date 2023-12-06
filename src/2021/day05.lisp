@@ -5,8 +5,7 @@
 (defun parse-lines (data)
   (mapcar #'parse-line data))
 
-(defun parse-line (string)
-  (mapcar #'parse-integer (cl-ppcre:all-matches-as-strings "\\d+" string)))
+(defun parse-line (string) (extract-positive-integers string))
 
 
 (defun part1 (lines)

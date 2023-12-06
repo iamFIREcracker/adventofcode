@@ -45,7 +45,7 @@
                :col-max col-max)))
 
 (defun parse-instructions (s)
-  (let ((steps (mapcar #'parse-integer (cl-ppcre:all-matches-as-strings "\\d+" s)))
+  (let ((steps (extract-positive-integers s))
         (turns (cl-ppcre:all-matches-as-strings "[LR]" s)))
     (list steps turns)))
 

@@ -6,8 +6,7 @@
 
 (defun parse-input (&optional (file #P"src/2022/day15.txt"))
   (loop for s in (uiop:read-file-lines file)
-        for (sx sy bx by) = (cl-ppcre:all-matches-as-strings "-?\\d+" s)
-        collect (mapcar #'parse-integer (list sx sy bx by))))
+        collect (extract-integers s)))
 (defun bounding-box (&optional (input (parse-input)))
   (loop for (sx sy bx by) in input
         minimize sx into min-x maximize sx into max-x
@@ -42,8 +41,7 @@
 #; Scratch 
 (defun parse-input (&optional (file #P"src/2022/day15.txt"))
   (loop for s in (uiop:read-file-lines file)
-        for (sx sy bx by) = (mapcar #'parse-integer
-                                    (cl-ppcre:all-matches-as-strings "-?\\d+" s))
+        for (sx sy bx by) = (extract-integers s)
         collect (list (list sx sy) (list bx by))))
 (defun bounding-box (&optional (input (parse-input)))
   (loop for (sensor beacon) in input
@@ -95,8 +93,7 @@
 (defun x (pos) (first pos))
 (defun y (pos) (second pos))
 (defun parse-nanobot (string)
-  (destructuring-bind (sx sy bx by)
-      (mapcar #'parse-integer (cl-ppcre:all-matches-as-strings "-?\\d+" string))
+  (destructuring-bind (sx sy bx by) (extract-integers string)
     (make-nanobot :pos (list sx sy) :r (manhattan-distance (list sx sy)
                                                            (list bx by)))))
 

@@ -2,8 +2,7 @@
 (in-package :aoc/2021/07)
 
 
-(defun parse-crabs (data)
-  (mapcar #'parse-integer (cl-ppcre:all-matches-as-strings "\\d+" (first data))))
+(defun parse-crabs (data) (extract-positive-integers (first data)))
 
 
 (defun minimize-fuel (crabs distance-fun)
