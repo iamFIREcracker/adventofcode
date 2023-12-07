@@ -1,8 +1,11 @@
 (defpackage :aoc/2023/06 #.cl-user::*aoc-use*)
 (in-package :aoc/2023/06)
 
-(defvar *data* '((59 597) (79 1234) (65 1032) (75 1328)))
-#+#:part2(setf *data* '((59796575 597123410321328)))
+(defun parse-records (&optional (strings (uiop:read-file-lines #P"src/2023/day06.txt")))
+  (destructuring-bind (times records) strings
+    (mapcar #'list
+            (extract-positive-integers times)
+            (extract-positive-integers records))))
 
 (defun max-distance (time hold)
   (* hold (- time hold)))
@@ -12,6 +15,14 @@
     (looping
       (dorangei (hold 0 time)
         (count! (> (max-distance time hold) record))))))
-#+#:excluded (count-wins '(7 9))
 
-(reduce #'* *data* :key #'count-wins)
+(defun massage-input (&optional (strings (uiop:read-file-lines #P"src/2023/day06.txt")))
+  (mapcar [remove-if-not #'digit-char-p _] strings))
+
+
+(define-solution (2023 06) (strings)
+  (values (reduce #'* (parse-records strings) :key #'count-wins)
+          (bnd1 (strings (massage-input strings))
+            (reduce #'* (parse-records strings) :key #'count-wins))))
+
+(define-test (2023 06) (220320 34454850))
