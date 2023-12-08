@@ -1,6 +1,6 @@
-lisps := $(shell find .  -type f \( -iname \*.asd -o -iname \*.lisp \) ! -name make-quickutils.lisp)
+lisps := $(shell find . -follow -type f \( -iname \*.asd -o -iname \*.lisp \) ! -name make-quickutils.lisp)
 
-all: test
+all: vendor
 
 # Vendor ----------------------------------------------------------------------
 .PHONY: vendor
