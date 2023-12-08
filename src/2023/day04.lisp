@@ -9,22 +9,20 @@
                     (extract-positive-integers yours)))))
 
 (defun card-points (s) (ash 1 (1- (length (winning-numbers s)))))
-#+#:excluded (card-points "Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53")
-
-(mapcar #'card-points (uiop:read-file-lines #P"src/2023/day04.txt"))
-(reduce #'+ *)
-20667
 
 
 (defun part2 (&optional (strings (uiop:read-file-lines #P"src/2023/day04.txt")))
-  (bnd* ((cards-count (make-array (length strings) :initial-element 1))
-         (curr -1))
+  (bnd1 (cards-count (make-array (length strings) :initial-element 1))
     (looping
-      (dolist (s strings)
-        (incf curr)
+      (dolist+ ((curr s) (enumerate strings))
         (bnd* ((current-card-count (aref cards-count curr)))
           (sum! current-card-count)
-          (dotimes (i (length (winning-numbers s)))
-            (incf (aref cards-count (+ curr i 1)) current-card-count)))))))
-(part2)
-5833065
+          (dorangei (i 1 (length (winning-numbers s)))
+            (incf (aref cards-count (+ curr i)) current-card-count)))))))
+
+
+(define-solution (2023 04) (strings)
+  (values (reduce #'+ strings :key #'card-points)
+          (part2)))
+
+(define-test (2023 04) (20667 5833065))
