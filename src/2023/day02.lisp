@@ -2,35 +2,41 @@
 (in-package :aoc/2023/02)
 
 (defun parse-game (s)
-  (bnd1 ((id-part game-part) (split-sequence:split-sequence #\: s))
-    (cons (parse-integer (second (split-sequence:split-sequence #\Space id-part)) :junk-allowed t)
+  (destructuring-bind (id-part game-part) (split-sequence:split-sequence #\: s)
+    (cons (first (extract-positive-integers id-part))
           (looping
             (dolist (set-part (split-sequence:split-sequence #\; game-part))
               (collect!
                 (looping
                   (dolist (reveal-part (split-sequence:split-sequence #\, set-part))
-                    (if (search "blue" reveal-part)
-                      (collect! (cons :blue (read-from-string reveal-part))))
-                    (if (search "green" reveal-part)
-                      (collect! (cons :green (read-from-string reveal-part))))
-                    (if (search "red" reveal-part)
-                      (collect! (cons :red (read-from-string reveal-part)))) ))))))))
-#+#:excluded (parse-game "Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green")
-#+#:excluded (assoc :red (car (cdr *)))
+                    (cl-ppcre:register-groups-bind (cubes (#'as-keyword color))
+                        ("(\\d+) (red|green|blue)" reveal-part)
+                      (collect! (cons (make-keyword color) (parse-integer cubes))))))))))))
+
+(defun parse-games (&optional (strings (uiop:read-file-lines #P"src/2023/day02.txt")))
+  (mapcar #'parse-game strings))
+
+
 (defun possible? (game)
   (every (lambda (set)
            (and (<= (or (cdr (assoc :red set)) 0) 12)
                 (<= (or (cdr (assoc :green set)) 0) 13)
                 (<= (or (cdr (assoc :blue set)) 0) 14)))
          (cdr game)))
-#+#:excluded (possible? (parse-game "Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green"))
-(uiop:read-file-lines #P"src/2023/day02.txt")
-(mapcar #'parse-game *)
-(remove-if-not #'possible? *)
-(reduce #'+ * :key #'first)
 
-(defun power (game)
-  (reduce #'* '(:red :green :blue)
-          :key (lambda (color)
-                 (reduce #'max (cdr game)
-                         :key (lambda (set) (or (cdr (assoc color set)) 0))))))
+
+(defun min-cubes (game)
+  (flet ((by-color (color set)
+           (or (cdr (assoc color set)) 0)))
+    (looping
+      (dolist (c (list :red :green :blue))
+        (collect! (reduce #'max (cdr game) :key [by-color c _]))))))
+
+(defun power (cubes) (reduce #'* cubes))
+
+
+(define-solution (2023 02) (games parse-games)
+  (values (reduce #'+ (remove-if-not #'possible? games) :key #'first)
+          (reduce #'+ (mapcar #'min-cubes games) :key #'power)))
+
+(define-test (2023 02) (2256 74229))
