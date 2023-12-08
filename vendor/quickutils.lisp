@@ -2,7 +2,7 @@
 ;;;; See http://quickutil.org for details.
 
 ;;;; To regenerate:
-;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:AIF :AWHEN :BND* :BND1 :COPY-ARRAY :COPY-HASH-TABLE :DIGITS :DIVF :DOLIST+ :DORANGE :DORANGEI :DOSEQ :FLATTEN :HASH-TABLE-ALIST :HASH-TABLE-KEY-EXISTS-P :HASH-TABLE-KEYS :HASH-TABLE-VALUES :IF-LET :IOTA :LOOPING :MAKE-KEYWORD :MKSTR :MULF :NCYCLE :REPEAT :STRING-STARTS-WITH-P :SYMB :VOID :WHEN-LET :WHILE :WITH-GENSYMS) :ensure-package T :package "AOC.QUICKUTILS")
+;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:KEEP-IF :KEEP-IF-NOT :AIF :AWHEN :AAND :BND* :BND1 :COPY-ARRAY :COPY-HASH-TABLE :DIGITS :DIVF :DOLIST+ :DORANGE :DORANGEI :DOSEQ :ENUMERATE :FLATTEN :HASH-TABLE-ALIST :HASH-TABLE-KEY-EXISTS-P :HASH-TABLE-KEYS :HASH-TABLE-VALUES :IF-LET :IOTA :LOOPING :MAKE-KEYWORD :MKSTR :MULF :NCYCLE :REPEAT :STRING-STARTS-WITH-P :STRING-ENDS-WITH-P :SYMB :VOID :WHEN-LET :WHILE :WITH-GENSYMS) :ensure-package T :package "AOC.QUICKUTILS")
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (unless (find-package "AOC.QUICKUTILS")
@@ -13,18 +13,37 @@
 (in-package "AOC.QUICKUTILS")
 
 (when (boundp '*utilities*)
-  (setf *utilities* (union *utilities* '(:LET1 :AIF :AWHEN :BND* :BND1
-                                         :COPY-ARRAY :COPY-HASH-TABLE :DIGITS
-                                         :DIVF :DOLIST+ :DORANGE :DORANGEI
-                                         :DOSEQ :FLATTEN :HASH-TABLE-ALIST
+  (setf *utilities* (union *utilities* '(:ABBR :KEEP-IF :KEEP-IF-NOT :LET1 :AIF
+                                         :AWHEN :AAND :BND* :BND1 :COPY-ARRAY
+                                         :COPY-HASH-TABLE :DIGITS :DIVF
+                                         :DOLIST+ :DORANGE :DORANGEI :DOSEQ
+                                         :ENUMERATE :FLATTEN :HASH-TABLE-ALIST
                                          :HASH-TABLE-KEY-EXISTS-P :MAPHASH-KEYS
                                          :HASH-TABLE-KEYS :MAPHASH-VALUES
                                          :HASH-TABLE-VALUES :IF-LET :IOTA
                                          :MKSTR :SYMB :STRING-DESIGNATOR
                                          :WITH-GENSYMS :LOOPING :MAKE-KEYWORD
                                          :MULF :NCYCLE :REPEAT
-                                         :STRING-STARTS-WITH-P :VOID :WHEN-LET
+                                         :STRING-STARTS-WITH-P
+                                         :STRING-ENDS-WITH-P :VOID :WHEN-LET
                                          :WHILE))))
+
+  (defmacro abbr (short long)
+    "Defines a new function/macro named `short` and sharing
+FDEFINITION/MACRO-FUNCTION with `long`."
+    `(eval-when (:compile-toplevel :load-toplevel :execute)
+       (cond
+         ((macro-function ',long)
+          (setf (macro-function ',short) (macro-function ',long))
+          #+ccl (setf (ccl:arglist ',short) (ccl:arglist ',long)))
+         ((fboundp ',long)
+          (setf (fdefinition ',short) (fdefinition ',long))
+          #+ccl (setf (ccl:arglist ',short) (ccl:arglist ',long)))
+         (t
+           (error "Can't abbreviate ~a" ',long)))))
+  
+  (abbr keep-if remove-if-not)
+  (abbr keep-if-not remove-if)
 
   (defmacro let1 (var val &body body)
     "Bind VAR to VAL within BODY. Equivalent to LET with one binding."
@@ -53,6 +72,19 @@
         `(let1 ,it ,test
            (when ,it
              ,@body)))))
+  
+
+  (defmacro aand (&rest forms)
+    "Like AND, except binds the result of each form to IT (via LET)."
+    (aand-expand forms))
+
+  (eval-when (:compile-toplevel :load-toplevel :execute)
+    (defun aand-expand (forms)
+      (cond ((not (car forms)) nil)
+            ((not (cdr forms)) (car forms))
+            (t (let1 car (car forms)
+                 `(aif ,car
+                    (aand ,@(cdr forms))))))))
   
 
   (defmacro bnd* (bindings &body body)
@@ -244,6 +276,24 @@ each element of the sequence and executing `body`. Return the value
        ,return))
   
 
+  (defgeneric enumerate (x)
+    (:documentation "Equivalent to `(zip (iota (length x)) x)`."))
+
+  (defmethod enumerate ((x list))
+    "Equivalent to `(zip (iota (length x)) x)`."
+    (loop
+      :for i :in x
+      :for j :from 0
+      :collect (list j i)))
+
+  (defmethod enumerate ((x array))
+    "Equivalent to `(zip (iota (length x)) x)`."
+    (loop
+      :for i :across x
+      :for j :from 0
+      :collect (list j i)))
+  
+
   (defun flatten (&rest xs)
     "Flatten (and append) all lists `xs` completely."
     (labels ((rec (xs acc)
@@ -415,11 +465,12 @@ unique symbol the named variable will be bound to."
   
 
   (defmacro looping (&body body)
-    "Run `body` in an environment where the symbols COLLECT!, SUM!, COUNT!, MIN!
-and MAX! are bound to functions that can be used to collect, sum, count,
-minimize or maximize things respectively.
+    "Run `body` in an environment where the symbols COLLECT!, APPEND!, SUM!,
+COUNT!, MINIMIZE!, and MAXIMIZE! are bound to functions that can be used to
+collect / append, sum, count, minimize or maximize things respectively.
 
-Mixed usage of COLLECT!, SUM!, COUNT!, MIN! and MAX! is not supported.
+Mixed usage of COLLECT!/APPEND!, SUM!, COUNT!, MINIMIZE! and MAXIMIZE! is not
+supported.
 
 Examples:
 
@@ -452,12 +503,22 @@ Examples:
     (with-gensyms (loop-type result)
       `(let (,loop-type ,result)
          (flet ((,(symb "COLLECT!") (item)
-                 (if (and ,loop-type (not (eql ,loop-type 'collect!)))
+                 (if (and ,loop-type (and (not (eql ,loop-type 'collect!))
+                                          (not (eql ,loop-type 'append!)) ))
                    (error "Cannot use COLLECT! together with ~A" ,loop-type)
                    (progn
                      (if (not ,loop-type)
                        (setf ,loop-type 'collect! ,result nil))
                      (push item ,result)
+                     item)))
+                (,(symb "APPEND!") (item)
+                 (if (and ,loop-type (and (not (eql ,loop-type 'collect!))
+                                          (not (eql ,loop-type 'append!)) ))
+                   (error "Cannot use APPEND! together with ~A" ,loop-type)
+                   (progn
+                     (if (not ,loop-type)
+                       (setf ,loop-type 'append! ,result nil))
+                     (setf ,result (append ,result item))
                      item)))
                 (,(symb "SUM!") (item)
                  (if (and ,loop-type (not (eql ,loop-type 'sum!)))
@@ -476,19 +537,19 @@ Examples:
                      (when item
                        (incf ,result)
                        item))))
-                (,(symb "MIN!") (item)
-                 (if (and ,loop-type (not (eql ,loop-type 'min!)))
-                   (error "Cannot use MIN! together with ~A" ,loop-type)
+                (,(symb "MINIMIZE!") (item)
+                 (if (and ,loop-type (not (eql ,loop-type 'minimize!)))
+                   (error "Cannot use MINIMIZE1 together with ~A" ,loop-type)
                    (progn
                      (if (not ,loop-type)
-                       (setf ,loop-type 'min! ,result item))
+                       (setf ,loop-type 'minimize! ,result item))
                      (setf ,result (min ,result item)))))
-                (,(symb "MAX!") (item)
-                 (if (and ,loop-type (not (eql ,loop-type 'max!)))
-                   (error "Cannot use MAX! together with ~A" ,loop-type)
+                (,(symb "MAXIMIZE!") (item)
+                 (if (and ,loop-type (not (eql ,loop-type 'maximize!)))
+                   (error "Cannot use MAXIMIZE! together with ~A" ,loop-type)
                    (progn
                      (if (not ,loop-type)
-                       (setf ,loop-type 'max! ,result item))
+                       (setf ,loop-type 'maximize! ,result item))
                      (setf ,result (max ,result item))))))
            ,@body)
          (if (eq ,loop-type 'collect!)
@@ -516,9 +577,15 @@ Examples:
   
 
   (defun string-starts-with-p (prefix s)
-    "Returns T if the first few characters of `s` are equalt to `prefix`."
+    "Returns T if the first few characters of `s` are equal to `prefix`."
     (and (<= (length prefix) (length s))
          (string= prefix s :end2 (length prefix))))
+  
+
+  (defun string-ends-with-p (suffix s)
+    "Returns T if the last few characters of `s` are equal to `suffix`."
+    (and (<= (length suffix) (length s))
+         (string= suffix s :start2 (- (length s) (length suffix)))))
   
 
   (defun void (&rest args)
@@ -595,11 +662,11 @@ PROGN."
        ,@body))
   
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (export '(aif awhen bnd* bnd1 copy-array copy-hash-table digits divf dolist+
-            dorange dorangei doseq flatten hash-table-alist
-            hash-table-key-exists-p hash-table-keys hash-table-values if-let
-            iota looping make-keyword mkstr mulf ncycle repeat
-            string-starts-with-p symb void when-let when-let* while
-            with-gensyms with-unique-names)))
+  (export '(keep-if keep-if-not aif awhen aand bnd* bnd1 copy-array
+            copy-hash-table digits divf dolist+ dorange dorangei doseq
+            enumerate flatten hash-table-alist hash-table-key-exists-p
+            hash-table-keys hash-table-values if-let iota looping make-keyword
+            mkstr mulf ncycle repeat string-starts-with-p string-ends-with-p
+            symb void when-let when-let* while with-gensyms with-unique-names)))
 
 ;;;; END OF quickutils.lisp ;;;;

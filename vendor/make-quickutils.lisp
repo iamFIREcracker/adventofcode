@@ -8,8 +8,17 @@
   "quickutils.lisp"
   :utilities '(
 
+               #+nil :d-b
+               #+nil :m-v-b
+               #+nil :split
+               #+nil :split-if
+               #+nil :split-if-not
+               :keep-if
+               :keep-if-not
+
                :aif
                :awhen
+               :aand
                :bnd*
                :bnd1
                :copy-array
@@ -20,6 +29,7 @@
                :dorange
                :dorangei
                :doseq
+               :enumerate
                :flatten
                :hash-table-alist
                :hash-table-key-exists-p
@@ -34,6 +44,7 @@
                :ncycle
                :repeat
                :string-starts-with-p
+               :string-ends-with-p
                :symb
                :void
                :when-let
