@@ -2,116 +2,130 @@
 (in-package :aoc/2023/10)
 
 
+(defparameter *north* '(-1 0))
+(defparameter *east*  '(0 1))
+(defparameter *south* '(1 0))
+(defparameter *west*  '(0 -1))
+
 (defun move-straight (pos dir) (mapcar #'+ pos dir))
+(defun rotate-cw (dir) (list (second dir) (- (first dir))))
+(defun rotate-ccw (dir) (list (- (second dir)) (first dir)))
 
 (defun parse-loop (&optional (strings (uiop:read-file-lines #P"src/2023/day10.txt")))
   (bnd* ((map (make-hash-table :test 'equal))
          start
          dirs)
+    ;; Load input into a hash-table, and record where the start is
     (dolist+ ((i s) (enumerate strings))
       (dolist+ ((j ch) (enumerate s))
         (setf (gethash (list i j) map) ch)
         (if (char= ch #\S)
           (setf start (list i j)))))
-    (dolist+ ((dir s) '(((0 1) "-7J") ((1 0) "|LJ") ((0 -1) "-LF") ((-1 0) "|7F")))
-      (if (find (gethash (move-straight start dir) map) s)
+    ;; Figure out what the possible starting directions might be
+    (dolist+ ((dir next) `((,*east* "-7J") (,*south* "|LJ") (,*west* "-LF") (,*north* "|7F")))
+      (if (find (gethash (move-straight start dir) map) next)
         (push dir dirs)))
+    ;; Replace S with the right pipe connector
     (destructuring-bind (dir1 dir2) dirs
       (setf (gethash start map)
-            (cond ((equal dir1 '(0 1)) (cond ((equal dir2 '(1 0)) #\F)
-                                             ((equal dir2 '(0 -1)) #\-)
-                                             ((equal dir2 '(-1 0)) #\L)))
-                  ((equal dir1 '(1 0)) (cond ((equal dir2 '(0 -1)) #\7)
-                                             ((equal dir2 '(-1 0)) #\|)
-                                             ((equal dir2 '(0 1)) #\F)))
-                  ((equal dir1 '(0 -1)) (cond ((equal dir2 '(-1 0)) #\J)
-                                              ((equal dir2 '(0 1)) #\-)
-                                              ((equal dir2 '(1 0)) #\7)))
-                  ((equal dir1 '(-1 0)) (cond ((equal dir2 '(0 1)) #\L)
-                                              ((equal dir2 '(1 0)) #\|)
-                                              ((equal dir2 '(0 -1)) #\J))))))
+            (cond ((equal dir1 *north*) (cond ((equal dir2 *east*) #\L)
+                                              ((equal dir2 *south*) #\|)
+                                              ((equal dir2 *west*) #\J)))
+                  ((equal dir1 *east*)  (cond ((equal dir2 *south*) #\F)
+                                              ((equal dir2 *west*) #\-)
+                                              ((equal dir2 *north*) #\L)))
+                  ((equal dir1 *south*) (cond ((equal dir2 *west*) #\7)
+                                              ((equal dir2 *north*) #\|)
+                                              ((equal dir2 *east*) #\F)))
+                  ((equal dir1 *west*)  (cond ((equal dir2 *north*) #\J)
+                                              ((equal dir2 *east*) #\-)
+                                              ((equal dir2 *south*) #\7))))))
     (list start dirs map)))
 
 
-(defun loop-steps (map start dir &aux (pos start) (steps 0))
-  (declare (optimize (debug 3)))
-  (labels ((walk-straight () (mapcar #'+ pos dir))
-           (rotate-cw ()
-             (list (second dir) (- (first dir))))
-           (rotate-ccw ()
-             (list (- (second dir)) (first dir)))
-           (move (&aux (ch (gethash pos map)))
-             (cond ((equal pos start) (setf pos (walk-straight)))
-                   ((find  ch "-|")
-                    ;; JFC...kept on using `pos` instead of `start`...lost
-                    ;; too much time debugging this Note: not just here...
-                    (setf pos (walk-straight)))
+(defun loop-steps (&optional (input (parse-loop)) (dir (first (second input)))
+                             &aux
+                             (start (first input))
+                             (map (third input))
+                             (pos start))
+  (labels ((move (&aux (ch (gethash pos map)))
+             (cond ((equal pos start) (setf pos (move-straight dir pos)))
+                   ((find  ch "-|") (setf pos (move-straight dir pos)))
                    ((char= ch #\L) (setf dir (if (zerop (first dir))
-                                               (rotate-cw)
-                                               (rotate-ccw))
-                                         pos (walk-straight)))
+                                               (rotate-cw dir)
+                                               (rotate-ccw dir))
+                                         pos (move-straight dir pos)))
                    ((char= ch #\J) (setf dir (if (zerop (first dir))
-                                               (rotate-ccw)
-                                               (rotate-cw))
-                                         pos (walk-straight)))
+                                               (rotate-ccw dir)
+                                               (rotate-cw dir))
+                                         pos (move-straight dir pos)))
                    ((char= ch #\7) (setf dir (if (zerop (first dir))
-                                               (rotate-cw)
-                                               (rotate-ccw))
-                                         pos (walk-straight)))
+                                               (rotate-cw dir)
+                                               (rotate-ccw dir))
+                                         pos (move-straight dir pos)))
                    ((char= ch #\F) (setf dir (if (zerop (first dir))
-                                               (rotate-ccw)
-                                               (rotate-cw))
-                                         pos (walk-straight)))
+                                               (rotate-ccw dir)
+                                               (rotate-cw dir))
+                                         pos (move-straight dir pos)))
                    (t (error 'wtf)))))
     (looping
-      (collect! (list (incf steps) (move)))
+      (collect! (move))
       (while (not (equal pos start))
-        (collect! (list (incf steps) (move)))))))
+        (collect! (move))))))
 
 
-(defun furthest (&optional (input (parse-loop))
-                           &aux
-                           (start (first input))
-                           (dirs (second input))
-                           (map (third input)))
-  (loop for (steps1 pos1) in (sort (loop-steps map start (first dirs)) #'< :key #'first)
-        for (steps2 pos2) in (sort (loop-steps map start (second dirs)) #'< :key #'first)
-        when (equal pos1 pos2) return steps1))
-#+#:excluded (furthest)
-6882
+(defun furthest-loop-step (&optional (input (parse-loop)))
+  (bnd1 (steps (loop-steps input))
+    (/ (length steps) 2)))
 
 
-(defun part2 (&optional (input (parse-loop))
-                        &aux
-                        (start (first input))
-                        (dir (first (second input)))
-                        (map (third input)))
-  (bnd* ((loop-steps (mapcar #'second (loop-steps map start dir)))
+(defun enclosed-inside-loop? (loop i j)
+  "The position `(list i j)` is enclosed inside the loop `loop`, if there
+are a odd number of pipes separating the position and the edge of the map.
+
+It does not matter which direction we choose (north, east, south, west);
+this function will count number of crossing pipes west of the current position.
+
+What makes a crossing pipe?
+
+- A straight vertical pipe: |
+- L / 7 pairs, and J / F pairs
+
+What does not constitue a crossing pipe?
+
+- L / J pairs, and 7 / F pairs
+
+Horintal pipes do not move the needle, so they are skipped.
+"
+  (oddp
+    (looping
+      (dorange (jj 0 j)
+        (awhen (gethash (list i jj) loop)
+          (sum! (ecase it
+                  (#\| 1)
+                  (#\L 1/2)
+                  (#\J -1/2)
+                  (#\7 1/2)
+                  (#\F -1/2)
+                  (#\- 0))))))))
+
+(defun count-enclosed-inside-loop (&optional (input (parse-loop))
+                                             &aux
+                                             (map (third input)))
+  (bnd* ((loop (make-hash-table :test 'equal))
          (rows (reduce #'max (hash-table-keys map) :key #'first))
-         (cols (reduce #'max (hash-table-keys map) :key #'second))
-         (on-the-left))
+         (cols (reduce #'max (hash-table-keys map) :key #'second)))
+    (dolist (pos (loop-steps input))
+      (setf (gethash pos loop) (gethash pos map)))
     (looping
       (dorange (i 0 rows)
-        (setf on-the-left 0)
         (dorange (j 0 cols)
-          (bnd* ((ch (gethash (list i j) map))
-                 (on-loop? (find (list i j) loop-steps :test 'equal)))
-            #+#:excluded (when (and (not on-loop?) (oddp on-the-left))
-                           (prl (list i j) on-the-left)
-                           (break))
+          (bnd1 (on-loop? (gethash (list i j) loop))
+            (count! (and (not on-loop?) (enclosed-inside-loop? loop i j)))))))))
 
-            (count! (and (not on-loop?) (oddp on-the-left)))
-            (when on-loop?
-              (incf on-the-left (ecase ch
-                                  (#\| 1)
-                                  (#\F -1/2)
-                                  (#\L 1/2)
-                                  (#\J -1/2)
-                                  (#\7 1/2)
-                                  (#\- 0))))))))))
-#+#:excluded (part2)
 
-8235 ;too high
-1323 ; too high
-817 ; nope
-849 ; nope
+(define-solution (2023 10) (input parse-loop)
+  (values (furthest-loop-step input)
+          (count-enclosed-inside-loop input)))
+
+(define-test (2023 10) (6882 491))

@@ -2,7 +2,7 @@
 ;;;; See http://quickutil.org for details.
 
 ;;;; To regenerate:
-;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:KEEP-IF :KEEP-IF-NOT :AIF :AWHEN :AAND :BND* :BND1 :COPY-ARRAY :COPY-HASH-TABLE :DIGITS :DIVF :DOLIST+ :DORANGE :DORANGEI :DOSEQ :ENUMERATE :FLATTEN :HASH-TABLE-ALIST :HASH-TABLE-KEY-EXISTS-P :HASH-TABLE-KEYS :HASH-TABLE-VALUES :IF-LET :IOTA :LOOPING :MAKE-KEYWORD :MKSTR :MULF :NCYCLE :REPEAT :STRING-STARTS-WITH-P :STRING-ENDS-WITH-P :SYMB :VOID :WHEN-LET :WHILE :WITH-GENSYMS) :ensure-package T :package "AOC.QUICKUTILS")
+;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:KEEP-IF :KEEP-IF-NOT :AAND :AIF :AWHEN :BND* :BND1 :CHUNKED :COPY-ARRAY :COPY-HASH-TABLE :DIGITS :DIVF :DOLIST+ :DORANGE :DORANGEI :DOSEQ :ENUMERATE :FLATTEN :HASH-TABLE-ALIST :HASH-TABLE-KEY-EXISTS-P :HASH-TABLE-KEYS :HASH-TABLE-VALUES :IF-LET :IOTA :LOOPING :MAKE-KEYWORD :MKSTR :MULF :NCYCLE :REPEAT :STRING-ENDS-WITH-P :STRING-STARTS-WITH-P :SYMB :VOID :WHEN-LET :WHILE :WITH-GENSYMS) :ensure-package T :package "AOC.QUICKUTILS")
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (unless (find-package "AOC.QUICKUTILS")
@@ -14,18 +14,19 @@
 
 (when (boundp '*utilities*)
   (setf *utilities* (union *utilities* '(:ABBR :KEEP-IF :KEEP-IF-NOT :LET1 :AIF
-                                         :AWHEN :AAND :BND* :BND1 :COPY-ARRAY
-                                         :COPY-HASH-TABLE :DIGITS :DIVF
-                                         :DOLIST+ :DORANGE :DORANGEI :DOSEQ
-                                         :ENUMERATE :FLATTEN :HASH-TABLE-ALIST
+                                         :AAND :AWHEN :BND* :BND1 :CHUNKED
+                                         :COPY-ARRAY :COPY-HASH-TABLE :DIGITS
+                                         :DIVF :DOLIST+ :DORANGE :DORANGEI
+                                         :DOSEQ :ENUMERATE :FLATTEN
+                                         :HASH-TABLE-ALIST
                                          :HASH-TABLE-KEY-EXISTS-P :MAPHASH-KEYS
                                          :HASH-TABLE-KEYS :MAPHASH-VALUES
                                          :HASH-TABLE-VALUES :IF-LET :IOTA
                                          :MKSTR :SYMB :STRING-DESIGNATOR
                                          :WITH-GENSYMS :LOOPING :MAKE-KEYWORD
                                          :MULF :NCYCLE :REPEAT
-                                         :STRING-STARTS-WITH-P
-                                         :STRING-ENDS-WITH-P :VOID :WHEN-LET
+                                         :STRING-ENDS-WITH-P
+                                         :STRING-STARTS-WITH-P :VOID :WHEN-LET
                                          :WHILE))))
 
   (defmacro abbr (short long)
@@ -62,18 +63,6 @@ FDEFINITION/MACRO-FUNCTION with `long`."
            (if ,it ,then ,else)))))
   
 
-  (defmacro awhen (test &body body)
-    "Like WHEN, except binds the result of `test` to IT (via LET) for the scope of `body`."
-    (awhen-expand test body))
-
-  (eval-when (:compile-toplevel :load-toplevel :execute)
-    (defun awhen-expand (test body)
-      (let1 it (intern "IT")
-        `(let1 ,it ,test
-           (when ,it
-             ,@body)))))
-  
-
   (defmacro aand (&rest forms)
     "Like AND, except binds the result of each form to IT (via LET)."
     (aand-expand forms))
@@ -85,6 +74,18 @@ FDEFINITION/MACRO-FUNCTION with `long`."
             (t (let1 car (car forms)
                  `(aif ,car
                     (aand ,@(cdr forms))))))))
+  
+
+  (defmacro awhen (test &body body)
+    "Like WHEN, except binds the result of `test` to IT (via LET) for the scope of `body`."
+    (awhen-expand test body))
+
+  (eval-when (:compile-toplevel :load-toplevel :execute)
+    (defun awhen-expand (test body)
+      (let1 it (intern "IT")
+        `(let1 ,it ,test
+           (when ,it
+             ,@body)))))
   
 
   (defmacro bnd* (bindings &body body)
@@ -159,6 +160,19 @@ BND* will expand to a DESTRUCTURING-BIND call:
     "Equivalent to BND* with one binding."
     `(bnd* (,binding)
        ,@body))
+  
+
+  (defun chunked (seq size)
+    "Split `seq` into chunks of length `size`.
+
+Note: the last chunk is guaranteed to have length of `size` only if
+the length of `seq` is a multiple of `size`."
+    (let* ((total (length seq))
+           (amount (ceiling total size))
+           (res nil))
+      (dotimes (i amount (reverse res))
+        (push (subseq seq (* i size) (min (* (1+ i) size) total))
+              res))))
   
 
   (defun copy-array (array &key (element-type (array-element-type array))
@@ -500,61 +514,66 @@ Examples:
       (count! (oddp i))))
   ;; Signals an ERROR: Cannot use COUNT! together with SUM!
   "
-    (with-gensyms (loop-type result)
-      `(let (,loop-type ,result)
-         (flet ((,(symb "COLLECT!") (item)
-                 (if (and ,loop-type (and (not (eql ,loop-type 'collect!))
-                                          (not (eql ,loop-type 'append!)) ))
-                   (error "Cannot use COLLECT! together with ~A" ,loop-type)
-                   (progn
-                     (if (not ,loop-type)
-                       (setf ,loop-type 'collect! ,result nil))
-                     (push item ,result)
-                     item)))
-                (,(symb "APPEND!") (item)
-                 (if (and ,loop-type (and (not (eql ,loop-type 'collect!))
-                                          (not (eql ,loop-type 'append!)) ))
-                   (error "Cannot use APPEND! together with ~A" ,loop-type)
-                   (progn
-                     (if (not ,loop-type)
-                       (setf ,loop-type 'append! ,result nil))
-                     (setf ,result (append ,result item))
-                     item)))
-                (,(symb "SUM!") (item)
-                 (if (and ,loop-type (not (eql ,loop-type 'sum!)))
-                   (error "Cannot use SUM! together with ~A" ,loop-type)
-                   (progn
-                     (if (not ,loop-type)
-                       (setf ,loop-type 'sum! ,result 0))
-                     (incf ,result item)
-                     item)))
-                (,(symb "COUNT!") (item)
-                 (if (and ,loop-type (not (eql ,loop-type 'count!)))
-                   (error "Cannot use COUNT! together with ~A" ,loop-type)
-                   (progn
-                     (if (not ,loop-type)
-                       (setf ,loop-type 'count! ,result 0))
-                     (when item
-                       (incf ,result)
-                       item))))
-                (,(symb "MINIMIZE!") (item)
-                 (if (and ,loop-type (not (eql ,loop-type 'minimize!)))
-                   (error "Cannot use MINIMIZE1 together with ~A" ,loop-type)
-                   (progn
-                     (if (not ,loop-type)
-                       (setf ,loop-type 'minimize! ,result item))
-                     (setf ,result (min ,result item)))))
-                (,(symb "MAXIMIZE!") (item)
-                 (if (and ,loop-type (not (eql ,loop-type 'maximize!)))
-                   (error "Cannot use MAXIMIZE! together with ~A" ,loop-type)
-                   (progn
-                     (if (not ,loop-type)
-                       (setf ,loop-type 'maximize! ,result item))
-                     (setf ,result (max ,result item))))))
-           ,@body)
-         (if (eq ,loop-type 'collect!)
-           (nreverse ,result)
-           ,result))))
+    (with-gensyms (loop-type result last collect-last)
+      (labels ((extract-loop-type (body)
+                 (cond ((null body) nil)
+                       ((symbolp body) (find body
+                                             '(collect! append! sum! count! minimize! maximize!)
+                                             :test #'string=))
+                       ((consp body) (or (extract-loop-type (car body))
+                                         (extract-loop-type (cdr body))))))
+               (init-result (loop-type)
+                 (ecase loop-type
+                   ((collect! append! minimize! maximixe!) nil)
+                   ((sum! count!) 0))))
+        (let* ((loop-type-value (extract-loop-type body))
+               (result-value (init-result loop-type-value)))
+          `(let* ((,loop-type ',loop-type-value)
+                  (,result ,result-value)
+                  (,last nil))
+             (declare (ignorable ,last))
+             (labels ((,collect-last (item)
+                       (if (not ,last)
+                         (prog1 (push item ,result)
+                           (setf ,last ,result))
+                         (prog1 (push item (cdr ,last))
+                           (setf ,last (cdr ,last)))))
+                      (,(symb "COLLECT!") (item)
+                       (if (and ,loop-type (and (not (eql ,loop-type 'collect!))
+                                                (not (eql ,loop-type 'append!)) ))
+                         (error "Cannot use COLLECT! together with ~A" ,loop-type)
+                         (,collect-last item)))
+                      (,(symb "APPEND!") (item)
+                       (if (and ,loop-type (and (not (eql ,loop-type 'collect!))
+                                                (not (eql ,loop-type 'append!)) ))
+                         (error "Cannot use APPEND! together with ~A" ,loop-type)
+                         (progn
+                           (setf ,result (append ,result item)
+                                 ,last (last item))
+                           item)))
+                      (,(symb "SUM!") (item)
+                       (if (and ,loop-type (not (eql ,loop-type 'sum!)))
+                         (error "Cannot use SUM! together with ~A" ,loop-type)
+                         (progn
+                           (incf ,result item)
+                           item)))
+                      (,(symb "COUNT!") (item)
+                       (if (and ,loop-type (not (eql ,loop-type 'count!)))
+                         (error "Cannot use COUNT! together with ~A" ,loop-type)
+                         (progn
+                           (when item
+                             (incf ,result)
+                             item))))
+                      (,(symb "MINIMIZE!") (item)
+                       (if (and ,loop-type (not (eql ,loop-type 'minimize!)))
+                         (error "Cannot use MINIMIZE1 together with ~A" ,loop-type)
+                         (setf ,result (min (or ,result item) item))))
+                      (,(symb "MAXIMIZE!") (item)
+                       (if (and ,loop-type (not (eql ,loop-type 'maximize!)))
+                         (error "Cannot use MAXIMIZE! together with ~A" ,loop-type)
+                         (setf ,result (max (or ,result item) item)))))
+               ,@body)
+             ,result)))))
   
 
   (defun make-keyword (name)
@@ -576,16 +595,16 @@ Examples:
     `(loop repeat ,n do ,@body))
   
 
-  (defun string-starts-with-p (prefix s)
-    "Returns T if the first few characters of `s` are equal to `prefix`."
-    (and (<= (length prefix) (length s))
-         (string= prefix s :end2 (length prefix))))
-  
-
   (defun string-ends-with-p (suffix s)
     "Returns T if the last few characters of `s` are equal to `suffix`."
     (and (<= (length suffix) (length s))
          (string= suffix s :start2 (- (length s) (length suffix)))))
+  
+
+  (defun string-starts-with-p (prefix s)
+    "Returns T if the first few characters of `s` are equal to `prefix`."
+    (and (<= (length prefix) (length s))
+         (string= prefix s :end2 (length prefix))))
   
 
   (defun void (&rest args)
@@ -662,11 +681,11 @@ PROGN."
        ,@body))
   
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (export '(keep-if keep-if-not aif awhen aand bnd* bnd1 copy-array
+  (export '(keep-if keep-if-not aand aif awhen bnd* bnd1 chunked copy-array
             copy-hash-table digits divf dolist+ dorange dorangei doseq
             enumerate flatten hash-table-alist hash-table-key-exists-p
             hash-table-keys hash-table-values if-let iota looping make-keyword
-            mkstr mulf ncycle repeat string-starts-with-p string-ends-with-p
+            mkstr mulf ncycle repeat string-ends-with-p string-starts-with-p
             symb void when-let when-let* while with-gensyms with-unique-names)))
 
 ;;;; END OF quickutils.lisp ;;;;
