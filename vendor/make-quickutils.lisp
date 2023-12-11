@@ -16,9 +16,9 @@
                :keep-if
                :keep-if-not
 
+               :aand
                :aif
                :awhen
-               :aand
                :bnd*
                :bnd1
                :copy-array
@@ -26,6 +26,7 @@
                :digits
                :divf
                :dolist+
+               :dolistl
                :dorange
                :dorangei
                :doseq
@@ -43,8 +44,8 @@
                :mulf
                :ncycle
                :repeat
-               :string-starts-with-p
                :string-ends-with-p
+               :string-starts-with-p
                :symb
                :void
                :when-let

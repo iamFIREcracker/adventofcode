@@ -10,6 +10,7 @@
 (destructuring-bind 2)
 (dolist 1)
 (dolist+ 1)
+(dolistl 1)
 (dorange 1)
 (dorange 1)
 (dorangei 1)
