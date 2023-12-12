@@ -2,7 +2,7 @@
 ;;;; See http://quickutil.org for details.
 
 ;;;; To regenerate:
-;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:KEEP-IF :KEEP-IF-NOT :AAND :AIF :AWHEN :BND* :BND1 :COPY-ARRAY :COPY-HASH-TABLE :DIGITS :DIVF :DOLIST+ :DOLISTL :DORANGE :DORANGEI :DOSEQ :ENUMERATE :FLATTEN :HASH-TABLE-ALIST :HASH-TABLE-KEY-EXISTS-P :HASH-TABLE-KEYS :HASH-TABLE-VALUES :IF-LET :IOTA :LOOPING :MAKE-KEYWORD :MKSTR :MULF :NCYCLE :REPEAT :STRING-ENDS-WITH-P :STRING-STARTS-WITH-P :SYMB :VOID :WHEN-LET :WHILE :WITH-GENSYMS) :ensure-package T :package "AOC.QUICKUTILS")
+;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:KEEP-IF :KEEP-IF-NOT :AAND :AIF :AWHEN :BND* :BND1 :COPY-ARRAY :COPY-HASH-TABLE :DIGITS :DIVF :DOLIST+ :DORANGE :DORANGEI :DOSEQ :DOSUBLISTS :ENUMERATE :FLATTEN :HASH-TABLE-ALIST :HASH-TABLE-KEY-EXISTS-P :HASH-TABLE-KEYS :HASH-TABLE-VALUES :IF-LET :IOTA :LOOPING :MAKE-KEYWORD :MKSTR :MULF :NCYCLE :REPEAT :STRING-ENDS-WITH-P :STRING-STARTS-WITH-P :SYMB :VOID :WHEN-LET :WHILE :WITH-GENSYMS) :ensure-package T :package "AOC.QUICKUTILS")
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (unless (find-package "AOC.QUICKUTILS")
@@ -16,8 +16,8 @@
   (setf *utilities* (union *utilities* '(:ABBR :KEEP-IF :KEEP-IF-NOT :LET1 :AIF
                                          :AAND :AWHEN :BND* :BND1 :COPY-ARRAY
                                          :COPY-HASH-TABLE :DIGITS :DIVF
-                                         :DOLIST+ :DOLISTL :DORANGE :DORANGEI
-                                         :DOSEQ :ENUMERATE :FLATTEN
+                                         :DOLIST+ :DORANGE :DORANGEI :DOSEQ
+                                         :DOSUBLISTS :ENUMERATE :FLATTEN
                                          :HASH-TABLE-ALIST
                                          :HASH-TABLE-KEY-EXISTS-P :MAPHASH-KEYS
                                          :HASH-TABLE-KEYS :MAPHASH-VALUES
@@ -239,15 +239,6 @@ the following identity holds:
     `(loop :for ,var :in ,list do ,@body ,@(when result? `(:finally (return ,result)))))
   
 
-  (defmacro dolistl ((var list &optional (result nil result?)) &body body)
-    "Like DOLIST, except:
-
-- `var` is bound to successive sublists of `list` (similar to MAPL)
-- `var` can lambda-list (similar to DOLIST+)
-"
-    `(loop :for ,var :on ,list do ,@body ,@(when result? `(:finally (return ,result)))))
-  
-
   (defmacro dorange ((var from to &optional (step 1) (result nil result?)) &body body)
     "Binds `var` to all the distinct values in the range [`from`, `to`[, with
 `step` step (note: `to` is excluded), and runs `body` inside that
@@ -284,6 +275,15 @@ each element of the sequence and executing `body`. Return the value
                        ,@body))
             ,seq)
        ,return))
+  
+
+  (defmacro dosublists ((var list &optional (result nil result?)) &body body)
+    "Like DOLIST, except:
+
+- `var` is bound to successive sublists of `list` (similar to MAPL, LOOP..ON)
+- `var` can lambda-list (similar to DOLIST+)
+"
+    `(loop :for ,var :on ,list do ,@body ,@(when result? `(:finally (return ,result)))))
   
 
   (defgeneric enumerate (x)
@@ -678,10 +678,11 @@ PROGN."
   
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (export '(keep-if keep-if-not aand aif awhen bnd* bnd1 copy-array
-            copy-hash-table digits divf dolist+ dolistl dorange dorangei doseq
-            enumerate flatten hash-table-alist hash-table-key-exists-p
-            hash-table-keys hash-table-values if-let iota looping make-keyword
-            mkstr mulf ncycle repeat string-ends-with-p string-starts-with-p
-            symb void when-let when-let* while with-gensyms with-unique-names)))
+            copy-hash-table digits divf dolist+ dorange dorangei doseq
+            dosublists enumerate flatten hash-table-alist
+            hash-table-key-exists-p hash-table-keys hash-table-values if-let
+            iota looping make-keyword mkstr mulf ncycle repeat
+            string-ends-with-p string-starts-with-p symb void when-let
+            when-let* while with-gensyms with-unique-names)))
 
 ;;;; END OF quickutils.lisp ;;;;

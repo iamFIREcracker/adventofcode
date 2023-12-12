@@ -33,7 +33,7 @@
 
 (defun sum-all-distances (&optional (image (parse-image)))
   (looping
-    (dolistl ((g1 . rest) (hash-table-keys image))
+    (dosublists ((g1 . rest) (hash-table-keys image))
       (dolist (g2 rest)
         (sum! (manhattan-distance g1 g2))))))
 

@@ -26,10 +26,10 @@
                :digits
                :divf
                :dolist+
-               :dolistl
                :dorange
                :dorangei
                :doseq
+               :dosublists
                :enumerate
                :flatten
                :hash-table-alist
