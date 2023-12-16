@@ -747,10 +747,14 @@
 
 ;;;; Copy pasta ---------------------------------------------------------------
 
+(defun mkstrs (sep &rest args)
+  "Like `mkstr`, but concatenates with a given separator."
+  (with-output-to-string (s)
+    (format s (mkstr "~{~a~^" sep "~}") args)))
+
 (defun mkstrc (&rest args)
   "Like `mkstr`, but concatenates with commas."
-  (with-output-to-string (s)
-    (format s "~{~a~^,~}" args)))
+  (apply #'mkstrs #\, args))
 
 ;; XXX remove
 (defmacro gathering (&body body)

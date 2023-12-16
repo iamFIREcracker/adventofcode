@@ -74,6 +74,7 @@
     :binary-search
 
     :mkstrc
+    :mkstrs
     :gathering
     :gather
 
