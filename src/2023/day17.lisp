@@ -2,6 +2,19 @@
 (in-package :aoc/2023/17)
 
 
+(defparameter *north* '(-1 0))
+(defparameter *east*  '(0 1))
+(defparameter *south* '(1 0))
+(defparameter *west*  '(0 -1))
+
+(defun move-straight (pos dir) (mapcar #'+ pos dir))
+(defun rotate-cw (dir)
+  (cond ((equal dir *north*) *east*)
+        ((equal dir *east*) *south*)
+        ((equal dir *south*) *west*)
+        ((equal dir *west*) *north*)))
+
+
 (defun parse-map (&optional (strings (uiop:read-file-lines #P"src/2023/day17.txt")))
   (bnd* ((rows (length strings))
          (cols (length (first strings)))
@@ -10,130 +23,41 @@
       (dolist+ ((j ch) (enumerate s))
         (setf (gethash (list i j) map) (parse-integer (mkstr ch)))))
     (list map rows cols)))
-#+#:excluded (parse-map)
 
 
-(defparameter *north* '(-1 0))
-(defparameter *east*  '(0 1))
-(defparameter *south* '(1 0))
-(defparameter *west*  '(0 -1))
-
-(defun advance (pos dir) (mapcar #'+ pos dir))
-(defun rotate-right (dir)
-  (cond ((equal dir *north*) *east*)
-        ((equal dir *east*) *south*)
-        ((equal dir *south*) *west*)
-        ((equal dir *west*) *north*)))
+(defun straight? (dir prev) (equal dir prev))
+(defun turn? (dir prev) (not (straight? dir prev)))
+(defun turn-back? (dir prev) (equal (rotate-cw (rotate-cw dir)) prev))
 
 
-(defun turn-back? (dir prev-dirs)
-  (aand (car prev-dirs)
-        (equal dir
-               (rotate-right (rotate-right it)))))
-#+#:excluded (turn-back? *north* (list *east*))
-
-(defun straight-for-too-long? (dir prev-dirs)
-  (and (equal dir (first prev-dirs))
-       (equal dir (second prev-dirs))
-       (equal dir (third prev-dirs)) ))
-#+#:excluded (straight-for-too-long? *north* (list *north*))
-#+#:excluded (straight-for-too-long? *north* (list *north* *north*))
-#+#:excluded (straight-for-too-long? *north* (list *south* *north* *north*))
-
-(defun slice (seq end) (subseq seq 0 (min (length seq) end)))
-#+#:excluded (slice (cons *north* (cons *north* (cons *north* nil))) 3)
-#+#:excluded (slice (list 1 2 3 4) 3)
-
-(defun neighbors (map state)
-  ; (declare (optimize (debug 3)))
-  ; (break)
-  (destructuring-bind (pos prev-dirs) state
-    (looping
-      (dolist (dir (list *north* *east* *south* *west*))
-        (bnd* ((npos (advance pos dir))
-               (hl (gethash npos map)))
-          (when hl
-            (unless (turn-back? dir prev-dirs)
-              (unless (straight-for-too-long? dir prev-dirs)
-                (collect!
-                  (cons (list npos (slice (cons dir prev-dirs) 3))
-                        hl))))))))))
-
-(defun part1 (&optional (input (parse-map)))
-  ; (declare (optimize (debug 3)))
+(defun minimize-heat-loss (input &key min-streak-to-turn max-streak)
   (destructuring-bind (map rows cols) input
-    (bnd* ((start (list (list 0 0) nil))
-           (goal (list (1- rows) (1- cols))))
-      (a* start
-          :init-cost 0 ; as per text
-          :goalp [equal (first _) goal]
-          :test 'equal
-          :state-key (lambda (state)
-                       (destructuring-bind (pos prev-dirs) state
-                         (list pos
-                               (first prev-dirs)
-                               (streak-length prev-dirs))))
-          :neighbors [neighbors map _]
-          :heuristic [manhattan-distance (first _) goal]))))
-#+#:excluded (part1)
-; 963
-
-(defun streak-length (prev-dirs)
-  (or (awhen (car prev-dirs)
-        (1+ (loop for cur in (slice (cdr prev-dirs) 9)
-                  while (equal it cur) count 1)))
-      0))
-; (streak-length nil)
-; (streak-length (list 1))
-; (streak-length (list 1 2))
-; (streak-length (list 1 1 2))
-
-(defun turn-but-cannot? (dir prev-dirs)
-  (and (car prev-dirs)
-       (not (equal (car prev-dirs) dir))
-       (< (streak-length prev-dirs) 4)))
-
-(defun straight-but-cannot? (dir prev-dirs)
-  (and (equal (car prev-dirs) dir)
-       (= (streak-length prev-dirs) 10)))
+    (bnd* ((init-state `((0 0) (0 0) 0))
+           (end (list (1- rows) (1- cols))))
+      (flet ((neighbors (state)
+               (destructuring-bind (pos dir streak) state
+                 (looping
+                   (dolist (ndir (list *north* *east* *south* *west*))
+                     (bnd* ((npos (move-straight pos ndir))
+                            (hl (gethash npos map)))
+                       (when hl
+                         (unless (turn-back? ndir dir)
+                           (when (or (zerop streak) ; first turn is allowed!
+                                     (and (turn? ndir dir) (>= streak min-streak-to-turn))
+                                     (and (straight? ndir dir) (< streak max-streak)))
+                             (collect!
+                               (cons (list npos ndir (if (straight? ndir dir) (1+ streak) 1))
+                                     hl)))))))))))
+        (search-cost
+          (a* init-state
+              :goalp [equal (first _) end]
+              :test 'equal
+              :neighbors #'neighbors
+              :heuristic [manhattan-distance (first _) end]))))))
 
 
-(defun neighbors2 (map state)
-  (destructuring-bind (pos prev-dirs) state
-    (looping
-      (dolist (dir (list *north* *east* *south* *west*))
-        (bnd* ((npos (advance pos dir))
-               (hl (gethash npos map)))
-          (when hl
-            (unless (turn-back? dir prev-dirs)
-              (unless (turn-but-cannot? dir prev-dirs)
-                (unless (straight-but-cannot? dir prev-dirs)
-                  (collect!
-                    (cons (list npos (slice (cons dir prev-dirs) 10))
-                          hl)))))
-            ))))))
+(define-solution (2023 17) (input parse-map)
+  (values (minimize-heat-loss input :min-streak-to-turn 0 :max-streak 3)
+          (minimize-heat-loss input :min-streak-to-turn 4 :max-streak 10)))
 
-(defun part2 (&optional (input (parse-map)))
-  ; (declare (optimize (debug 3)))
-  (destructuring-bind (map rows cols) input
-    (bnd* ((start (list (list 0 0) nil))
-           (goal (list (1- rows) (1- cols))))
-      (a* start
-          :init-cost 0 ; as per text
-          :goalp (lambda (state)
-                   (and (equal (first state) goal)
-                        (>= (streak-length (second state)) 4)))
-          :test 'equal
-          :state-key (lambda (state)
-                       (destructuring-bind (pos prev-dirs) state
-                         (list pos
-                               (first prev-dirs)
-                               (streak-length prev-dirs))))
-          :neighbors [neighbors2 map _]
-          :heuristic [manhattan-distance (first _) goal]))))
-(untrace neighbors turn-but-cannot? straight-but-cannot?)
-
-#+#:excluded (part2)
-; 835 nope
-; 1176 nope
-; 1178
+(define-test (2023 17) (963 1178))
