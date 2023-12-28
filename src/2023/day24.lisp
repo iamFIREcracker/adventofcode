@@ -9,106 +9,73 @@
   (mapcar #'hailstone strings))
 
 
-;; https://stackoverflow.com/a/46288706
-(defun line (h)
-  (destructuring-bind (x y _1 vx vy _2) h
-    (declare (ignore _1 _2))
-    ;; # y = mx + b
-    ;; # b = y - mx
-    ;; # b = P1[1] - slope * P1[0]
-    (bnd* ((slope (/ vy vx)) (y-intercept (- y (* slope x))))
-      (list slope y-intercept))))
+;; Copied from Wikipedia: https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
+(defun intersect-2d? (x1 y1 x2 y2 x3 y3 x4 y4)
+  (bnd* ((xnum (- (* (- (* x1 y2) (* y1 x2)) (- x3 x4))
+                  (* (- x1 x2) (- (* x3 y4) (* y3 x4)))))
+         (ynum (- (* (- (* x1 y2) (* y1 x2)) (- y3 y4))
+                  (* (- y1 y2) (- (* x3 y4) (* y3 x4)))))
+         (den (- (* (- x1 x2) (- y3 y4))
+                 (* (- y1 y2) (- x3 x4)))))
+    (unless (zerop den)
+      (list (/ xnum den) (/ ynum den)))))
 
-(defun intersect-2d? (h1 h2)
-  (destructuring-bind (m1 b1) (line h1)
-    (destructuring-bind (m2 b2) (line h2)
-      (unless (= m1 m2)
-        ;; # y = mx + b
-        ;; # Set both lines equal to find the intersection point in the x direction
-        ;; # m1 * x + b1 = m2 * x + b2
-        ;; # m1 * x - m2 * x = b2 - b1
-        ;; # x * (m1 - m2) = b2 - b1
-        ;; # x = (b2 - b1) / (m1 - m2)
-        ;; x = (b2 - b1) / (m1 - m2)
-        ;; # Now solve for y -- use either line, because they are equal here
-        ;; # y = mx + b
-        ;; y = m1 * x + b1
-        (bnd* ((x (/ (- b2 b1) (- m1 m2))) (y (+ (* m1 x) b1)))
-          (list x y))))))
 
-(defun in-the-future? (h ix iy)
-  (destructuring-bind (x1 y1 _1 vx vy _2) h
-    (declare (ignore _1 _2))
-    (bnd* ((x2 (+ x1 vx)) (y2 (+ y1 vy))
-           (dx1 (- x2 x1)) (dx2 (- ix x1)))
-      (plusp (* dx1 dx2)))))
+(defun in-the-future? (x1 y1 x2 y2 x3 y3)
+  (bnd* ((dx21 (- x2 x1)) (dx31 (- x3 x1))
+         (dy21 (- y2 y1)) (dy31 (- y3 y1)))
+    (and (>= (* dx21 dx31) 0)
+         (>= (* dy21 dy31) 0))))
 
-(defun part1 (min max &optional (hh (parse-input)))
+
+(defun all-intersections (&optional (hh (parse-input)))
   (looping
-    (dosublists ((h1 . rest) hh)
-      (dolist (h2 rest)
-        (awhen (intersect-2d? h1 h2)
-          (destructuring-bind (x y) it
-            (when (and (in-the-future? h1 x y)
-                       (in-the-future? h2 x y))
-              (count! (and (<= min x max)
-                           (<= min y max))))))))))
+    (dosublists (((x1 y1 vx1 vy1) . rest) hh)
+      (bnd* ((x2 (+ x1 vx1)) (y2 (+ y1 vy1)))
+        (dolist+ ((x3 y3 vx3 vy3) rest)
+          (bnd* ((x4 (+ x3 vx3)) (y4 (+ y3 vy3)))
+            (awhen (intersect-2d? x1 y1 x2 y2 x3 y3 x4 y4)
+              (destructuring-bind (x y) it
+                (when (and (in-the-future? x1 y1 x2 y2 x y)
+                           (in-the-future? x3 y3 x4 y4 x y))
+                  (collect! (list x y)))))))))))
+
+(defun ignore-axis (n h)
+  (destructuring-bind (x y z vx vy vz) h
+    (ecase n
+      (0 (list y z vy vz))
+      (1 (list x z vx vz))
+      (2 (list x y vx vy)))))
+
+#+#:excluded (length (all-intersections))
+(defun part1 (&optional (hh (parse-input)))
+  (looping
+    (dolist+ ((x y) (all-intersections (mapcar [ignore-axis 2 _] hh)))
+      (count! (and (<= 200000000000000 x 400000000000000)
+                   (<= 200000000000000 y 400000000000000))))))
 #+#:excluded (part1 7 27)
-#+#:excluded (part1 200000000000000 400000000000000)
+#+#:excluded (part1  )
 ; 24999 nope
 ; 16779 !!!
 
-(defun hail-at (h time)
-  (destructuring-bind (x y z vx vy vz) h
-    (list (+ x (* time vx)) (+ y (* time vy)) (+ z (* time vz)))))
+(defun adjust-velocity (dvx dvy h)
+  (destructuring-bind (x y vx vy) h
+    (list x y (+ vx dvx) (+ vy dvy))))
+#+#:excluded (untrace adjust-velocity)
 
-(defun speed-magnitude (h)
-  (destructuring-bind (vx vy vz) (nthcdr 3 h)
-    (sqrt (+ (* vx vx) (* vy vy) (* vz vz)))))
-
-(defun v- (v1 v2)
-  "Subtracts vector `v2` from vector `v1`"
-  (mapcar #'- v1 v2))
-
-(defun v/s (v s)
-  "Divides vector `v` by scalar `s`"
-  (mapcar [/ _ s] v))
-
-(defun v*s (v s)
-  "Multiplies vector `v` by scalar `s`"
-  (mapcar [* _ s] v))
-
-(defun v/ (v1 v2)
-  "Divides vector `v1` by vector `v2` -- whatever that means"
-  (mapcar #'/ v1 v2))
 (defun part2 (&optional (hh (parse-input)))
-  (setf hh (sort hh #'> :key #'speed-magnitude))
-  (bnd* (((h1 h2 h3 . rest) (subseq hh 0 3)))
-    (dorangei (time1 1 10000)
-      (bnd* ((c1 (hail-at h1 time1)))
-        (dorangei (time2 1 10000)
-          (unless (= time1 time2)
-            (bnd* ((c2 (hail-at h2 time2))
-                   (vel (v/s (v- c1 c2)
-                             (- time1 time2))))
-
-              (when (every #'integerp vel)
-                (dorangei (time3 1 10000)
-                  (bnd* ((c3 (hail-at h3 time3))
-                         (pos (v- c3 (v*s vel time3))))
-
-                    (dolist (h rest)
-                      (bnd* (time ( ))))
-                    (pr vel pos)
-                    (break)))))))))
-    #+#:excluded (while t
-                   )
-    (pr h1 h2))
-  #+#:excluded (destructuring-bind (tx ty tx tvx tvy tvz) throw
-                 (destructuring-bind (hx hy hx hvx hvy hvz) h
-
-                   ))
-  (values))
-#+#:excluded (part2)
-; (integerp 1)
-; (length (parse-input))
+  (flet ((magic (axis &aux )
+           (bnd1 (hh (mapcar [ignore-axis axis _] (subseq hh 0 3)))
+             (dorangei (vx -300 300)
+               (dorangei (vy -300 300)
+                 (bnd1 (points (all-intersections (mapcar [adjust-velocity vx vy _]
+                                                          hh)))
+                   (when (and (> (length points) 1)
+                              (= (length (remove-duplicates points :test #'equal)) 1))
+                     (return-from magic (first points)))))))))
+    (destructuring-bind (px1 py) (magic 2)
+      (destructuring-bind (px2 pz) (magic 1)
+        (assert (= px1 px2))
+        (+ px1 py pz)))))
+#+#:excluded (time (part2))
+; 871983857253169
