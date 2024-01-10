@@ -823,24 +823,102 @@
   (mapcar #'parse-integer (cl-ppcre:all-matches-as-strings "-?\\d+" s)))
 
 ;;;; Problems -----------------------------------------------------------------
+
+(defun read-decrypted-problem-input (year day)
+  (labels ((decrypt (ciphertext)
+             (classified:decrypt (make-instance 'classified::encryptor)
+                                 ciphertext
+                                 :message-serializer
+                                 (make-instance 'classified::message-serializer)
+                                 :key-provider
+                                 (classified::build-key-provider (uiop:getenv "PRIMARY_KEY")))))
+    (ignore-errors
+      (decrypt
+        (with-standard-io-syntax
+          (read-from-string
+            (uiop:read-file-string (problem-input-path year day "enc"))))))))
+#+#:excluded (read-decrypted-problem-input 2023 25)
+#+#:excluded (time
+               (dorangei (year 2015 2023)
+                 (dorangei (day 1 25)
+                   (read-decrypted-problem-input year day))))
+
+(defun encrypt-problem-input (year day)
+  (labels ((encrypt (plaintext)
+             (classified:encrypt (make-instance 'classified::encryptor)
+                                 plaintext
+                                 :message-serializer
+                                 (make-instance 'classified::message-serializer)
+                                 :key-provider
+                                 (classified::build-key-provider (uiop:getenv "PRIMARY_KEY")))))
+    (with-open-file (stream (problem-input-path year day "enc")
+                            :direction :output
+                            :if-exists :overwrite
+                            :if-does-not-exist :create)
+      (with-standard-io-syntax
+        (prin1 (encrypt (uiop:read-file-string (problem-input-path year day "txt")))
+               stream)))
+    (read-decrypted-problem-input year day)))
+#+#:excluded (encrypt-problem-input 2023 25)
+#+#:excluded (time
+               (dorangei (year 2015 2023)
+                 (dorangei (day 1 25)
+                   (encrypt-problem-input year day))))
+
+(defun read-problem-input (year day)
+  (labels ((encrypted-input ()
+             (ignore-errors
+               (decrypt
+                 (with-standard-io-syntax
+                   (read-from-string
+                     (uiop:read-file-string (problem-input-path year day "enc")))))))
+           (plain-input ()
+             (let* ((plaintext (uiop:read-file-string (problem-input-path year day "txt")))
+                    (ciphertext (encrypt plaintext)))
+               (with-open-file (stream (problem-input-path year day "enc")
+                                       :direction :output
+                                       :if-exists :overwrite
+                                       :if-does-not-exist :create)
+                 (with-standard-io-syntax
+                   (prin1 ciphertext stream)))
+               (encrypted-input)))
+           (encrypt (plaintext)
+             (classified:encrypt (make-instance 'classified::encryptor)
+                                 plaintext
+                                 :message-serializer
+                                 (make-instance 'classified::message-serializer)
+                                 :key-provider
+                                 (classified::build-key-provider (uiop:getenv "PRIMARY_KEY"))))
+           (decrypt (ciphertext)
+             (classified:decrypt (make-instance 'classified::encryptor)
+                                 ciphertext
+                                 :message-serializer
+                                 (make-instance 'classified::message-serializer)
+                                 :key-provider
+                                 (classified::build-key-provider (uiop:getenv "PRIMARY_KEY")))))
+    (let ((classified:*key-derivation-salt* (uiop:getenv "KEY_DERIVATION_SALT")))
+      (cl-ppcre:split "\\n" (or (encrypted-input) (plain-input))))))
+#+#:excluded (read-problem-input 2023 25)
+#+#:excluded (time
+               (dorangei (year 2015 2023)
+                 (dorangei (day 1 25)
+                   (read-problem-input year day))))
+
+
 (defmacro define-solution ((year day)
                            (arg &optional (reader 'identity))
                            &body body)
-  (with-gensyms (file)
-    (let ((run (symb 'solution-run)))
-      `(defun ,run (&optional ,arg)
-        (let ((,file (open (problem-input-path ,year ,day))))
-          (unwind-protect
-            (progn (setf ,arg (,reader (read-all ,file)))
-                   ,@body)
-            (when ,file (close ,file))))))))
+  (let ((run (symb 'solution-run)))
+    `(defun ,run ()
+       (let ((,arg (,reader (read-problem-input ,year ,day))))
+         ,@body))))
+(defun problem-input-path (year day &optional (ext "txt"))
+  (make-pathname :directory `(:relative "src" ,(format NIL "~A" year))
+                 :name (format nil "day~2,'0D" day)
+                 :type ext))
+#+#:excluded (problem-input-path 2023 25)
+#+#:excluded (problem-input-path 2023 25 "enc")
 
-(defun problem-input-path (year day)
-  (make-pathname
-    :directory `(:relative "src" ,(format NIL "~A" year))
-
-    :name (format nil "day~2,'0D" day)
-    :type "txt"))
 
 (defvar *tests* nil "A list of tests; the default argument to RUN.")
 

@@ -64,6 +64,8 @@ jobs:
             experimental: false
     env:
       LISP: ${{ matrix.lisp }}
+      PRIMARY_KEY: ${{ secrets.PRIMARY_KEY }}
+      KEY_DERIVATION_SALT: ${{ secrets.KEY_DERIVATION_SALT }}
     defaults:
       run:
         shell: lispsh {0}

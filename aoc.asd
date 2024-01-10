@@ -1,3 +1,7 @@
+(pushnew (merge-pathnames (parse-namestring "vendor/cl-classified/")
+           *default-pathname-defaults*)
+         asdf:*central-registry*)
+
 (defclass auto-module (module)
   ((file-cache :initform (make-hash-table))))
 
@@ -22,6 +26,7 @@
   :serial t
   :depends-on (
 
+              #:classified
               #:1am
               #:cl-ppcre
               #:md5
