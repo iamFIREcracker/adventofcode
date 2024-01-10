@@ -1,4 +1,4 @@
-lisps := $(shell find . -follow -type f \( -iname \*.asd -o -iname \*.lisp \) ! -name make-quickutils.lisp)
+lisps := $(shell find . -follow -type f \( -iname \*.asd -o -iname \*.lisp \) ! -path "./vendor/*")
 
 all: vendor
 
