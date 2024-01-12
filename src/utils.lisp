@@ -822,8 +822,9 @@
 (defun extract-integers (s)
   (mapcar #'parse-integer (cl-ppcre:all-matches-as-strings "-?\\d+" s)))
 
-(defun extract-symbols (s)
-  (mapcar #'read-from-string (cl-ppcre:all-matches-as-strings "\\w+" s)))
+(defun extract-forms (s)
+  (with-input-from-string (stream s)
+    (uiop:slurp-stream-forms stream)))
 
 ;;;; Problems -----------------------------------------------------------------
 
