@@ -2,7 +2,7 @@
 ;;;; See http://quickutil.org for details.
 
 ;;;; To regenerate:
-;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:KEEP-IF :KEEP-IF-NOT :AAND :AIF :AWHEN :BND* :BND1 :COPY-ARRAY :COPY-HASH-TABLE :DIGITS :DIVF :DOLIST+ :DORANGE :DORANGEI :DOSEQ :DOSUBLISTS :ENUMERATE :FLATTEN :HASH-TABLE-ALIST :HASH-TABLE-KEY-EXISTS-P :HASH-TABLE-KEYS :HASH-TABLE-VALUES :IF-LET :IOTA :LOOPING :MAKE-KEYWORD :MKSTR :MULF :NCYCLE :REPEAT :STRING-ENDS-WITH-P :STRING-STARTS-WITH-P :SYMB :VOID :WHEN-LET :WHILE :WITH-GENSYMS) :ensure-package T :package "AOC.QUICKUTILS")
+;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:KEEP-IF :KEEP-IF-NOT :AAND :AIF :AWHEN :BND* :BND1 :COPY-ARRAY :COPY-HASH-TABLE :DIGITS :DIVF :DOHASH :DOLISTS :DORANGE :DORANGEI :DOSEQ :DOSEQ :DOSUBLISTS :ENUMERATE :FLATTEN :HASH-TABLE-ALIST :HASH-TABLE-KEY-EXISTS-P :HASH-TABLE-KEYS :HASH-TABLE-VALUES :IF-LET :IOTA :LOOPING :MAKE-KEYWORD :MKSTR :MULF :NCYCLE :REPEAT :STRING-ENDS-WITH-P :STRING-STARTS-WITH-P :SUBSEQ- :SYMB :VOID :WHEN-LET :WHILE :WITH-GENSYMS) :ensure-package T :package "AOC.QUICKUTILS")
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (unless (find-package "AOC.QUICKUTILS")
@@ -15,8 +15,9 @@
 (when (boundp '*utilities*)
   (setf *utilities* (union *utilities* '(:ABBR :KEEP-IF :KEEP-IF-NOT :LET1 :AIF
                                          :AAND :AWHEN :BND* :BND1 :COPY-ARRAY
-                                         :COPY-HASH-TABLE :DIGITS :DIVF
-                                         :DOLIST+ :DORANGE :DORANGEI :DOSEQ
+                                         :COPY-HASH-TABLE :DIGITS :DIVF :DOHASH
+                                         :DOLISTS :DORANGE :DORANGEI
+                                         :MAKE-GENSYM-LIST :ONCE-ONLY :DOSEQ
                                          :DOSUBLISTS :ENUMERATE :FLATTEN
                                          :HASH-TABLE-ALIST
                                          :HASH-TABLE-KEY-EXISTS-P :MAPHASH-KEYS
@@ -26,8 +27,8 @@
                                          :WITH-GENSYMS :LOOPING :MAKE-KEYWORD
                                          :MULF :NCYCLE :REPEAT
                                          :STRING-ENDS-WITH-P
-                                         :STRING-STARTS-WITH-P :VOID :WHEN-LET
-                                         :WHILE))))
+                                         :STRING-STARTS-WITH-P :SUBSEQ- :VOID
+                                         :WHEN-LET :WHILE))))
 
   (defmacro abbr (short long)
     "Defines a new function/macro named `short` and sharing
@@ -226,17 +227,30 @@ the following identity holds:
     "A modifying version of division, similar to `decf`.")
   
 
-  (defmacro dolist+ ((var list &optional (result nil result?)) &body body)
-    "Like DOLIST, except it supports destructuring of `var`.
+  (defmacro dohash ((key value table &optional (result nil result?)) &body body)
+    "Iterate over the hash table `table`, executing `body`, with `key` and
+   `value` bound to the keys and values of the hash table
+   respectively. Return `result` from the iteration form."
+    `(loop :for ,key :being :the :hash-keys :of ,table :using (hash-value ,value) :do ,@body ,@(when result? `(:finally (return ,result)))))
+  
 
-  > (let ((list '((1 a) (2 b))))
-      (dolist+ ((a b) list :ret)
-        (print (list a b))))
-  ;;(1 A)
-  ;;(2 B)
-  :RET
+  (defmacro dolists (((var1 list1) (var2 list2) &rest var-list-specs) &body body)
+    "Like DOLIST, except it allows you to iterate over multiple lists in parallel.
+
+  > (let ((list '(1 2 3 4)))
+      (dolists ((x1 list)
+                (x2 (cdr list)))
+        (print (list x1 x2))))
+  ;; (1 2)
+  ;; (2 3)
+  ;; (3 4)
+  NIL
   "
-    `(loop :for ,var :in ,list do ,@body ,@(when result? `(:finally (return ,result)))))
+    `(loop
+       :for ,var1 :in ,list1 :for ,var2 :in ,list2
+       ,@(loop for (var list) in var-list-specs
+               collect 'FOR collect var collect 'IN collect list)
+       :do ,@body))
   
 
   (defmacro dorange ((var from to &optional (step 1) (result nil result?)) &body body)
@@ -264,24 +278,73 @@ lexical environmnet."
           ,@(when result? `(,result)))
          ,@body)))
   
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defun make-gensym-list (length &optional (x "G"))
+    "Returns a list of `length` gensyms, each generated as if with a call to `make-gensym`,
+using the second (optional, defaulting to `\"G\"`) argument."
+    (let ((g (if (typep x '(integer 0)) x (string x))))
+      (loop repeat length
+            collect (gensym g))))
+  )                                        ; eval-when
 
-  (defmacro doseq ((var seq &optional return) &body body)
+  (defmacro once-only (specs &body forms)
+    "Evaluates `forms` with symbols specified in `specs` rebound to temporary
+variables, ensuring that each initform is evaluated only once.
+
+Each of `specs` must either be a symbol naming the variable to be rebound, or of
+the form:
+
+    (symbol initform)
+
+Bare symbols in `specs` are equivalent to
+
+    (symbol symbol)
+
+Example:
+
+    (defmacro cons1 (x) (once-only (x) `(cons ,x ,x)))
+      (let ((y 0)) (cons1 (incf y))) => (1 . 1)"
+    (let ((gensyms (make-gensym-list (length specs) "ONCE-ONLY"))
+          (names-and-forms (mapcar (lambda (spec)
+                                     (etypecase spec
+                                       (list
+                                        (destructuring-bind (name form) spec
+                                          (cons name form)))
+                                       (symbol
+                                        (cons spec spec))))
+                                   specs)))
+      ;; bind in user-macro
+      `(let ,(mapcar (lambda (g n) (list g `(gensym ,(string (car n)))))
+              gensyms names-and-forms)
+         ;; bind in final expansion
+         `(let (,,@(mapcar (lambda (g n)
+                             ``(,,g ,,(cdr n)))
+                           gensyms names-and-forms))
+            ;; bind in user-macro
+            ,(let ,(mapcar (lambda (n g) (list (car n) g))
+                    names-and-forms gensyms)
+               ,@forms)))))
+  
+
+  (defmacro doseq ((var seq &optional (result nil result?)) &body body)
     "Iterate across the sequence `seq`, binding the variable `var` to
 each element of the sequence and executing `body`. Return the value
-`return` from the iteration form."
-    `(block nil
-       (map nil #'(lambda (,var)
-                    (tagbody
-                       ,@body))
-            ,seq)
-       ,return))
+`return` from the iteration form.
+
+Note: DOSEQ expands to a LOOP form, so `var` can either be a symbol, or a
+lambda-list
+"
+    (once-only (seq)
+      `(etypecase ,seq
+         (list (loop :for ,var :in ,seq :do ,@body ,@(when result? `(:finally (return ,result)))))
+         (sequence (loop :for ,var :across ,seq :do ,@body ,@(when result? `(:finally (return ,result))))))))
   
 
   (defmacro dosublists ((var list &optional (result nil result?)) &body body)
     "Like DOLIST, except:
 
 - `var` is bound to successive sublists of `list` (similar to MAPL, LOOP..ON)
-- `var` can lambda-list (similar to DOLIST+)
+- `var` can be a lambda-list
 "
     `(loop :for ,var :on ,list do ,@body ,@(when result? `(:finally (return ,result)))))
   
@@ -476,11 +539,12 @@ unique symbol the named variable will be bound to."
 
   (defmacro looping (&body body)
     "Run `body` in an environment where the symbols COLLECT!, APPEND!, SUM!,
-COUNT!, MINIMIZE!, and MAXIMIZE! are bound to functions that can be used to
-collect / append, sum, count, minimize or maximize things respectively.
+MULTIPLY!, COUNT!, MINIMIZE!, and MAXIMIZE! are bound to functions that can be
+used to collect / append, sum, multiply, count, minimize or maximize things
+respectively.
 
-Mixed usage of COLLECT!/APPEND!, SUM!, COUNT!, MINIMIZE! and MAXIMIZE! is not
-supported.
+Mixed usage of COLLECT!/APPEND!, SUM!, MULTIPLY!, COUNT!, MINIMIZE! and
+MAXIMIZE! is not supported.
 
 Examples:
 
@@ -514,14 +578,17 @@ Examples:
       (labels ((extract-loop-type (body)
                  (cond ((null body) nil)
                        ((symbolp body) (find body
-                                             '(collect! append! sum! count! minimize! maximize!)
+                                             '(collect! append! sum! multiply! count! minimize! maximize!)
                                              :test #'string=))
-                       ((consp body) (or (extract-loop-type (car body))
-                                         (extract-loop-type (cdr body))))))
+                       ((consp body) (unless (and (symbolp (car body))
+                                                  (string= (car body) 'looping))
+                                       (or (extract-loop-type (car body))
+                                           (extract-loop-type (cdr body)))))))
                (init-result (loop-type)
                  (ecase loop-type
-                   ((collect! append! minimize! maximixe!) nil)
-                   ((sum! count!) 0))))
+                   ((collect! append! minimize! maximize!) nil)
+                   ((sum! count!) 0)
+                   ((multiply!) 1))))
         (let* ((loop-type-value (extract-loop-type body))
                (result-value (init-result loop-type-value)))
           `(let* ((,loop-type ',loop-type-value)
@@ -553,6 +620,10 @@ Examples:
                          (progn
                            (incf ,result item)
                            item)))
+                      (,(symb "MULTIPLY!") (item)
+                       (if (and ,loop-type (not (eql ,loop-type 'multiply!)))
+                         (error "Cannot use MULTIPLY! together with ~A" ,loop-type)
+                         (setf ,result (* ,result item))))
                       (,(symb "COUNT!") (item)
                        (if (and ,loop-type (not (eql ,loop-type 'count!)))
                          (error "Cannot use COUNT! together with ~A" ,loop-type)
@@ -601,6 +672,19 @@ Examples:
     "Returns T if the first few characters of `s` are equal to `prefix`."
     (and (<= (length prefix) (length s))
          (string= prefix s :end2 (length prefix))))
+  
+
+  (defun subseq- (seq &optional (start nil) (end nil))
+    "Like SUBSEQ, except it supports negative indices."
+    (if (not start)
+      (setf start 0)
+      (if (< start 0)
+        (setf start (+ (length seq) start))))
+    (if (not end)
+      (setf end (length seq))
+      (if (< end 0)
+        (setf end (+ (length seq) end))))
+    (subseq seq start end))
   
 
   (defun void (&rest args)
@@ -678,11 +762,11 @@ PROGN."
   
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (export '(keep-if keep-if-not aand aif awhen bnd* bnd1 copy-array
-            copy-hash-table digits divf dolist+ dorange dorangei doseq
+            copy-hash-table digits divf dohash dolists dorange dorangei doseq
             dosublists enumerate flatten hash-table-alist
             hash-table-key-exists-p hash-table-keys hash-table-values if-let
             iota looping make-keyword mkstr mulf ncycle repeat
-            string-ends-with-p string-starts-with-p symb void when-let
+            string-ends-with-p string-starts-with-p subseq- symb void when-let
             when-let* while with-gensyms with-unique-names)))
 
 ;;;; END OF quickutils.lisp ;;;;

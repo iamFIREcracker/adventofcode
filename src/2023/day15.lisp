@@ -32,7 +32,7 @@
   (looping
     (dorange (i 0 (length boxes))
       (bnd1 (box (aref boxes i))
-        (dolist+ ((j (label . num)) (enumerate (reverse box)))
+        (doseq ((j (label . num)) (enumerate (reverse box)))
           (sum! (* (1+ i) (1+ j) num)))))))
 
 (defun part2 (&optional (strings (uiop:read-file-lines #P"src/2023/day15.txt"))

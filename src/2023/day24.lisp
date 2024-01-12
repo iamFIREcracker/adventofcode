@@ -32,7 +32,7 @@
   (looping
     (dosublists (((x1 y1 vx1 vy1) . rest) hh)
       (bnd* ((x2 (+ x1 vx1)) (y2 (+ y1 vy1)))
-        (dolist+ ((x3 y3 vx3 vy3) rest)
+        (doseq ((x3 y3 vx3 vy3) rest)
           (bnd* ((x4 (+ x3 vx3)) (y4 (+ y3 vy3)))
             (awhen (intersect-2d? x1 y1 x2 y2 x3 y3 x4 y4)
               (destructuring-bind (x y) it
@@ -50,7 +50,7 @@
 #+#:excluded (length (all-intersections))
 (defun part1 (&optional (hh (parse-input)))
   (looping
-    (dolist+ ((x y) (all-intersections (mapcar [ignore-axis 2 _] hh)))
+    (doseq ((x y) (all-intersections (mapcar [ignore-axis 2 _] hh)))
       (count! (and (<= 200000000000000 x 400000000000000)
                    (<= 200000000000000 y 400000000000000))))))
 #+#:excluded (part1 7 27)

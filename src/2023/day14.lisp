@@ -7,8 +7,8 @@
          (cols (length (first strings)))
          (rocks (make-hash-table :test 'equal))
          (walls (make-hash-table :test 'equal)))
-    (dolist+ ((i s) (enumerate strings))
-      (dolist+ ((j ch) (enumerate s))
+    (doseq ((i s) (enumerate strings))
+      (doseq ((j ch) (enumerate s))
         (when (char= ch #\O)
           (setf (gethash (list i j) rocks) ch))
         (when (char= ch #\# )
@@ -75,5 +75,5 @@
         (cycle input))
       (north-load input))))
 
-(time (part2))
+#+#:excluded (time (part2))
 ;; 112452

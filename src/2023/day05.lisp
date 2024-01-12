@@ -29,8 +29,8 @@
           (bnd1 ((source dest ignore) (or (find-range seed map)
                                           (list seed seed 1)))
             (setf seed (+ (- seed source) dest))))
-        (min! seed)))))
-(part1)
+        (minimize! seed)))))
+#+#:excluded (part1)
 600279879
 
 (defun seed-ranges (seeds)
@@ -48,7 +48,7 @@
           maps (mapcar #'parse-map maps))
     (dolist (map maps seeds)
       (bnd1 (seeds-next)
-        (dolist+ ((start length) seeds)
+        (doseq ((start length) seeds)
           (loop while (> length 0) do
                 (bnd* (((source dest size) (or (find-range start map)
                                                (list start start length)))
@@ -62,7 +62,7 @@
                         length (- length new-length)))))
         (setf seeds seeds-next)))))
 
-(time (1- (reduce #'min (part2) :key #'first)))
+#+#:excluded (time (1- (reduce #'min (part2) :key #'first)))
 205409647 ;too high
 20191103 ; this is what my solution outputs... however, it's off by 1...
          ; i noticed it was off by one with the example... so I gave it a shot

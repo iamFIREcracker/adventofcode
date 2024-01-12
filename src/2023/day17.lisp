@@ -19,8 +19,8 @@
   (bnd* ((rows (length strings))
          (cols (length (first strings)))
          (map (make-hash-table :test 'equal)))
-    (dolist+ ((i s) (enumerate strings))
-      (dolist+ ((j ch) (enumerate s))
+    (doseq ((i s) (enumerate strings))
+      (doseq ((j ch) (enumerate s))
         (setf (gethash (list i j) map) (parse-integer (mkstr ch)))))
     (list map rows cols)))
 

@@ -22,8 +22,8 @@
                             (dorange (jj 0 j)
                               (count! (every [char= _ #\.] (col jj)))))))
       ; parse galaxies, keeping track of expansions
-      (dolist+ ((i s) (enumerate strings))
-        (dolist+ ((j ch) (enumerate s))
+      (doseq ((i s) (enumerate strings))
+        (doseq ((j ch) (enumerate s))
           (when (char= ch #\# )
             (bnd* ((ii (+ i (* (aref di i) (1- expansion-size))))
                    (jj (+ j (* (aref dj j) (1- expansion-size)))))

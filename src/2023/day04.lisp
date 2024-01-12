@@ -14,7 +14,7 @@
 (defun part2 (&optional (strings (uiop:read-file-lines #P"src/2023/day04.txt")))
   (bnd1 (cards-count (make-array (length strings) :initial-element 1))
     (looping
-      (dolist+ ((curr s) (enumerate strings))
+      (doseq ((curr s) (enumerate strings))
         (bnd* ((current-card-count (aref cards-count curr)))
           (sum! current-card-count)
           (dorangei (i 1 (length (winning-numbers s)))

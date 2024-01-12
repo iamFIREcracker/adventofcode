@@ -25,9 +25,11 @@
                :copy-hash-table
                :digits
                :divf
-               :dolist+
+               :dohash
+               :dolists
                :dorange
                :dorangei
+               :doseq
                :doseq
                :dosublists
                :enumerate
@@ -46,6 +48,7 @@
                :repeat
                :string-ends-with-p
                :string-starts-with-p
+               :subseq-
                :symb
                :void
                :when-let

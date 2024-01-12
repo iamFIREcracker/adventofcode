@@ -21,7 +21,7 @@
 
 (defun parse-input (&optional (strings (uiop:read-file-lines #P"src/2023/day20.txt")))
   (bnd* ((modules (cons (button) (mapcar #'parse-module strings))))
-    (dolist+ (m modules)
+    (doseq (m modules)
       (dolist (n (getf m :outputs))
         (bnd* ((o (find n modules :key #'name)))
           (setf (getf (getf o :inputs) (name m)) :low))))
@@ -56,7 +56,7 @@
                  (while q
                    (setf q
                          (looping
-                           (dolist+ ((pulse from to) q)
+                           (doseq ((pulse from to) q)
                              (bnd* ((m (find to modules :key #'name)))
                                (awhen (change-input m from pulse)
                                  (dolist (n (getf m :outputs))
@@ -67,7 +67,7 @@
       (repeat 1000
         (push-button)))
     pulses))
-(reduce #'* (plist-values (warm-up)))
+#+#:excluded (reduce #'* (plist-values (warm-up)))
 ; 95113840 nope
 ; 86755932 nope
 ; 883726240
@@ -81,7 +81,7 @@
                  (while q
                    (setf q
                          (looping
-                           (dolist+ ((pulse from to) q)
+                           (doseq ((pulse from to) q)
                              (when (and (eq expected-pulse pulse)
                                         (eq expected-from from)
                                         (eq expected-to to))
@@ -99,8 +99,8 @@
 #+#:excluded (push-until :low :rx)
 
 
-(lcm
-  (push-until :high :xc :bb)
-  (push-until :high :ks :bb)
-  (push-until :high :kp :bb)
-  (push-until :high :ct :bb))
+#+#:excluded (lcm
+               (push-until :high :xc :bb)
+               (push-until :high :ks :bb)
+               (push-until :high :kp :bb)
+               (push-until :high :ct :bb))

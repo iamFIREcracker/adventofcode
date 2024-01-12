@@ -10,8 +10,8 @@
 
 (defun parse-all-numbers (&optional (strings (uiop:read-file-lines #P"src/2023/day03.txt")))
   (bnd1 (map (make-hash-table :test 'equal))
-    (dolist+ ((i s) (enumerate strings))
-      (dolist+ ((n start end) (parse-line-numbers s))
+    (doseq ((i s) (enumerate strings))
+      (doseq ((n start end) (parse-line-numbers s))
         (dorangei (j start end)
           (setf (gethash (list i j) map) (list n i start end)))))
     map))
@@ -34,8 +34,8 @@
   (bnd1 (numbers-map (parse-all-numbers strings))
     (remove-duplicates
       (looping
-        (dolist+ ((i s) (enumerate strings))
-          (dolist+ ((j ch) (enumerate s))
+        (doseq ((i s) (enumerate strings))
+          (doseq ((j ch) (enumerate s))
             (when (symbol-char-p ch)
               (append! (surrounding-numbers numbers-map i j))))))
       :test #'equal)))
@@ -46,8 +46,8 @@
 (defun gears (&optional (strings (uiop:read-file-lines #P"src/2023/day03.txt")))
   (bnd* ((numbers-map (parse-all-numbers strings)))
     (looping
-      (dolist+ ((i s) (enumerate strings))
-        (dolist+ ((j ch) (enumerate s))
+      (doseq ((i s) (enumerate strings))
+        (doseq ((j ch) (enumerate s))
           (when (gear-char-p ch)
             (bnd1 (numbers (surrounding-numbers numbers-map i j))
               (when (= (length numbers) 2)

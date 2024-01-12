@@ -64,9 +64,9 @@
                    )))))
 #+#:excluded (better-hand? "33332"  "2AAAA")
 
-(looping
-  (dolist+ ((i (hand . bid)) (enumerate (reverse (sort (list-of-hands) #'better-hand? :key #'car))))
-    (sum! (* (1+ i) bid))))
+#+#:excluded (looping
+               (doseq ((i (hand . bid)) (enumerate (reverse (sort (list-of-hands) #'better-hand? :key #'car))))
+                 (sum! (* (1+ i) bid))))
 251813756;not right
 251741086; not right
 251806792

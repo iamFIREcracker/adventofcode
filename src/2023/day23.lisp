@@ -16,12 +16,12 @@
          (cols (length (first strings)))
          (map (make-hash-table :test 'equal))
          (start))
-    (dolist+ ((i s) (enumerate strings))
-      (dolist+ ((j ch) (enumerate s))
+    (doseq ((i s) (enumerate strings))
+      (doseq ((j ch) (enumerate s))
         (when (find ch ".^>v<")
           (setf (gethash (list i j) map) ch))))
     (list map (list 0 1) (list (1- rows) (- cols 2)))))
-(parse-map)
+#+#:excluded (parse-map)
 
 (defun part1 (&optional (input (parse-map)))
   (destructuring-bind (map start end) input

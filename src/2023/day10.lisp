@@ -16,13 +16,13 @@
          start
          dirs)
     ;; Load input into a hash-table, and record where the start is
-    (dolist+ ((i s) (enumerate strings))
-      (dolist+ ((j ch) (enumerate s))
+    (doseq ((i s) (enumerate strings))
+      (doseq ((j ch) (enumerate s))
         (setf (gethash (list i j) map) ch)
         (if (char= ch #\S)
           (setf start (list i j)))))
     ;; Figure out what the possible starting directions might be
-    (dolist+ ((dir next) `((,*east* "-7J") (,*south* "|LJ") (,*west* "-LF") (,*north* "|7F")))
+    (doseq ((dir next) `((,*east* "-7J") (,*south* "|LJ") (,*west* "-LF") (,*north* "|7F")))
       (if (find (gethash (move-straight start dir) map) next)
         (push dir dirs)))
     ;; Replace S with the right pipe connector

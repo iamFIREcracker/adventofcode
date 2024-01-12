@@ -66,7 +66,7 @@
 
 (define-solution (2023 19) (input parse-input)
   (values (reduce #'+ (accepted-parts input) :key #'score)))
-(solution-run)
+#+#:excluded (solution-run)
 
 (define-test (2023 19) (398527))
 

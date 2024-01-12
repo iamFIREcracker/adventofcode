@@ -48,7 +48,7 @@
 (defun pit-area (&optional (plan (dig-plan)))
   ""
   (bnd1 (points (list `(0 0)))
-    (dolist+ ((dir length) plan)
+    (doseq ((dir length) plan)
       (bnd* ((npos (move-straight (first points) dir length)))
         (push npos points)))
     ;; Close the polygon

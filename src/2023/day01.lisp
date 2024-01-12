@@ -18,7 +18,7 @@
   (flet ((extract-all-digits ()
            (looping
              (dotimes (start (length s))
-               (dolist+ ((prefix . d) *digits-prefixes*)
+               (doseq ((prefix . d) *digits-prefixes*)
                  (if (string-starts-with-p prefix (subseq s start))
                    (collect! d)))))))
     (bnd1 (digits (extract-all-digits))
