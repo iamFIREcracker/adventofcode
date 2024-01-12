@@ -2,12 +2,11 @@
 (in-package :aoc/2022/04)
 
 
-(defun assignment-pairs ()
-  (mapcar [extract-positive-integers _]
-          (uiop:read-file-lines #P"src/2022/day04.txt")))
+(defun assignment-pairs (&optional (strings (uiop:read-file-lines #P"src/2022/day04.txt")))
+  (mapcar [extract-positive-integers _] strings))
 
-(defun solution-run ()
-  (loop for (a b c d) in (assignment-pairs)
+(define-solution (2022 04) (strings)
+  (loop for (a b c d) in (assignment-pairs strings)
         count (or (<= a c d b) (<= c a b d)) into part1
         count (or (<= a c b d) (<= a c d b)
                   (<= c a d b) (<= c a b d)) into part2

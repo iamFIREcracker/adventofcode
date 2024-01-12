@@ -74,22 +74,22 @@
                          :throw-if-not-div (parse-number (pop g)))))
     monkeys))
 
-(defun solve (&optional (monkeys (parse-monkeys #+#:excluded (uiop:read-file-lines #P"scratch.txt"))))
-  (bnd1 (counts (make-array (length monkeys) :initial-element 0))
-    (loop repeat 20 do
-          (loop for m across monkeys for i from 0 do
-                (loop until (queue-empty-p (items m)) for wl = (dequeue (items m)) do
-                      (incf (aref counts i))
-                      (bnd1 nwl
-                        (setf nwl (funcall (operation m) wl))
-                        (setf nwl (floor nwl 3))
-                        (if (dividesp (div-by m) nwl)
-                          (enqueue nwl (items (aref monkeys (throw-if-div m))))
-                          (enqueue nwl (items (aref monkeys (throw-if-not-div m)))))))))
-    (reduce #'* (sort counts #'>) :end 2)))
+#+#:excluded (defun solve (&optional (monkeys (parse-monkeys #+#:excluded (uiop:read-file-lines #P"scratch.txt"))))
+               (bnd1 (counts (make-array (length monkeys) :initial-element 0))
+                 (loop repeat 20 do
+                       (loop for m across monkeys for i from 0 do
+                             (loop until (queue-empty-p (items m)) for wl = (dequeue (items m)) do
+                                   (incf (aref counts i))
+                                   (bnd1 nwl
+                                     (setf nwl (funcall (operation m) wl))
+                                     (setf nwl (floor nwl 3))
+                                     (if (dividesp (div-by m) nwl)
+                                       (enqueue nwl (items (aref monkeys (throw-if-div m))))
+                                       (enqueue nwl (items (aref monkeys (throw-if-not-div m)))))))))
+                 (reduce #'* (sort counts #'>) :end 2)))
 
 
-(solve)
+#+#:excluded (solve)
 
 ;; I don't know how to use divides anymore (flipped the order of its operands)
 
@@ -108,7 +108,7 @@
                           (enqueue nwl (items (aref monkeys (throw-if-not-div m)))))))))
     (reduce #'* (sort counts #'>) :end 2)))
 
-(solve)
+#+#:excluded (solve)
 
 ;;;
 
@@ -164,8 +164,8 @@
                           (enqueue nwl (items (aref monkeys (throw-if-not-div m)))))))))
     (reduce #'* (sort counts #'>) :end 2)))
 
-(defun solution-run ()
-  (values (solve 20    (parse-monkeys))
-          (solve 10000 (parse-monkeys) t)))
+(define-solution (2022 11) (strings)
+  (values (solve 20    (parse-monkeys strings))
+          (solve 10000 (parse-monkeys strings) t)))
 
 (define-test (2022 11) (119715 18085004878))

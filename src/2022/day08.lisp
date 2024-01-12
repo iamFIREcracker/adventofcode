@@ -38,7 +38,7 @@
         (loop for jj from (1+ j) below n sum 1 while (smallerp i jj))))))
 
 
-(defun solution-run (&optional (map (parse-map)))
+(define-solution (2022 08) (map parse-map)
   (values (part1 map) (part2 map)))
 
 (define-test (2022 08) (1719 590824))

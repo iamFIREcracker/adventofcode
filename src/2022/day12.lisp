@@ -27,7 +27,7 @@
                                            (aref map i j) 25)
                     (setf (aref map i j) (- (char-code ch) (char-code #\a)))))))
     (list map start end)))
-(parse-map)
+#+#:excluded (parse-map)
 (- (char-code #\b) (char-code #\a))
 
 (defun solve ()

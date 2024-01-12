@@ -1,9 +1,9 @@
 (defpackage :aoc/2022/02 #.cl-user::*aoc-use*)
 (in-package :aoc/2022/02)
 
-(defun parse-moves ()
+(defun parse-moves (&optional (strings (uiop:read-file-lines #P"src/2022/day02.txt")))
   (flet ((move (v) (ecase v ((a x) 'r) ((b y) 'p) ((c z) 's))))
-    (loop for (them you) on (uiop:read-file-forms #P"src/2022/day02.txt") by #'cddr
+    (loop for (them you) in (mapcar #'extract-forms strings)
           collect (cons (move them) (move you)))))
 
 (defun win? (you them) (member (list you them) '((r s) (p r) (s p)) :test 'equal))
@@ -16,9 +16,9 @@
         else if (win? you them) sum (+ (move-score you) 6)
         else sum (+ (move-score you) 3)))
 
-(defun parse-moves2 ()
+(defun parse-moves2 (&optional (strings (uiop:read-file-lines #P"src/2022/day02.txt")))
   (flet ((move (v) (ecase v (a 'r) (b 'p) (c 's))))
-    (loop for (them you) on (uiop:read-file-forms #P"src/2022/day02.txt") by #'cddr
+    (loop for (them you) in (mapcar #'extract-forms strings)
           collect (let ((them (move them)))
                     (cons
                       them
@@ -30,9 +30,9 @@
 
 (defun loses-to (you) (ecase you (r 's) (p 'r) (s 'p)))
 
-(defun solution-run ()
-  (values (solve (parse-moves))
-          (solve (parse-moves2))))
+(define-solution (2022 02) (strings)
+  (values (solve (parse-moves strings))
+          (solve (parse-moves2 strings))))
 
 (define-test (2022 02) (14297 10498))
 

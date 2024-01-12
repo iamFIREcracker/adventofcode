@@ -84,6 +84,7 @@
     :parse-char
     :extract-positive-integers
     :extract-integers
+    :extract-forms
 
     :define-solution
     :define-test))

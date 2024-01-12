@@ -2,7 +2,10 @@
 (in-package :aoc/2022/10)
 
 
-(defun solution-run (&optional (program (uiop:read-file-forms #P"src/2022/day10.txt")))
+(defun parse-program (&optional (strings (uiop:read-file-lines #P"src/2022/day10.txt")))
+  (reduce #'nconc (mapcar #'extract-forms strings)))
+
+(define-solution (2022 10) (program parse-program)
   (let ((crt (make-array (list 6 40))) (cycle 1) (x 1) (part1 0))
     (dolist (token program)
       (when (member cycle (list 20 60 100 140 180 220))

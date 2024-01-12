@@ -1,9 +1,8 @@
 (defpackage :aoc/2022/03 #.cl-user::*aoc-use*)
 (in-package :aoc/2022/03)
 
-(defun backpacks ()
-  (mapcar [coerce _ 'list]
-          (uiop:read-file-lines #P"src/2022/day03.txt")))
+(defun backpacks (&optional (strings (uiop:read-file-lines #P"src/2022/day03.txt")))
+  (mapcar [coerce _ 'list] strings))
 
 (defun item-priority (c)
   (1+ (position c "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")))
@@ -11,12 +10,12 @@
 (defun find-duplicate-item (&rest lists)
   (first (reduce #'intersection (cdr lists) :initial-value (car lists))))
 
-(defun solution-run ()
+(define-solution (2022 03) (bps backpacks)
   (values
-    (loop for pack in (backpacks)
+    (loop for pack in bps
           for (c1 c2) = (split pack (/ (length pack) 2))
           sum (item-priority (find-duplicate-item c1 c2)))
-    (loop for (b1 b2 b3) on (backpacks) by #'cdddr
+    (loop for (b1 b2 b3) on bps by #'cdddr
           sum (item-priority (find-duplicate-item b1 b2 b3)))))
 
 (define-test (2022 03) (7746 2604))

@@ -822,6 +822,9 @@
 (defun extract-integers (s)
   (mapcar #'parse-integer (cl-ppcre:all-matches-as-strings "-?\\d+" s)))
 
+(defun extract-symbols (s)
+  (mapcar #'read-from-string (cl-ppcre:all-matches-as-strings "\\w+" s)))
+
 ;;;; Problems -----------------------------------------------------------------
 
 (defun read-decrypted-problem-input (year day)

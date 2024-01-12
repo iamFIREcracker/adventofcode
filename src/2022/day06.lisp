@@ -7,8 +7,8 @@
 (defun all-distinct (seq)
   (= (length (remove-duplicates seq)) (length seq)))
 
-(defun solution-run ()
-  (values (marker-position 4) (marker-position 14)))
+(define-solution (2022 06) (s first)
+  (values (marker-position 4 s) (marker-position 14 s)))
 
 (define-test (2022 06) (1702 3559))
 
