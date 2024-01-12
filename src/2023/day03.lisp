@@ -60,6 +60,6 @@
 
 (define-solution (2023 03) (strings)
   (values (reduce #'+ (part-numbers strings) :key #'first)
-          (reduce #'+ (gears) :key #'gear-ratio) ))
+          (reduce #'+ (gears strings) :key #'gear-ratio) ))
 
 (define-test (2023 03) (509115 75220503))

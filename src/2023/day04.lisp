@@ -23,6 +23,6 @@
 
 (define-solution (2023 04) (strings)
   (values (reduce #'+ strings :key #'card-points)
-          (part2)))
+          (part2 strings)))
 
 (define-test (2023 04) (20667 5833065))
