@@ -5,3 +5,5 @@
 /vendor/.common-lisp/
 /vendor/.quicklisp/
 /vendor/quickutil
+/src/*/day*.txt
+/src/*/day*.input
