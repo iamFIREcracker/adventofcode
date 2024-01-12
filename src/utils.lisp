@@ -870,38 +870,9 @@
                    (encrypt-problem-input year day))))
 
 (defun read-problem-input (year day)
-  (labels ((encrypted-input ()
-             (ignore-errors
-               (decrypt
-                 (with-standard-io-syntax
-                   (read-from-string
-                     (uiop:read-file-string (problem-input-path year day "enc")))))))
-           (plain-input ()
-             (let* ((plaintext (uiop:read-file-string (problem-input-path year day "txt")))
-                    (ciphertext (encrypt plaintext)))
-               (with-open-file (stream (problem-input-path year day "enc")
-                                       :direction :output
-                                       :if-exists :overwrite
-                                       :if-does-not-exist :create)
-                 (with-standard-io-syntax
-                   (prin1 ciphertext stream)))
-               (encrypted-input)))
-           (encrypt (plaintext)
-             (classified:encrypt (make-instance 'classified::encryptor)
-                                 plaintext
-                                 :message-serializer
-                                 (make-instance 'classified::message-serializer)
-                                 :key-provider
-                                 (classified::build-key-provider (uiop:getenv "PRIMARY_KEY"))))
-           (decrypt (ciphertext)
-             (classified:decrypt (make-instance 'classified::encryptor)
-                                 ciphertext
-                                 :message-serializer
-                                 (make-instance 'classified::message-serializer)
-                                 :key-provider
-                                 (classified::build-key-provider (uiop:getenv "PRIMARY_KEY")))))
-    (let ((classified:*key-derivation-salt* (uiop:getenv "KEY_DERIVATION_SALT")))
-      (cl-ppcre:split "\\n" (or (encrypted-input) (plain-input))))))
+  (let ((classified:*key-derivation-salt* (uiop:getenv "KEY_DERIVATION_SALT")))
+    (cl-ppcre:split "\\n" (or (read-decrypted-problem-input year day)
+                              (encrypt-problem-input year day)))))
 #+#:excluded (read-problem-input 2023 25)
 #+#:excluded (time
                (dorangei (year 2015 2023)
