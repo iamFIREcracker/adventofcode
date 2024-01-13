@@ -48,6 +48,7 @@
                :repeat
                :string-ends-with-p
                :string-starts-with-p
+               :subdivide
                :subseq-
                :symb
                :void

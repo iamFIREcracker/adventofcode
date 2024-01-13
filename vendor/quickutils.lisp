@@ -2,7 +2,7 @@
 ;;;; See http://quickutil.org for details.
 
 ;;;; To regenerate:
-;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:KEEP-IF :KEEP-IF-NOT :AAND :AIF :AWHEN :BND* :BND1 :COPY-ARRAY :COPY-HASH-TABLE :DIGITS :DIVF :DOHASH :DOLISTS :DORANGE :DORANGEI :DOSEQ :DOSEQ :DOSUBLISTS :ENUMERATE :FLATTEN :HASH-TABLE-ALIST :HASH-TABLE-KEY-EXISTS-P :HASH-TABLE-KEYS :HASH-TABLE-VALUES :IF-LET :IOTA :LOOPING :MAKE-KEYWORD :MKSTR :MULF :NCYCLE :REPEAT :STRING-ENDS-WITH-P :STRING-STARTS-WITH-P :SUBSEQ- :SYMB :VOID :WHEN-LET :WHILE :WITH-GENSYMS) :ensure-package T :package "AOC.QUICKUTILS")
+;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:KEEP-IF :KEEP-IF-NOT :AAND :AIF :AWHEN :BND* :BND1 :COPY-ARRAY :COPY-HASH-TABLE :DIGITS :DIVF :DOHASH :DOLISTS :DORANGE :DORANGEI :DOSEQ :DOSEQ :DOSUBLISTS :ENUMERATE :FLATTEN :HASH-TABLE-ALIST :HASH-TABLE-KEY-EXISTS-P :HASH-TABLE-KEYS :HASH-TABLE-VALUES :IF-LET :IOTA :LOOPING :MAKE-KEYWORD :MKSTR :MULF :NCYCLE :REPEAT :STRING-ENDS-WITH-P :STRING-STARTS-WITH-P :SUBDIVIDE :SUBSEQ- :SYMB :VOID :WHEN-LET :WHILE :WITH-GENSYMS) :ensure-package T :package "AOC.QUICKUTILS")
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (unless (find-package "AOC.QUICKUTILS")
@@ -27,8 +27,8 @@
                                          :WITH-GENSYMS :LOOPING :MAKE-KEYWORD
                                          :MULF :NCYCLE :REPEAT
                                          :STRING-ENDS-WITH-P
-                                         :STRING-STARTS-WITH-P :SUBSEQ- :VOID
-                                         :WHEN-LET :WHILE))))
+                                         :STRING-STARTS-WITH-P :SUBDIVIDE
+                                         :SUBSEQ- :VOID :WHEN-LET :WHILE))))
 
   (defmacro abbr (short long)
     "Defines a new function/macro named `short` and sharing
@@ -674,6 +674,28 @@ Examples:
          (string= prefix s :end2 (length prefix))))
   
 
+  (defun subdivide (sequence chunk-size)
+    "Split `sequence` into subsequences of size `chunk-size`."
+    (check-type sequence sequence)
+    (check-type chunk-size (integer 1))
+    
+    (etypecase sequence
+      ;; Since lists have O(N) access time, we iterate through manually,
+      ;; collecting each chunk as we pass through it. Using SUBSEQ would
+      ;; be O(N^2).
+      (list (loop :while sequence
+                  :collect
+                  (loop :repeat chunk-size
+                        :while sequence
+                        :collect (pop sequence))))
+      
+      ;; For other sequences like strings or arrays, we can simply chunk
+      ;; by repeated SUBSEQs.
+      (sequence (loop :with len := (length sequence)
+                      :for i :below len :by chunk-size
+                      :collect (subseq sequence i (min len (+ chunk-size i)))))))
+  
+
   (defun subseq- (seq &optional (start nil) (end nil))
     "Like SUBSEQ, except it supports negative indices."
     (if (not start)
@@ -766,7 +788,7 @@ PROGN."
             dosublists enumerate flatten hash-table-alist
             hash-table-key-exists-p hash-table-keys hash-table-values if-let
             iota looping make-keyword mkstr mulf ncycle repeat
-            string-ends-with-p string-starts-with-p subseq- symb void when-let
-            when-let* while with-gensyms with-unique-names)))
+            string-ends-with-p string-starts-with-p subdivide subseq- symb void
+            when-let when-let* while with-gensyms with-unique-names)))
 
 ;;;; END OF quickutils.lisp ;;;;
