@@ -14,7 +14,7 @@
   :version "0.0.1"
 
   :depends-on (
-                 #:ml
+                 #:net.matteolandi.utils
                  #:3am
 
                  #:cl-base64

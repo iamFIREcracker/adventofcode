@@ -1,8 +1,8 @@
-(asdf:defsystem #:ml
+(asdf:defsystem #:net.matteolandi.utils
   :author "Matteo Landi <matteo@matteolandi.net>"
   :license  "MIT"
   :serial t
-  :depends-on ()
+  :depends-on (#:named-readtables)
   :components
   (
    (:file "mlutils-package")

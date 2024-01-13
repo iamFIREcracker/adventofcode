@@ -11,6 +11,14 @@ vendor/quickutils.lisp: vendor/quickutil vendor/make-quickutils.lisp
 	cd vendor && sbcl --noinform --load "make-quickutils.lisp"  --non-interactive
 vendor/quickutil:
 	ln -sf ~/Workspace/quickutil vendor/quickutil
+cl-classified:
+	mkdir -p vendor/cl-classified
+	cp ~/Workspace/cl-encrypted/classified.asd                         vendor/cl-classified/
+	cp ~/Workspace/cl-encrypted/encrypted.lisp                         vendor/cl-classified/
+	cp ~/Workspace/cl-encrypted/vendor/ml/mlsyntax.lisp                vendor/cl-classified/vendor/ml/
+	cp ~/Workspace/cl-encrypted/vendor/ml/mlutils-package.lisp         vendor/cl-classified/vendor/ml/
+	cp ~/Workspace/cl-encrypted/vendor/ml/mlutils.lisp                 vendor/cl-classified/vendor/ml/
+	cp ~/Workspace/cl-encrypted/vendor/ml/net.matteolandi.utils.asd    vendor/cl-classified/vendor/ml/
 
 # Info ------------------------------------------------------------------------
 .PHONY: lisp-info

@@ -37,6 +37,8 @@
    *slot*))
 (in-package #:classified)
 
+(named-readtables:in-readtable :mlutils-syntax)
+
 #|
       # For each entry it generates an accessor exposing the full name
       DEFAULT_PROPERTIES = {

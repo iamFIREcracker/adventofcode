@@ -1,21 +1,9 @@
 (in-package :aoc)
 
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (defun opening-braket-reader (stream char)
-    (declare (ignore char))
-    (let ((arg (intern "_")))
-      `(lambda (&optional ,arg)
-         (declare (ignorable ,arg))
-         (,@(read-delimited-list #\] stream t)))))
-  (set-macro-character #\[ #'opening-braket-reader)
-  ; Using #\) messes up with the editor -,-
-  (set-macro-character #\] (get-macro-character #.(char ")" 0))))
-
-#+#:excluded (read (make-string-input-stream "[format t \"Hello, ~a!\" _]"))
-
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (defun sharp-semicolon-reader (stream sub-char numarg)
-    (declare (ignore sub-char numarg))
-    (loop :while (read-line stream nil nil))
-    (values))
-  (set-dispatch-macro-character #\# #\; #'sharp-semicolon-reader))
+;; Here we use MERGE-READTABLES-INTO to merge :MLUTILS-SYNTAX inside :CURRENT;
+;; if we used IN-READTABLE instead, we would be forced to call it from each
+;; and every problem package...and that would be annoying.
+#+running-locally
+(handler-bind ((named-readtables:reader-macro-conflict 'continue))
+  (named-readtables:merge-readtables-into :current :mlutils-syntax))
+#-running-locally (named-readtables:merge-readtables-into :current :mlutils-syntax)
