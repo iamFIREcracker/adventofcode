@@ -8,80 +8,59 @@
                 (split-sequence:split-sequence #\Space s)
               (cons hand (parse-integer bid))))
           strings))
-#+#:excluded (list-of-hands)
 
-(defparameter *labels* "AKQJT98765432")
+(defun card-freqs (hand) (sort (alist-values (frequencies hand)) #'>))
+(defun five-of-a-kind? (hand) (equal '(5) (card-freqs hand)))
+(defun four-of-a-kind? (hand) (equal '(4 1) (card-freqs hand)))
+(defun full-house? (hand) (equal '(3 2) (card-freqs hand)))
+(defun three-of-a-kind? (hand) (equal '(3 1 1) (card-freqs hand)))
+(defun two-pairs? (hand) (equal '(2 2 1) (card-freqs hand)))
+(defun one-pair? (hand) (equal '(2 1 1 1) (card-freqs hand)))
+(defun high-card? (hand) (equal '(1 1 1 1 1) (card-freqs hand)))
 
-(defun five-of-a-kind? (hand)
-  (some [= (cdr _) 5] (frequencies hand)))
-#+#:excluded (five-of-a-kind? "AAAAA")
-(defun four-of-a-kind? (hand)
-  (some [= (cdr _) 4] (frequencies hand)))
-#+#:excluded (four-of-a-kind? "AAAA8")
-(defun full-house? (hand)
-  (bnd1 (ff (frequencies hand))
-    (and (find-if [= (cdr _) 3] ff)
-         (find-if [= (cdr _) 2] ff))))
-#+#:excluded (full-house? "AAABB")
-(defun three-of-a-kind? (hand)
-  (bnd1 (ff (frequencies hand))
-    (and (find-if [= (cdr _) 3] ff)
-         (find-if [= (cdr _) 1] ff))))
-#+#:excluded (three-of-a-kind? "AAA18")
-(defun two-pairs? (hand)
-  (bnd1 (ff (frequencies hand))
-    (aand (member-if [= (cdr _) 2] ff)
-          (member-if [= (cdr _) 2] (cdr it)))))
-#+#:excluded (two-pairs? "AABB1")
-(defun one-pair? (hand)
-  (bnd1 (ff (frequencies hand))
-    (and (= (length ff) 4)
-         (find-if [= (cdr _) 2] ff))))
-#+#:excluded (one-pair? "AAB12")
-(defun high-card? (hand)
-  (every [= (cdr _) 1] (frequencies hand)))
-#+#:excluded (high-card? "23456")
 
-(defun hand-strength (hand)
-  (cond ((five-of-a-kind? hand) 1)
-        ((four-of-a-kind? hand) 2)
-        ((full-house? hand) 3)
-        ((three-of-a-kind? hand) 4)
-        ((two-pairs? hand) 5)
-        ((one-pair? hand) 6)
-        ((high-card? hand) 7)))
-#+#:excluded (hand-strength "33332")
-#+#:excluded (hand-strength "2AAAA")
-(defun better-hand? (hand1 hand2)
-  (bnd* ((r1 (hand-strength hand1))
-         (r2 (hand-strength hand2)))
-    (or (< r1 r2)
-        (and (= r1 r2)
-             (loop for l1 across hand1 for i = (position l1 *labels*)
-                   for l2 across hand2 for j = (position l2 *labels*)
-                   if (< i j) return t
-                   if (> i j) return nil
-                   )))))
-#+#:excluded (better-hand? "33332"  "2AAAA")
+(defparameter *j-as-jokers* nil)
 
-#+#:excluded (looping
-               (doseq ((i (hand . bid)) (enumerate (reverse (sort (list-of-hands) #'better-hand? :key #'car))))
-                 (sum! (* (1+ i) bid))))
-251813756;not right
-251741086; not right
-251806792
-
-(defparameter *labels* "AKQT98765432J")
-(defun hand-strength-p2 (hand)
-  (if (not (find #\J hand))
+(defun hand-type-strength (hand)
+  (if (and *j-as-jokers* (find #\J hand))
+    (looping
+      (doseq (l "AKQT98765432")
+        (minimize! (hand-type-strength (substitute l #\J hand)))))
     (cond ((five-of-a-kind? hand) 1)
           ((four-of-a-kind? hand) 2)
           ((full-house? hand) 3)
           ((three-of-a-kind? hand) 4)
           ((two-pairs? hand) 5)
           ((one-pair? hand) 6)
-          ((high-card? hand) 7))
+          ((high-card? hand) 7))))
+
+
+(defun stronger-first-card? (hand1 hand2)
+  (bnd1 (labels (if *j-as-jokers* "AKQT98765432J" "AKQJT98765432"))
+    (loop for l1 across hand1 for i = (position l1 labels)
+          for l2 across hand2 for j = (position l2 labels)
+          if (< i j) return t
+          if (> i j) return nil)))
+
+
+(defun better-hand? (hand1 hand2)
+  (bnd* ((r1 (hand-type-strength hand1))
+         (r2 (hand-type-strength hand2)))
+    (or (< r1 r2)
+        (and (= r1 r2)
+             (stronger-first-card? hand1 hand2)))))
+
+
+(defun total-winning (&optional (input (list-of-hands)))
+  (bnd1 (ranked (reverse (sort (copy-seq input) #'better-hand? :key #'car)))
     (looping
-      (doseq (l "AKQT98765432")
-        (minimize! (hand-strength (substitute l #\J hand)))))))
-252113488
+      (doseq ((i (hand . bid)) (enumerate ranked :start 1))
+        (sum! (* i bid))))))
+
+
+(define-solution (2023 07) (input list-of-hands)
+  (values (total-winning input)
+          (bnd1 (*j-as-jokers* t)
+            (total-winning input))))
+
+(define-test (2023 07) (251806792 252113488))

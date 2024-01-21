@@ -2,7 +2,7 @@
 ;;;; See http://quickutil.org for details.
 
 ;;;; To regenerate:
-;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:KEEP-IF :KEEP-IF-NOT :AAND :AIF :AWHEN :BND* :BND1 :COPY-ARRAY :COPY-HASH-TABLE :DIGITS :DIVF :DOHASH :DOLISTS :DORANGE :DORANGEI :DOSEQ :DOSEQ :DOSUBLISTS :ENUMERATE :FLATTEN :HASH-TABLE-ALIST :HASH-TABLE-KEY-EXISTS-P :HASH-TABLE-KEYS :HASH-TABLE-VALUES :IF-LET :IOTA :LOOPING :MAKE-KEYWORD :MKSTR :MULF :NCYCLE :REPEAT :STRING-ENDS-WITH-P :STRING-STARTS-WITH-P :SUBDIVIDE :SUBSEQ- :SYMB :VOID :WHEN-LET :WHILE :WITH-GENSYMS) :ensure-package T :package "AOC.QUICKUTILS")
+;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:KEEP-IF :KEEP-IF-NOT :AAND :AIF :ALIST-KEYS :ALIST-VALUES :ASSOC-VALUE :AWHEN :BND* :BND1 :COPY-ARRAY :COPY-HASH-TABLE :DIGITS :DIVF :DOALIST :DOHASH :DOLISTS :DORANGE :DORANGEI :DOSEQ :DOSEQ :DOSUBLISTS :ENUMERATE :FLATTEN :HASH-TABLE-ALIST :HASH-TABLE-KEY-EXISTS-P :HASH-TABLE-KEYS :HASH-TABLE-VALUES :IF-NOT :IF-LET :IOTA :LOOPING :MAKE-KEYWORD :MKSTR :MULF :NCYCLE :REMOVEF :REPEAT :STRING-ENDS-WITH-P :STRING-STARTS-WITH-P :SUBDIVIDE :SUBSEQ- :SYMB :VOID :WHEN-LET :WHILE :WITH-GENSYMS :SHUFFLE :RANDOM-ELT :XOR) :ensure-package T :package "AOC.QUICKUTILS")
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (unless (find-package "AOC.QUICKUTILS")
@@ -14,21 +14,25 @@
 
 (when (boundp '*utilities*)
   (setf *utilities* (union *utilities* '(:ABBR :KEEP-IF :KEEP-IF-NOT :LET1 :AIF
-                                         :AAND :AWHEN :BND* :BND1 :COPY-ARRAY
-                                         :COPY-HASH-TABLE :DIGITS :DIVF :DOHASH
-                                         :DOLISTS :DORANGE :DORANGEI
-                                         :MAKE-GENSYM-LIST :ONCE-ONLY :DOSEQ
-                                         :DOSUBLISTS :ENUMERATE :FLATTEN
-                                         :HASH-TABLE-ALIST
+                                         :AAND :ALIST-KEYS :ALIST-VALUES
+                                         :STRING-DESIGNATOR :WITH-GENSYMS
+                                         :ASSOC-VALUE :AWHEN :BND* :BND1
+                                         :COPY-ARRAY :COPY-HASH-TABLE :DIGITS
+                                         :DIVF :MAKE-GENSYM-LIST :ONCE-ONLY
+                                         :DOALIST :DOHASH :DOLISTS :DORANGE
+                                         :DORANGEI :DOSEQ :DOSUBLISTS
+                                         :ENUMERATE :FLATTEN :HASH-TABLE-ALIST
                                          :HASH-TABLE-KEY-EXISTS-P :MAPHASH-KEYS
                                          :HASH-TABLE-KEYS :MAPHASH-VALUES
-                                         :HASH-TABLE-VALUES :IF-LET :IOTA
-                                         :MKSTR :SYMB :STRING-DESIGNATOR
-                                         :WITH-GENSYMS :LOOPING :MAKE-KEYWORD
-                                         :MULF :NCYCLE :REPEAT
-                                         :STRING-ENDS-WITH-P
+                                         :HASH-TABLE-VALUES :IF-NOT :IF-LET
+                                         :IOTA :MKSTR :SYMB :LOOPING
+                                         :MAKE-KEYWORD :MULF :NCYCLE :REMOVEF
+                                         :REPEAT :STRING-ENDS-WITH-P
                                          :STRING-STARTS-WITH-P :SUBDIVIDE
-                                         :SUBSEQ- :VOID :WHEN-LET :WHILE))))
+                                         :SUBSEQ- :VOID :WHEN-LET :WHILE
+                                         :SAFE-ENDP :CIRCULAR-LIST
+                                         :PROPER-LIST-LENGTH/LAST-CAR :SHUFFLE
+                                         :RANDOM-ELT :XOR))))
 
   (defmacro abbr (short long)
     "Defines a new function/macro named `short` and sharing
@@ -75,6 +79,111 @@ FDEFINITION/MACRO-FUNCTION with `long`."
             (t (let1 car (car forms)
                  `(aif ,car
                     (aand ,@(cdr forms))))))))
+  
+
+  (defun alist-keys (alist)
+    "Return all the keys of `alist`."
+    (mapcar #'car alist))
+  
+
+  (defun alist-values (alist)
+    "Return all the values of `alist`."
+    (mapcar #'cdr alist))
+  
+
+  (deftype string-designator ()
+    "A string designator type. A string designator is either a string, a symbol,
+or a character."
+    `(or symbol string character))
+  
+
+  (defmacro with-gensyms (names &body forms)
+    "Binds each variable named by a symbol in `names` to a unique symbol around
+`forms`. Each of `names` must either be either a symbol, or of the form:
+
+    (symbol string-designator)
+
+Bare symbols appearing in `names` are equivalent to:
+
+    (symbol symbol)
+
+The string-designator is used as the argument to `gensym` when constructing the
+unique symbol the named variable will be bound to."
+    `(let ,(mapcar (lambda (name)
+                     (multiple-value-bind (symbol string)
+                         (etypecase name
+                           (symbol
+                            (values name (symbol-name name)))
+                           ((cons symbol (cons string-designator null))
+                            (values (first name) (string (second name)))))
+                       `(,symbol (gensym ,string))))
+            names)
+       ,@forms))
+
+  (defmacro with-unique-names (names &body forms)
+    "Binds each variable named by a symbol in `names` to a unique symbol around
+`forms`. Each of `names` must either be either a symbol, or of the form:
+
+    (symbol string-designator)
+
+Bare symbols appearing in `names` are equivalent to:
+
+    (symbol symbol)
+
+The string-designator is used as the argument to `gensym` when constructing the
+unique symbol the named variable will be bound to."
+    `(with-gensyms ,names ,@forms))
+  
+
+  (declaim (inline racons))
+  (defun racons (key value ralist)
+    (acons value key ralist))
+  
+  (macrolet
+      ((define-alist-get (name get-entry get-value-from-entry add doc)
+         `(progn
+            (declaim (inline ,name))
+            (defun ,name (alist key &key (test 'eql))
+              ,doc
+              (let ((entry (,get-entry key alist :test test)))
+                (values (,get-value-from-entry entry) entry)))
+            (define-setf-expander ,name (place key &key (test ''eql)
+                                                   &environment env)
+              (multiple-value-bind
+                    (temporary-variables initforms newvals setter getter)
+                  (get-setf-expansion place env)
+                (when (cdr newvals)
+                  (error "~A cannot store multiple values in one place" ',name))
+                (with-unique-names (new-value key-val test-val alist entry)
+                  (values
+                   (append temporary-variables
+                           (list alist
+                                 key-val
+                                 test-val
+                                 entry))
+                   (append initforms
+                           (list getter
+                                 key
+                                 test
+                                 `(,',get-entry ,key-val ,alist :test ,test-val)))
+                   `(,new-value)
+                   `(cond
+                      (,entry
+                       (setf (,',get-value-from-entry ,entry) ,new-value))
+                      (t
+                       (let ,newvals
+                         (setf ,(first newvals) (,',add ,key ,new-value ,alist))
+                         ,setter
+                         ,new-value)))
+                   `(,',get-value-from-entry ,entry))))))))
+    
+    (define-alist-get assoc-value assoc cdr acons
+      "ASSOC-VALUE is an alist accessor very much like ASSOC, but it can
+be used with SETF.")
+    
+    (define-alist-get rassoc-value rassoc car racons
+      "RASSOC-VALUE is an alist accessor very much like RASSOC, but it can
+be used with SETF."))
   
 
   (defmacro awhen (test &body body)
@@ -226,6 +335,59 @@ the following identity holds:
   (define-modify-macro divf (&optional (1/ratio 2)) /
     "A modifying version of division, similar to `decf`.")
   
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defun make-gensym-list (length &optional (x "G"))
+    "Returns a list of `length` gensyms, each generated as if with a call to `make-gensym`,
+using the second (optional, defaulting to `\"G\"`) argument."
+    (let ((g (if (typep x '(integer 0)) x (string x))))
+      (loop repeat length
+            collect (gensym g))))
+  )                                        ; eval-when
+
+  (defmacro once-only (specs &body forms)
+    "Evaluates `forms` with symbols specified in `specs` rebound to temporary
+variables, ensuring that each initform is evaluated only once.
+
+Each of `specs` must either be a symbol naming the variable to be rebound, or of
+the form:
+
+    (symbol initform)
+
+Bare symbols in `specs` are equivalent to
+
+    (symbol symbol)
+
+Example:
+
+    (defmacro cons1 (x) (once-only (x) `(cons ,x ,x)))
+      (let ((y 0)) (cons1 (incf y))) => (1 . 1)"
+    (let ((gensyms (make-gensym-list (length specs) "ONCE-ONLY"))
+          (names-and-forms (mapcar (lambda (spec)
+                                     (etypecase spec
+                                       (list
+                                        (destructuring-bind (name form) spec
+                                          (cons name form)))
+                                       (symbol
+                                        (cons spec spec))))
+                                   specs)))
+      ;; bind in user-macro
+      `(let ,(mapcar (lambda (g n) (list g `(gensym ,(string (car n)))))
+              gensyms names-and-forms)
+         ;; bind in final expansion
+         `(let (,,@(mapcar (lambda (g n)
+                             ``(,,g ,,(cdr n)))
+                           gensyms names-and-forms))
+            ;; bind in user-macro
+            ,(let ,(mapcar (lambda (n g) (list (car n) g))
+                    names-and-forms gensyms)
+               ,@forms)))))
+  
+
+  (defmacro doalist ((key val alist &optional (result nil result?)) &body body)
+    "Iterates over the elements of `alist`."
+    (once-only (alist)
+      `(loop :for (,key . ,val) :in ,alist :do ,@body ,@(when result? `(:finally (return ,result))))))
+  
 
   (defmacro dohash ((key value table &optional (result nil result?)) &body body)
     "Iterate over the hash table `table`, executing `body`, with `key` and
@@ -278,53 +440,6 @@ lexical environmnet."
           ,@(when result? `(,result)))
          ,@body)))
   
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (defun make-gensym-list (length &optional (x "G"))
-    "Returns a list of `length` gensyms, each generated as if with a call to `make-gensym`,
-using the second (optional, defaulting to `\"G\"`) argument."
-    (let ((g (if (typep x '(integer 0)) x (string x))))
-      (loop repeat length
-            collect (gensym g))))
-  )                                        ; eval-when
-
-  (defmacro once-only (specs &body forms)
-    "Evaluates `forms` with symbols specified in `specs` rebound to temporary
-variables, ensuring that each initform is evaluated only once.
-
-Each of `specs` must either be a symbol naming the variable to be rebound, or of
-the form:
-
-    (symbol initform)
-
-Bare symbols in `specs` are equivalent to
-
-    (symbol symbol)
-
-Example:
-
-    (defmacro cons1 (x) (once-only (x) `(cons ,x ,x)))
-      (let ((y 0)) (cons1 (incf y))) => (1 . 1)"
-    (let ((gensyms (make-gensym-list (length specs) "ONCE-ONLY"))
-          (names-and-forms (mapcar (lambda (spec)
-                                     (etypecase spec
-                                       (list
-                                        (destructuring-bind (name form) spec
-                                          (cons name form)))
-                                       (symbol
-                                        (cons spec spec))))
-                                   specs)))
-      ;; bind in user-macro
-      `(let ,(mapcar (lambda (g n) (list g `(gensym ,(string (car n)))))
-              gensyms names-and-forms)
-         ;; bind in final expansion
-         `(let (,,@(mapcar (lambda (g n)
-                             ``(,,g ,,(cdr n)))
-                           gensyms names-and-forms))
-            ;; bind in user-macro
-            ,(let ,(mapcar (lambda (n g) (list (car n) g))
-                    names-and-forms gensyms)
-               ,@forms)))))
-  
 
   (defmacro doseq ((var seq &optional (result nil result?)) &body body)
     "Iterate across the sequence `seq`, binding the variable `var` to
@@ -346,24 +461,24 @@ lambda-list
 - `var` is bound to successive sublists of `list` (similar to MAPL, LOOP..ON)
 - `var` can be a lambda-list
 "
-    `(loop :for ,var :on ,list do ,@body ,@(when result? `(:finally (return ,result)))))
+    `(loop :for ,var :on ,list :do ,@body ,@(when result? `(:finally (return ,result)))))
   
 
-  (defgeneric enumerate (x)
+  (defgeneric enumerate (x &key start)
     (:documentation "Equivalent to `(zip (iota (length x)) x)`."))
 
-  (defmethod enumerate ((x list))
+  (defmethod enumerate ((x list) &key (start 0))
     "Equivalent to `(zip (iota (length x)) x)`."
     (loop
       :for i :in x
-      :for j :from 0
+      :for j :from start
       :collect (list j i)))
 
-  (defmethod enumerate ((x array))
+  (defmethod enumerate ((x array) &key (start 0))
     "Equivalent to `(zip (iota (length x)) x)`."
     (loop
       :for i :across x
-      :for j :from 0
+      :for j :from start
       :collect (list j i)))
   
 
@@ -425,6 +540,11 @@ lambda-list
                         (push v values))
                       table)
       values))
+  
+
+  (defmacro if-not (test then &optional else)
+    "Like IF, except TEST gets wrapped inside NOT."
+    `(if (not ,test) ,then ,else))
   
 
   (defmacro if-let (bindings &body (then-form &optional else-form))
@@ -493,50 +613,6 @@ See also: `symbolicate`"
     (values (intern (apply #'mkstr args))))
   
 
-  (deftype string-designator ()
-    "A string designator type. A string designator is either a string, a symbol,
-or a character."
-    `(or symbol string character))
-  
-
-  (defmacro with-gensyms (names &body forms)
-    "Binds each variable named by a symbol in `names` to a unique symbol around
-`forms`. Each of `names` must either be either a symbol, or of the form:
-
-    (symbol string-designator)
-
-Bare symbols appearing in `names` are equivalent to:
-
-    (symbol symbol)
-
-The string-designator is used as the argument to `gensym` when constructing the
-unique symbol the named variable will be bound to."
-    `(let ,(mapcar (lambda (name)
-                     (multiple-value-bind (symbol string)
-                         (etypecase name
-                           (symbol
-                            (values name (symbol-name name)))
-                           ((cons symbol (cons string-designator null))
-                            (values (first name) (string (second name)))))
-                       `(,symbol (gensym ,string))))
-            names)
-       ,@forms))
-
-  (defmacro with-unique-names (names &body forms)
-    "Binds each variable named by a symbol in `names` to a unique symbol around
-`forms`. Each of `names` must either be either a symbol, or of the form:
-
-    (symbol string-designator)
-
-Bare symbols appearing in `names` are equivalent to:
-
-    (symbol symbol)
-
-The string-designator is used as the argument to `gensym` when constructing the
-unique symbol the named variable will be bound to."
-    `(with-gensyms ,names ,@forms))
-  
-
   (defmacro looping (&body body)
     "Run `body` in an environment where the symbols COLLECT!, APPEND!, SUM!,
 MULTIPLY!, COUNT!, MINIMIZE!, and MAXIMIZE! are bound to functions that can be
@@ -594,6 +670,10 @@ Examples:
           `(let* ((,loop-type ',loop-type-value)
                   (,result ,result-value)
                   (,last nil))
+             ;; TODO: rather than defining all these functions only to get
+             ;; a few of them (one?!) used, why not just define the function
+             ;; that the body is going to use?  will that speed up the
+             ;; compilation process a little bit?
              (declare (ignorable ,last))
              (labels ((,collect-last (item)
                        (if (not ,last)
@@ -655,6 +735,16 @@ Examples:
   (defun ncycle (list)
     "Mutate `list` into a circlular list."
     (nconc list list))
+  
+
+  (declaim (inline remove/swapped-arguments))
+  (defun remove/swapped-arguments (sequence item &rest keyword-arguments)
+    (apply #'remove item sequence keyword-arguments))
+
+  (define-modify-macro removef (item &rest remove-keywords)
+    remove/swapped-arguments
+    "Modify-macro for `remove`. Sets place designated by the first argument to
+the result of calling `remove` with `item`, place, and the `keyword-arguments`.")
   
 
   (defmacro repeat (n &body body)
@@ -782,13 +872,172 @@ PROGN."
     `(loop while ,expression do
        ,@body))
   
+
+  (declaim (inline safe-endp))
+  (defun safe-endp (x)
+    (declare (optimize safety))
+    (endp x))
+  
+
+  (defun circular-list (&rest elements)
+    "Creates a circular list of ELEMENTS."
+    (let ((cycle (copy-list elements)))
+      (nconc cycle cycle)))
+
+  (defun circular-list-p (object)
+    "Returns true if OBJECT is a circular list, NIL otherwise."
+    (and (listp object)
+         (do ((fast object (cddr fast))
+              (slow (cons (car object) (cdr object)) (cdr slow)))
+             (nil)
+           (unless (and (consp fast) (listp (cdr fast)))
+             (return nil))
+           (when (eq fast slow)
+             (return t)))))
+  
+  (defun make-circular-list (length &key initial-element)
+    "Creates a circular list of LENGTH with the given INITIAL-ELEMENT."
+    (let ((cycle (make-list length :initial-element initial-element)))
+      (nconc cycle cycle)))
+
+  (deftype circular-list ()
+    "Type designator for circular lists. Implemented as a SATISFIES type, so not
+recommended for performance intensive use. Main usefullness as the
+expected-type designator of a TYPE-ERROR."
+    `(satisfies circular-list-p))
+  
+
+  (defun circular-list-error (list)
+    (error 'type-error
+           :datum list
+           :expected-type '(and list (not circular-list))))
+  
+  (macrolet ((def (name lambda-list doc step declare ret1 ret2)
+               (assert (member 'list lambda-list))
+               `(defun ,name ,lambda-list
+                  ,doc
+                  (do ((last list fast)
+                       (fast list (cddr fast))
+                       (slow (cons (car list) (cdr list)) (cdr slow))
+                       ,@(when step (list step)))
+                      (nil)
+                    (declare (dynamic-extent slow) ,@(when declare (list declare))
+                             (ignorable last))
+                    (when (safe-endp fast)
+                      (return ,ret1))
+                    (when (safe-endp (cdr fast))
+                      (return ,ret2))
+                    (when (eq fast slow)
+                      (circular-list-error list))))))
+    (def proper-list-length (list)
+      "Returns length of LIST, signalling an error if it is not a proper list."
+      (n 1 (+ n 2))
+      ;; KLUDGE: Most implementations don't actually support lists with bignum
+      ;; elements -- and this is WAY faster on most implementations then declaring
+      ;; N to be an UNSIGNED-BYTE.
+      (fixnum n)
+      (1- n)
+      n)
+
+    (def lastcar (list)
+      "Returns the last element of LIST. Signals a type-error if LIST is not a
+proper list."
+      nil
+      nil
+      (cadr last)
+      (car fast))
+
+    (def (setf lastcar) (object list)
+      "Sets the last element of LIST. Signals a type-error if LIST is not a proper
+list."
+      nil
+      nil
+      (setf (cadr last) object)
+      (setf (car fast) object)))
+  
+
+  (defun shuffle (sequence &key (start 0) end)
+    "Returns a random permutation of `sequence` bounded by `start` and `end`.
+Original sequece may be destructively modified, and share storage with
+the original one. Signals an error if `sequence` is not a proper
+sequence."
+    (declare (type fixnum start)
+             (type (or fixnum null) end))
+    (etypecase sequence
+      (list
+       (let* ((end (or end (proper-list-length sequence)))
+              (n (- end start)))
+         (do ((tail (nthcdr start sequence) (cdr tail)))
+             ((zerop n))
+           (rotatef (car tail) (car (nthcdr (random n) tail)))
+           (decf n))))
+      (vector
+       (let ((end (or end (length sequence))))
+         (loop for i from start below end
+               do (rotatef (aref sequence i)
+                           (aref sequence (+ i (random (- end i))))))))
+      (sequence
+       (let ((end (or end (length sequence))))
+         (loop for i from (- end 1) downto start
+               do (rotatef (elt sequence i)
+                           (elt sequence (+ i (random (- end i)))))))))
+    sequence)
+  
+
+  (defun random-elt (sequence &key (start 0) end)
+    "Returns a random element from `sequence` bounded by `start` and
+`end`. Signals an error if the `sequence` is not a proper non-empty
+sequence, or if `end` and `start` are not proper bounding index
+designators for `sequence`."
+    (declare (sequence sequence) (fixnum start) (type (or fixnum null) end))
+    (let* ((size (if (listp sequence)
+                     (proper-list-length sequence)
+                     (length sequence)))
+           (end2 (or end size)))
+      (cond ((zerop size)
+             (error 'type-error
+                    :datum sequence
+                    :expected-type `(and sequence (not (satisfies emptyp)))))
+            ((not (and (<= 0 start) (< start end2) (<= end2 size)))
+             (error 'simple-type-error
+                    :datum (cons start end)
+                    :expected-type `(cons (integer 0 (,end2))
+                                          (or null (integer (,start) ,size)))
+                    :format-control "~@<~S and ~S are not valid bounding index designators for ~
+                                   a sequence of length ~S.~:@>"
+                    :format-arguments (list start end size)))
+            (t
+             (let ((index (+ start (random (- end2 start)))))
+               (elt sequence index))))))
+  
+
+  (defmacro xor (&rest datums)
+    "Evaluates its arguments one at a time, from left to right. If more than one
+argument evaluates to a true value no further `datums` are evaluated, and `nil` is
+returned as both primary and secondary value. If exactly one argument
+evaluates to true, its value is returned as the primary value after all the
+arguments have been evaluated, and `t` is returned as the secondary value. If no
+arguments evaluate to true `nil` is retuned as primary, and `t` as secondary
+value."
+    (with-gensyms (xor tmp true)
+      `(let (,tmp ,true)
+         (block ,xor
+           ,@(mapcar (lambda (datum)
+                       `(if (setf ,tmp ,datum)
+                            (if ,true
+                                (return-from ,xor (values nil nil))
+                                (setf ,true ,tmp))))
+                     datums)
+           (return-from ,xor (values ,true t))))))
+  
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (export '(keep-if keep-if-not aand aif awhen bnd* bnd1 copy-array
-            copy-hash-table digits divf dohash dolists dorange dorangei doseq
-            dosublists enumerate flatten hash-table-alist
-            hash-table-key-exists-p hash-table-keys hash-table-values if-let
-            iota looping make-keyword mkstr mulf ncycle repeat
-            string-ends-with-p string-starts-with-p subdivide subseq- symb void
-            when-let when-let* while with-gensyms with-unique-names)))
+  (export '(keep-if keep-if-not aand aif alist-keys alist-values assoc-value
+            rassoc-value awhen bnd* bnd1 copy-array copy-hash-table digits divf
+            doalist dohash dolists dorange dorangei doseq dosublists enumerate
+            flatten hash-table-alist hash-table-key-exists-p hash-table-keys
+            hash-table-values if-not if-let iota looping make-keyword mkstr
+            mulf ncycle removef repeat string-ends-with-p string-starts-with-p
+            subdivide subseq- symb void when-let when-let* while with-gensyms
+            with-unique-names shuffle random-elt xor)))
 
 ;;;; END OF quickutils.lisp ;;;;
