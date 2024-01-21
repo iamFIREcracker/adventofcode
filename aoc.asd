@@ -33,7 +33,6 @@
               #:pileup
               #:split-sequence
               #:st-json
-              #:trivial-garbage
 
               )
   :components

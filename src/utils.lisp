@@ -897,10 +897,7 @@
 
 (defvar *tests* nil "A list of tests; the default argument to RUN.")
 
-(defun run ()
-  (doseq (tests (subdivide *tests* 25))
-    (1am:run *tests*)
-    (trivial-garbage:gc :full t :verbose t)))
+(defun run () (1am:run *tests*))
 
 (defmacro deftest (name &body body)
   "Define a test function and add it to `*tests*`."
