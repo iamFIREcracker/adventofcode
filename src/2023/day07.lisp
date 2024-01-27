@@ -23,9 +23,20 @@
 
 (defun hand-type-strength (hand)
   (if (and *j-as-jokers* (find #\J hand))
-    (looping
-      (doseq (l "AKQT98765432")
-        (minimize! (hand-type-strength (substitute l #\J hand)))))
+    (if (string= hand "JJJJJ")
+      ;; Replacing a joker with _any_ card will do...
+      ;; it should still result in a five-of-a-kind
+      (hand-type-strength (substitute #\A #\J hand))
+      ;; Otherwise, converting all the jokers into
+      ;; the most frequent card of the hand will
+      ;; actually result in the stronger hand
+      ;; E.g.
+      ;; - AJJJJ -> AAAAA
+      ;; - AAAKJ -> AAAAK
+      (bnd* ((freqs (sort (frequencies hand) #'> :key #'cdr)))
+        (doseq ((label . count) freqs)
+          (when-not (char= label #\J)
+            (return (hand-type-strength (substitute label #\J hand)))))))
     (cond ((five-of-a-kind? hand) 1)
           ((four-of-a-kind? hand) 2)
           ((full-house? hand) 3)
@@ -37,10 +48,12 @@
 
 (defun stronger-first-card? (hand1 hand2)
   (bnd1 (labels (if *j-as-jokers* "AKQT98765432J" "AKQJT98765432"))
-    (loop for l1 across hand1 for i = (position l1 labels)
-          for l2 across hand2 for j = (position l2 labels)
-          if (< i j) return t
-          if (> i j) return nil)))
+    (doseqs ((i (map 'vector [position _ labels] hand1))
+             (j (map 'vector [position _ labels] hand2)))
+      (if (< i j)
+        (return t)
+        (if (> i j)
+          (return nil))))))
 
 
 (defun better-hand? (hand1 hand2)

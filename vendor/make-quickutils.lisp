@@ -34,7 +34,7 @@
                :dorange
                :dorangei
                :doseq
-               :doseq
+               :doseqs
                :dosublists
                :enumerate
                :flatten
@@ -58,6 +58,7 @@
                :symb
                :void
                :when-let
+               :when-not
                :while
                :with-gensyms
 

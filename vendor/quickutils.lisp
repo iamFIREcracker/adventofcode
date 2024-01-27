@@ -2,7 +2,7 @@
 ;;;; See http://quickutil.org for details.
 
 ;;;; To regenerate:
-;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:KEEP-IF :KEEP-IF-NOT :AAND :AIF :ALIST-KEYS :ALIST-VALUES :ASSOC-VALUE :AWHEN :BND* :BND1 :COPY-ARRAY :COPY-HASH-TABLE :DIGITS :DIVF :DOALIST :DOHASH :DOLISTS :DORANGE :DORANGEI :DOSEQ :DOSEQ :DOSUBLISTS :ENUMERATE :FLATTEN :HASH-TABLE-ALIST :HASH-TABLE-KEY-EXISTS-P :HASH-TABLE-KEYS :HASH-TABLE-VALUES :IF-NOT :IF-LET :IOTA :LOOPING :MAKE-KEYWORD :MKSTR :MULF :NCYCLE :REMOVEF :REPEAT :STRING-ENDS-WITH-P :STRING-STARTS-WITH-P :SUBDIVIDE :SUBSEQ- :SYMB :VOID :WHEN-LET :WHILE :WITH-GENSYMS :SHUFFLE :RANDOM-ELT :XOR) :ensure-package T :package "AOC.QUICKUTILS")
+;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:KEEP-IF :KEEP-IF-NOT :AAND :AIF :ALIST-KEYS :ALIST-VALUES :ASSOC-VALUE :AWHEN :BND* :BND1 :COPY-ARRAY :COPY-HASH-TABLE :DIGITS :DIVF :DOALIST :DOHASH :DOLISTS :DORANGE :DORANGEI :DOSEQ :DOSEQS :DOSUBLISTS :ENUMERATE :FLATTEN :HASH-TABLE-ALIST :HASH-TABLE-KEY-EXISTS-P :HASH-TABLE-KEYS :HASH-TABLE-VALUES :IF-LET :IF-NOT :IOTA :LOOPING :MAKE-KEYWORD :MKSTR :MULF :NCYCLE :REMOVEF :REPEAT :STRING-ENDS-WITH-P :STRING-STARTS-WITH-P :SUBDIVIDE :SUBSEQ- :SYMB :VOID :WHEN-LET :WHEN-NOT :WHILE :WITH-GENSYMS :SHUFFLE :RANDOM-ELT :XOR) :ensure-package T :package "AOC.QUICKUTILS")
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (unless (find-package "AOC.QUICKUTILS")
@@ -20,17 +20,17 @@
                                          :COPY-ARRAY :COPY-HASH-TABLE :DIGITS
                                          :DIVF :MAKE-GENSYM-LIST :ONCE-ONLY
                                          :DOALIST :DOHASH :DOLISTS :DORANGE
-                                         :DORANGEI :DOSEQ :DOSUBLISTS
+                                         :DORANGEI :DOSEQ :DOSEQS :DOSUBLISTS
                                          :ENUMERATE :FLATTEN :HASH-TABLE-ALIST
                                          :HASH-TABLE-KEY-EXISTS-P :MAPHASH-KEYS
                                          :HASH-TABLE-KEYS :MAPHASH-VALUES
-                                         :HASH-TABLE-VALUES :IF-NOT :IF-LET
+                                         :HASH-TABLE-VALUES :IF-LET :IF-NOT
                                          :IOTA :MKSTR :SYMB :LOOPING
                                          :MAKE-KEYWORD :MULF :NCYCLE :REMOVEF
                                          :REPEAT :STRING-ENDS-WITH-P
                                          :STRING-STARTS-WITH-P :SUBDIVIDE
-                                         :SUBSEQ- :VOID :WHEN-LET :WHILE
-                                         :SAFE-ENDP :CIRCULAR-LIST
+                                         :SUBSEQ- :VOID :WHEN-LET :WHEN-NOT
+                                         :WHILE :SAFE-ENDP :CIRCULAR-LIST
                                          :PROPER-LIST-LENGTH/LAST-CAR :SHUFFLE
                                          :RANDOM-ELT :XOR))))
 
@@ -455,6 +455,16 @@ lambda-list
          (sequence (loop :for ,var :across ,seq :do ,@body ,@(when result? `(:finally (return ,result))))))))
   
 
+  (defmacro doseqs (((var1 seq1) (var2 seq2) &rest var-seq-specs) &body body)
+    "Like DOSEQ, except this can iterate over multiple sequences at the same
+time."
+    (let* ((vars (list* var1 var2 (mapcar #'car var-seq-specs)))
+           (seqs (list* seq1 seq2 (mapcar #'cadr var-seq-specs))))
+
+      `(block nil
+         (map nil (lambda (,@vars) ,@body) ,@seqs))))
+  
+
   (defmacro dosublists ((var list &optional (result nil result?)) &body body)
     "Like DOLIST, except:
 
@@ -542,11 +552,6 @@ lambda-list
       values))
   
 
-  (defmacro if-not (test then &optional else)
-    "Like IF, except TEST gets wrapped inside NOT."
-    `(if (not ,test) ,then ,else))
-  
-
   (defmacro if-let (bindings &body (then-form &optional else-form))
     "Creates new variable bindings, and conditionally executes either
 `then-form` or `else-form`. `else-form` defaults to `nil`.
@@ -576,6 +581,11 @@ effect."
          (if (and ,@variables)
              ,then-form
              ,else-form))))
+  
+
+  (defmacro if-not (test then &optional else)
+    "Like IF, except TEST gets wrapped inside NOT."
+    `(if (not ,test) ,then ,else))
   
 
   (declaim (inline iota))
@@ -867,6 +877,11 @@ PROGN."
              ,@(bind (cdr binding-list) forms))))))
   
 
+  (defmacro when-not (test &body body)
+    "Like WHEN, except TEST gets wrapped inside NOT."
+    `(when (not ,test) ,@body))
+  
+
   (defmacro while (expression &body body)
     "Executes `body` while `expression` is true."
     `(loop while ,expression do
@@ -1033,11 +1048,12 @@ value."
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (export '(keep-if keep-if-not aand aif alist-keys alist-values assoc-value
             rassoc-value awhen bnd* bnd1 copy-array copy-hash-table digits divf
-            doalist dohash dolists dorange dorangei doseq dosublists enumerate
-            flatten hash-table-alist hash-table-key-exists-p hash-table-keys
-            hash-table-values if-not if-let iota looping make-keyword mkstr
-            mulf ncycle removef repeat string-ends-with-p string-starts-with-p
-            subdivide subseq- symb void when-let when-let* while with-gensyms
-            with-unique-names shuffle random-elt xor)))
+            doalist dohash dolists dorange dorangei doseq doseqs dosublists
+            enumerate flatten hash-table-alist hash-table-key-exists-p
+            hash-table-keys hash-table-values if-let if-not iota looping
+            make-keyword mkstr mulf ncycle removef repeat string-ends-with-p
+            string-starts-with-p subdivide subseq- symb void when-let when-let*
+            when-not while with-gensyms with-unique-names shuffle random-elt
+            xor)))
 
 ;;;; END OF quickutils.lisp ;;;;
