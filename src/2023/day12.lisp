@@ -6,18 +6,6 @@
     (list springs (extract-positive-integers groups))))
 
 
-(defmacro memoizing ((ht &rest key-parts) &body body)
-  (with-gensyms (memo key)
-    `(let ((,memo ,ht)
-           (,key (list ,@key-parts)))
-       (multiple-value-bind (res res?) (gethash ,key ,memo)
-         (if res?
-           res
-           (setf (gethash ,key ,memo)
-                 (block memo
-                        ,@body)))))))
-
-
 (defun count-valid-arrangements (s)
   (destructuring-bind (springs groups) (parse-condition-record s)
     (bnd1 (memo (make-hash-table :test 'equal))

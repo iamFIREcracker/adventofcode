@@ -20,6 +20,7 @@
     :_2
     :partial-2
     :defun/memo
+    :memoizing
 
     :with-complex-parts
     :complex-rotate-cw
