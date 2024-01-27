@@ -50,6 +50,7 @@
                :mkstr
                :mulf
                :ncycle
+               :recursively
                :repeat
                :string-ends-with-p
                :string-starts-with-p

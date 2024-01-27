@@ -164,17 +164,6 @@
 
 ;;;; Control flow -------------------------------------------------------------
 
-(defmacro recursively (bindings &body body)
-  "Execute `body` recursively, like Clojure's `loop`/`recur`.
-
-  `bindings` should contain a list of symbols and (optional) starting values.
-
-  In `body` the symbol `recur` will be bound to the function for recurring."
-  (let ((names (mapcar #'(lambda (b) (if (atom b) b (first b))) bindings))
-        (values (mapcar #'(lambda (b) (if (atom b) nil (second b))) bindings)))
-    `(labels ((recur (,@names)
-                ,@body))
-        (recur ,@values))))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defun args-contain-placeholder-p (args placeholder)

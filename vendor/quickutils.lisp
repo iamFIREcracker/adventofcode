@@ -2,7 +2,7 @@
 ;;;; See http://quickutil.org for details.
 
 ;;;; To regenerate:
-;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:KEEP-IF :KEEP-IF-NOT :AAND :AIF :ALIST-KEYS :ALIST-VALUES :ASSOC-VALUE :AWHEN :BND* :BND1 :COPY-ARRAY :COPY-HASH-TABLE :DIGITS :DIVF :DOALIST :DOHASH :DOLISTS :DORANGE :DORANGEI :DOSEQ :DOSEQS :DOSUBLISTS :ENUMERATE :FLATTEN :HASH-TABLE-ALIST :HASH-TABLE-KEY-EXISTS-P :HASH-TABLE-KEYS :HASH-TABLE-VALUES :IF-LET :IF-NOT :IOTA :LOOPING :MAKE-KEYWORD :MKSTR :MULF :NCYCLE :REMOVEF :REPEAT :STRING-ENDS-WITH-P :STRING-STARTS-WITH-P :SUBDIVIDE :SUBSEQ- :SYMB :VOID :WHEN-LET :WHEN-NOT :WHILE :WITH-GENSYMS :SHUFFLE :RANDOM-ELT :XOR) :ensure-package T :package "AOC.QUICKUTILS")
+;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:KEEP-IF :KEEP-IF-NOT :AAND :AIF :ALIST-KEYS :ALIST-VALUES :ASSOC-VALUE :AWHEN :BND* :BND1 :COPY-ARRAY :COPY-HASH-TABLE :DIGITS :DIVF :DOALIST :DOHASH :DOLISTS :DORANGE :DORANGEI :DOSEQ :DOSEQS :DOSUBLISTS :ENUMERATE :FLATTEN :HASH-TABLE-ALIST :HASH-TABLE-KEY-EXISTS-P :HASH-TABLE-KEYS :HASH-TABLE-VALUES :IF-LET :IF-NOT :IOTA :LOOPING :MAKE-KEYWORD :MKSTR :MULF :NCYCLE :RECURSIVELY :REMOVEF :REPEAT :STRING-ENDS-WITH-P :STRING-STARTS-WITH-P :SUBDIVIDE :SUBSEQ- :SYMB :VOID :WHEN-LET :WHEN-NOT :WHILE :WITH-GENSYMS :SHUFFLE :RANDOM-ELT :XOR) :ensure-package T :package "AOC.QUICKUTILS")
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (unless (find-package "AOC.QUICKUTILS")
@@ -26,8 +26,9 @@
                                          :HASH-TABLE-KEYS :MAPHASH-VALUES
                                          :HASH-TABLE-VALUES :IF-LET :IF-NOT
                                          :IOTA :MKSTR :SYMB :LOOPING
-                                         :MAKE-KEYWORD :MULF :NCYCLE :REMOVEF
-                                         :REPEAT :STRING-ENDS-WITH-P
+                                         :MAKE-KEYWORD :MULF :NCYCLE
+                                         :RECURSIVELY :REMOVEF :REPEAT
+                                         :STRING-ENDS-WITH-P
                                          :STRING-STARTS-WITH-P :SUBDIVIDE
                                          :SUBSEQ- :VOID :WHEN-LET :WHEN-NOT
                                          :WHILE :SAFE-ENDP :CIRCULAR-LIST
@@ -747,6 +748,14 @@ Examples:
     (nconc list list))
   
 
+  (defmacro recursively (bindings &body body)
+    (let ((names (mapcar #'(lambda (b) (if (atom b) b (first b))) bindings))
+          (values (mapcar #'(lambda (b) (if (atom b) nil (second b))) bindings)))
+      `(labels ((,(symb "RECUR") (,@names)
+                 ,@body))
+         (,(symb "RECUR") ,@values))))
+  
+
   (declaim (inline remove/swapped-arguments))
   (defun remove/swapped-arguments (sequence item &rest keyword-arguments)
     (apply #'remove item sequence keyword-arguments))
@@ -1051,9 +1060,9 @@ value."
             doalist dohash dolists dorange dorangei doseq doseqs dosublists
             enumerate flatten hash-table-alist hash-table-key-exists-p
             hash-table-keys hash-table-values if-let if-not iota looping
-            make-keyword mkstr mulf ncycle removef repeat string-ends-with-p
-            string-starts-with-p subdivide subseq- symb void when-let when-let*
-            when-not while with-gensyms with-unique-names shuffle random-elt
-            xor)))
+            make-keyword mkstr mulf ncycle recursively removef repeat
+            string-ends-with-p string-starts-with-p subdivide subseq- symb void
+            when-let when-let* when-not while with-gensyms with-unique-names
+            shuffle random-elt xor)))
 
 ;;;; END OF quickutils.lisp ;;;;
