@@ -2,13 +2,16 @@
 (in-package :aoc/2023/09)
 
 
-(defun parse-input (&optional (strings (uiop:read-file-lines #P"src/2023/day09.txt")))
+(defun parse-input (&optional (strings (aoc::read-problem-input 2023 09)))
   (mapcar #'extract-integers strings))
 
 
 (defun deltas (nums)
-  (loop for n in nums by #'cdr for m in (cdr nums) by #'cdr
-        collect (- m n)))
+  (looping
+    (doseqs ((n nums)
+             (m (cdr nums)))
+      (collect! (- m n)))))
+
 
 (defun prediction-sequences (history)
   (looping
