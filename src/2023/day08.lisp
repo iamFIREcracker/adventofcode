@@ -24,7 +24,8 @@
 
 (define-solution (2023 08) (input parse-input)
   (values (count-steps :aaa [eq _ :zzz] input)
-          (destructuring-bind (instructions . network) input
+          (destructuring-bind (_ . network) input
+            (declare (ignore _))
             (bnd* ((start-nodes (keep-if [string-ends-with-p "A" (mkstr _)]
                                          (alist-keys network) ))
                    (end? [string-ends-with-p "Z" (mkstr _)]))
