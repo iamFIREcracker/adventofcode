@@ -367,6 +367,15 @@
                  (block memo
                         ,@body)))))))
 
+(defmacro unless-already-seen ((ht &rest key-parts) &body body)
+  (with-gensyms (memo key)
+    `(let ((,memo ,ht)
+           (,key (list ,@key-parts)))
+       (unless (gethash ,key ,memo)
+         (setf (gethash ,key ,memo) t)
+         (block unless-already-seen
+                ,@body)))))
+
 ;;;; Math ---------------------------------------------------------------------
 
 (defmacro with-complex-parts ((real img) c &body body)

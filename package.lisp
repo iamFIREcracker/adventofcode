@@ -21,6 +21,7 @@
     :partial-2
     :defun/memo
     :memoizing
+    :unless-already-seen
 
     :with-complex-parts
     :complex-rotate-cw

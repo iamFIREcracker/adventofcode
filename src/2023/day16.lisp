@@ -2,7 +2,7 @@
 (in-package :aoc/2023/16)
 
 
-(defun parse-grid (&optional (strings (uiop:read-file-lines #P"src/2023/day16.txt")))
+(defun parse-grid (&optional (strings (aoc::read-problem-input 2023 16)))
   (bnd* ((rows (length strings))
          (cols (length (first strings)))
          (map (make-hash-table :test 'equal)))
@@ -10,22 +10,10 @@
       (doseq ((j ch) (enumerate s))
         (setf (gethash (list i j) map) ch)))
     (list map rows cols)))
-#+#:excluded (parse-grid)
 
 (defun move-straight (pos dir) (mapcar #'+ pos dir))
 (defun rotate-cw (dir) (list (second dir) (- (first dir))))
 (defun rotate-ccw (dir) (list (- (second dir)) (first dir)))
-
-(defun total-energy (energized) (count-if #'plusp (hash-table-values energized)))
-
-(defmacro unless-already-seen ((ht &rest key-parts) &body body)
-  (with-gensyms (memo key)
-    `(let ((,memo ,ht)
-           (,key (list ,@key-parts)))
-       (unless (gethash ,key ,memo)
-         (setf (gethash ,key ,memo) t)
-         (block unless-already-seen
-                ,@body)))))
 
 (defun radiate (start dir &optional (map (first (parse-grid))))
   (bnd* ((energized (make-hash-table :test 'equal))
@@ -33,9 +21,7 @@
     (labels ((dfs (pos dir &aux (ch (gethash pos map)))
                (if (not ch) (return-from dfs))
                (unless-already-seen (seen pos dir)
-                 (if (> (gethash pos energized 0) 1000)
-                   (return-from dfs))
-                 (incf (gethash pos energized 0))
+                 (setf (gethash pos energized) t)
                  (cond ((char= ch #\.) (dfs (move-straight dir pos) dir))
                        ((char= ch #\\) (bnd1 (dir (if (zerop (first dir))
                                                     (rotate-cw dir)
@@ -59,21 +45,18 @@
                                          (dfs (move-straight pos dir) dir)))
                        (t (error 'wtf))))))
       (dfs start dir)
-      (total-energy energized))))
-#+#:excluded (radiate  (list 0 0) (list 0 1))
-; 8249
+      (hash-table-count energized))))
 
-(defun part2 (&optional (input (parse-grid))
-                        &aux (map (first input))
-                        (rows (second input))
-                        (cols (third input)))
-  (looping
-    (dorange (j 0 cols)
-      (maximize! (radiate (list 0 j) (list 1 0)))
-      (maximize! (radiate (list (1- rows) j) (list -1 0))))
-    (dorange (i 0 rows)
-      (maximize! (radiate (list i 0) (list 0 1)))
-      (maximize! (radiate (list i (1- cols)) (list 0 -1))))))
 
-#+#:excluded (part2)
-; 8444
+(define-solution (2023 16) (input parse-grid)
+  (destructuring-bind (map rows cols) input
+    (values (radiate (list 0 0) (list 0 1) map)
+            (looping
+              (dorange (j 0 cols)
+                (maximize! (radiate (list 0 j) (list 1 0) map))
+                (maximize! (radiate (list (1- rows) j) (list -1 0) map)))
+              (dorange (i 0 rows)
+                (maximize! (radiate (list i 0) (list 0 1) map))
+                (maximize! (radiate (list i (1- cols)) (list 0 -1) map)))))))
+
+(define-test (2023 16) (8249 8444))
