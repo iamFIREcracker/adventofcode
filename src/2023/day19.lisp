@@ -3,6 +3,7 @@
 
 
 ;;; Input parsing ------------------------------------------------------------
+
 (defun rule (s)
   (or (cl-ppcre:register-groups-bind ((#'as-keyword q)
                                       (#'symb p)
@@ -33,7 +34,7 @@
     (dolist (p (split-sequence:split-sequence #\, s))
       (append! (category p)))))
 
-(defun parse-input (&optional (strings (uiop:read-file-lines #P"src/2023/day19.txt")))
+(defun parse-input (&optional (strings (aoc::read-problem-input 2023 19)))
   (destructuring-bind (workflows parts)
       (split-sequence:split-sequence "" strings :test #'string=)
     (list (mapcar #'workflow workflows)
@@ -41,12 +42,13 @@
 
 
 ;;; Actual solution ----------------------------------------------------------
+
 (defun accepted-parts (&optional (input (parse-input)))
   (destructuring-bind (workflows parts) input
     (looping
       (dolist (part parts)
         (when (accepted? :in part workflows)
-          (collect! part))))))
+          (collect! (reduce #'+ (keep-if #'numberp part))))))))
 
 (defun accepted? (state part workflows)
   (cond ((eq state :A) t)
@@ -61,44 +63,44 @@
                      (return (accepted? next part workflows))))))))))
 
 
-(defun score (part) (reduce #'+ (keep-if #'numberp part)))
+(defun acceptance-criteria (workflows)
+  (looping
+    (labels ((append-condition (criteria c op num)
+               (setf criteria (copy-seq criteria))
+               (push (list op num) (getf criteria c))
+               criteria))
+      (recursively ((state :in) (criteria nil))
+        (cond ((eq state :A) (collect! criteria))
+              ((eq state :R) nil)
+              (t (destructuring-bind (name rules) (assoc state workflows)
+                   (declare (ignore name))
+                   (dolist (r rules)
+                     (if (atom r)
+                       (recur r criteria)
+                       (destructuring-bind (c op num next) r
+                         (recur next (append-condition criteria c op num))
+                         (setf criteria
+                               (append-condition criteria
+                                                 c
+                                                 (if (eq op '<) '> '<)
+                                                 (if (eq op '<) (1- num) (1+ num))
+                                                 ))))))))))))
+
+(defun count-distinct-values (criteria)
+  (looping
+    (doseq (c '(:x :m :a :s))
+      (multiply!
+        (looping
+          (dorangei (n 1 4000)
+            (count! (loop for (op val) in (getf criteria c)
+                          always (funcall op n val)))))))))
 
 
 (define-solution (2023 19) (input parse-input)
-  (values (reduce #'+ (accepted-parts input) :key #'score)))
-#+#:excluded (solution-run)
+  (destructuring-bind (workflows _) input
+    (declare (ignore _))
+    (values (reduce #'+ (accepted-parts input))
+            (reduce #'+ (acceptance-criteria workflows)
+                    :key #'count-distinct-values))))
 
-(define-test (2023 19) (398527))
-
-(defun valid-ratings-conditions (workflows)
-  (looping
-    (labels ((append-condition (parts part op num)
-               (setf ratings (copy-seq ratings))
-               (push (list op num) (getf ratings part))
-               ratings)
-             (recur (state ratings)
-               (cond ((eq state :A) (collect! ratings))
-                     ((eq state :R) nil)
-                     (t (destructuring-bind (name rules) (assoc state workflows)
-                          (declare (ignore name))
-                          (dolist (r rules)
-                            (if (atom r)
-                              (recur r ratings)
-                              (destructuring-bind (part op num next) r
-                                (recur next (append-condition ratings part op num))
-                                (setf ratings
-                                      (append-condition ratings
-                                                        part
-                                                        (if (eq op '<) '> '<)
-                                                        (if (eq op '<) (1- num) (1+ num))
-                                                        ))))))))))
-      (recur :in nil))))
-
-(defun score2 (ratings)
-  (reduce #'* (mapcar [count-distinct-values ratings _] (list :x :m :a :s))))
-
-#+#:excluded (destructuring-bind (workflows ratings) (parse-input)
-               (declare (ignore ratings))
-               (reduce #'+ (mapcar #'score2 (valid-ratings-conditions workflows))))
-; 10536956617799618 nope
-; 133973513090020
+(define-test (2023 19) (398527 133973513090020))
