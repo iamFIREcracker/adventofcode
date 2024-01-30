@@ -90,7 +90,6 @@
            (bnd1 (modules (parse-input strings))
              (destructuring-bind (to) (find-that-outputs-into :rx modules)
                (dolist (from (find-that-outputs-into (name to) modules))
-                 (print (name from))
                  (collect! (push-until :high
                                        (name from)
                                        (name to)
