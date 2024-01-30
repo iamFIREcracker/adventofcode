@@ -42,15 +42,18 @@
                :hash-table-key-exists-p
                :hash-table-keys
                :hash-table-values
-               :if-not
                :if-let
+               :if-not
                :iota
                :looping
                :make-keyword
                :mkstr
                :mulf
                :ncycle
+               :plist-keys
+               :plist-values
                :recursively
+               :removef
                :repeat
                :string-ends-with-p
                :string-starts-with-p
@@ -61,7 +64,11 @@
                :when-let
                :when-not
                :while
+               :while-not
                :with-gensyms
 
+:shuffle
+:random-elt
+:xor
                )
   :package "AOC.QUICKUTILS")
