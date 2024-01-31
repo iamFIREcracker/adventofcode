@@ -7,3 +7,4 @@
 /vendor/quickutil
 /src/*/day*.txt
 /src/*/day*.input
+/.env
