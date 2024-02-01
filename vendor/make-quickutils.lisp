@@ -26,6 +26,7 @@
                :bnd1
                :copy-array
                :copy-hash-table
+               :defaccessor
                :digits
                :divf
                :doalist

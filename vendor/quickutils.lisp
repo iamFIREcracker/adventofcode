@@ -2,7 +2,7 @@
 ;;;; See http://quickutil.org for details.
 
 ;;;; To regenerate:
-;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:KEEP-IF :KEEP-IF-NOT :AAND :AIF :ALIST-KEYS :ALIST-VALUES :ASSOC-VALUE :AWHEN :BND* :BND1 :COPY-ARRAY :COPY-HASH-TABLE :DIGITS :DIVF :DOALIST :DOHASH :DOLISTS :DORANGE :DORANGEI :DOSEQ :DOSEQS :DOSUBLISTS :ENUMERATE :FLATTEN :HASH-TABLE-ALIST :HASH-TABLE-KEY-EXISTS-P :HASH-TABLE-KEYS :HASH-TABLE-VALUES :IF-LET :IF-NOT :IOTA :LOOPING :MAKE-KEYWORD :MKSTR :MULF :NCYCLE :PLIST-KEYS :PLIST-VALUES :RECURSIVELY :REMOVEF :REPEAT :STRING-ENDS-WITH-P :STRING-STARTS-WITH-P :SUBDIVIDE :SUBSEQ- :SYMB :VOID :WHEN-LET :WHEN-NOT :WHILE :WHILE-NOT :WITH-GENSYMS :SHUFFLE :RANDOM-ELT :XOR) :ensure-package T :package "AOC.QUICKUTILS")
+;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:KEEP-IF :KEEP-IF-NOT :AAND :AIF :ALIST-KEYS :ALIST-VALUES :ASSOC-VALUE :AWHEN :BND* :BND1 :COPY-ARRAY :COPY-HASH-TABLE :DEFACCESSOR :DIGITS :DIVF :DOALIST :DOHASH :DOLISTS :DORANGE :DORANGEI :DOSEQ :DOSEQS :DOSUBLISTS :ENUMERATE :FLATTEN :HASH-TABLE-ALIST :HASH-TABLE-KEY-EXISTS-P :HASH-TABLE-KEYS :HASH-TABLE-VALUES :IF-LET :IF-NOT :IOTA :LOOPING :MAKE-KEYWORD :MKSTR :MULF :NCYCLE :PLIST-KEYS :PLIST-VALUES :RECURSIVELY :REMOVEF :REPEAT :STRING-ENDS-WITH-P :STRING-STARTS-WITH-P :SUBDIVIDE :SUBSEQ- :SYMB :VOID :WHEN-LET :WHEN-NOT :WHILE :WHILE-NOT :WITH-GENSYMS :SHUFFLE :RANDOM-ELT :XOR) :ensure-package T :package "AOC.QUICKUTILS")
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (unless (find-package "AOC.QUICKUTILS")
@@ -17,11 +17,12 @@
                                          :AAND :ALIST-KEYS :ALIST-VALUES
                                          :STRING-DESIGNATOR :WITH-GENSYMS
                                          :ASSOC-VALUE :AWHEN :BND* :BND1
-                                         :COPY-ARRAY :COPY-HASH-TABLE :DIGITS
-                                         :DIVF :MAKE-GENSYM-LIST :ONCE-ONLY
-                                         :DOALIST :DOHASH :DOLISTS :DORANGE
-                                         :DORANGEI :DOSEQ :DOSEQS :DOSUBLISTS
-                                         :ENUMERATE :FLATTEN :HASH-TABLE-ALIST
+                                         :COPY-ARRAY :COPY-HASH-TABLE
+                                         :PARSE-BODY :DEFACCESSOR :DIGITS :DIVF
+                                         :MAKE-GENSYM-LIST :ONCE-ONLY :DOALIST
+                                         :DOHASH :DOLISTS :DORANGE :DORANGEI
+                                         :DOSEQ :DOSEQS :DOSUBLISTS :ENUMERATE
+                                         :FLATTEN :HASH-TABLE-ALIST
                                          :HASH-TABLE-KEY-EXISTS-P :MAPHASH-KEYS
                                          :HASH-TABLE-KEYS :MAPHASH-VALUES
                                          :HASH-TABLE-VALUES :IF-LET :IF-NOT
@@ -313,6 +314,68 @@ copy is returned by default."
                  (setf (gethash k copy) (funcall key v)))
                table)
       copy))
+  
+
+  (defun parse-body (body &key documentation whole)
+    "Parses `body` into `(values remaining-forms declarations doc-string)`.
+Documentation strings are recognized only if `documentation` is true.
+Syntax errors in body are signalled and `whole` is used in the signal
+arguments when given."
+    (let ((doc nil)
+          (decls nil)
+          (current nil))
+      (tagbody
+       :declarations
+         (setf current (car body))
+         (when (and documentation (stringp current) (cdr body))
+           (if doc
+               (error "Too many documentation strings in ~S." (or whole body))
+               (setf doc (pop body)))
+           (go :declarations))
+         (when (and (listp current) (eql (first current) 'declare))
+           (push (pop body) decls)
+           (go :declarations)))
+      (values body (nreverse decls) doc)))
+  
+
+  (defmacro defaccessor (name lambda-list &body body)
+    "Define the function named `name` just as with a normal `defun`. Also define the setter `(setf name)`. The form to be set (i.e., the place) should be wrapped in the local macro `accesses`. For example,
+
+```
+  CL-USER> (let ((x 0))
+             (defaccessor saved-x ()
+               (accesses x)))
+  SAVED-X
+  (SETF SAVED-X)
+  CL-USER> (saved-x)
+  0
+  CL-USER> (setf (saved-x) 5)
+  5
+  CL-USER> (saved-x)
+  5
+```
+"
+    (multiple-value-bind (remaining-forms decls doc)
+        (parse-body body :documentation t)
+      (with-gensyms (new-value)
+        `(progn
+           (defun ,name ,lambda-list
+             ,doc
+             ,@decls
+             (macrolet ((accesses (form)
+                          form))
+               ,@remaining-forms))
+         
+           (defun (setf ,name) ,(cons new-value lambda-list)
+             ,(format nil "Setter for the function ~S." name)
+             ,@decls
+             (macrolet ((accesses (form)
+                          `(setf ,form ,',new-value)))
+               ,@remaining-forms
+               ,new-value))
+           (values
+            ',name
+            '(setf ,name))))))
   
 
   (defun digits (n &optional (base 10))
@@ -626,12 +689,12 @@ See also: `symbolicate`"
   
 
   (defmacro looping (&body body)
-    "Run `body` in an environment where the symbols COLLECT!, APPEND!, SUM!,
-MULTIPLY!, COUNT!, MINIMIZE!, and MAXIMIZE! are bound to functions that can be
-used to collect / append, sum, multiply, count, minimize or maximize things
-respectively.
+    "Run `body` in an environment where the symbols COLLECT!, APPEND!, ADJOIN!,
+SUM!, MULTIPLY!, COUNT!, MINIMIZE!, and MAXIMIZE! are bound to functions that
+can be used to collect / append, sum, multiply, count, minimize or maximize
+things respectively.
 
-Mixed usage of COLLECT!/APPEND!, SUM!, MULTIPLY!, COUNT!, MINIMIZE! and
+Mixed usage of COLLECT!/APPEND!/ADJOIN!, SUM!, MULTIPLY!, COUNT!, MINIMIZE! and
 MAXIMIZE! is not supported.
 
 Examples:
@@ -666,7 +729,7 @@ Examples:
       (labels ((extract-loop-type (body)
                  (cond ((null body) nil)
                        ((symbolp body) (find body
-                                             '(collect! append! sum! multiply! count! minimize! maximize!)
+                                             '(collect! append! adjoin! sum! multiply! count! minimize! maximize!)
                                              :test #'string=))
                        ((consp body) (unless (and (symbolp (car body))
                                                   (string= (car body) 'looping))
@@ -674,7 +737,7 @@ Examples:
                                            (extract-loop-type (cdr body)))))))
                (init-result (loop-type)
                  (ecase loop-type
-                   ((collect! append! minimize! maximize!) nil)
+                   ((collect! append! adjoin! minimize! maximize!) nil)
                    ((sum! count!) 0)
                    ((multiply!) 1))))
         (let* ((loop-type-value (extract-loop-type body))
@@ -695,17 +758,25 @@ Examples:
                            (setf ,last (cdr ,last)))))
                       (,(symb "COLLECT!") (item)
                        (if (and ,loop-type (and (not (eql ,loop-type 'collect!))
-                                                (not (eql ,loop-type 'append!)) ))
+                                                (not (eql ,loop-type 'append!))
+                                                (not (eql ,loop-type 'adjoin!)) ))
                          (error "Cannot use COLLECT! together with ~A" ,loop-type)
                          (,collect-last item)))
                       (,(symb "APPEND!") (item)
                        (if (and ,loop-type (and (not (eql ,loop-type 'collect!))
-                                                (not (eql ,loop-type 'append!)) ))
+                                                (not (eql ,loop-type 'append!))
+                                                (not (eql ,loop-type 'adjoin!)) ))
                          (error "Cannot use APPEND! together with ~A" ,loop-type)
                          (progn
                            (setf ,result (append ,result item)
                                  ,last (last item))
                            item)))
+                      (,(symb "ADJOIN!") (item &rest adjoin-args)
+                       (if (and ,loop-type (and (not (eql ,loop-type 'collect!))
+                                                (not (eql ,loop-type 'append!))
+                                                (not (eql ,loop-type 'adjoin!))))
+                         (error "Cannot use ADJOIN! together with ~A" ,loop-type)
+                         (setf ,result (apply #'adjoin item ,result adjoin-args))))
                       (,(symb "SUM!") (item)
                        (if (and ,loop-type (not (eql ,loop-type 'sum!)))
                          (error "Cannot use SUM! together with ~A" ,loop-type)
@@ -1075,13 +1146,14 @@ value."
   
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (export '(keep-if keep-if-not aand aif alist-keys alist-values assoc-value
-            rassoc-value awhen bnd* bnd1 copy-array copy-hash-table digits divf
-            doalist dohash dolists dorange dorangei doseq doseqs dosublists
-            enumerate flatten hash-table-alist hash-table-key-exists-p
-            hash-table-keys hash-table-values if-let if-not iota looping
-            make-keyword mkstr mulf ncycle plist-keys plist-values recursively
-            removef repeat string-ends-with-p string-starts-with-p subdivide
-            subseq- symb void when-let when-let* when-not while while-not
-            with-gensyms with-unique-names shuffle random-elt xor)))
+            rassoc-value awhen bnd* bnd1 copy-array copy-hash-table defaccessor
+            accesses digits divf doalist dohash dolists dorange dorangei doseq
+            doseqs dosublists enumerate flatten hash-table-alist
+            hash-table-key-exists-p hash-table-keys hash-table-values if-let
+            if-not iota looping make-keyword mkstr mulf ncycle plist-keys
+            plist-values recursively removef repeat string-ends-with-p
+            string-starts-with-p subdivide subseq- symb void when-let when-let*
+            when-not while while-not with-gensyms with-unique-names shuffle
+            random-elt xor)))
 
 ;;;; END OF quickutils.lisp ;;;;
