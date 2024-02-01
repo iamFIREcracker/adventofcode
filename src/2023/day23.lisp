@@ -8,120 +8,88 @@
 (defparameter *west*  '(0 -1))
 
 (defun move-straight (pos dir) (mapcar #'+ pos dir))
-(defun rotate-cw (dir) (list (second dir) (- (first dir))))
-(defun rotate-ccw (dir) (list (- (second dir)) (first dir)))
 
-(defun parse-map (&optional (strings (uiop:read-file-lines #P"src/2023/day23.txt")))
+
+(defun parse-map (&optional (strings (aoc::read-problem-input 2023 23)))
   (bnd* ((rows (length strings))
          (cols (length (first strings)))
-         (map (make-hash-table :test 'equal))
-         (start))
+         (map (make-hash-table :test 'equal)))
     (doseq ((i s) (enumerate strings))
       (doseq ((j ch) (enumerate s))
         (when (find ch ".^>v<")
           (setf (gethash (list i j) map) ch))))
     (list map (list 0 1) (list (1- rows) (- cols 2)))))
-#+#:excluded (parse-map)
-
-(defun part1 (&optional (input (parse-map)))
-  (destructuring-bind (map start end) input
-    (bnd1 (longest 0)
-      (labels ((recur (pos path)
-                 (cond ((gethash pos path) nil)
-                       ((equal pos end)
-                        (setf longest (max (1+ (hash-table-count path)) longest)))
-                       ((find (gethash pos map) "^>v<")
-                        (setf (gethash pos path) t)
-                        (bnd1 (dir (case (gethash pos map)
-                                     (#\> *east*)
-                                     (#\v *south*)
-                                     (#\< *east*)
-                                     (#\^ *north*)))
-                          (recur (move-straight pos dir) path))
-                        (remhash pos path))
-                       (t (setf (gethash pos path) t)
-                          (dolist (dir (list *north* *east* *south* *west*))
-                            (bnd1 (npos (move-straight pos dir))
-                              (when (gethash npos map)
-                                (recur npos path))))
-                          (remhash pos path)))))
-        (recur start (make-hash-table :test 'equal))
-        (1- longest)))))
-#+#:excluded (part1)
 
 
-(defun valid-directions (pos map)
+(defun valid-directions (map pos)
   (looping
     (dolist (dir (list *north* *east* *south* *west*))
       (bnd1 (npos (move-straight pos dir))
         (when (gethash npos map)
           (collect! dir))))))
 
-(defun intersection? (pos map)
-  (> (length (valid-directions pos map)) 2))
+(defun intersection? (map pos)
+  (> (length (valid-directions map pos)) 2))
 
-(defun intersections (&optional (input (parse-map)))
-  (destructuring-bind (map _1 _2) input
-    (declare (ignore _1 _2))
-    (looping
-      (dolist (pos (hash-table-keys map))
-        (when (intersection? pos map)
-          (collect! pos))))))
-#+#:excluded (intersections)
-#+#:excluded (length *)
+(defun intersections (&optional (map (car (parse-map))))
+  (looping
+    (dolist (pos (hash-table-keys map))
+      (when (intersection? map pos)
+        (collect! pos)))))
 
-(defun distance (start target points &optional (input (parse-map)))
-  (destructuring-bind (map _1 _2) input
-    (declare (ignore _1 _2))
-    (search-cost
-      (a* start
-          :goal-state target
-          :test 'equal
-          :neighbors (lambda (pos)
-                       (looping
-                         (dolist (dir (list *north* *east* *south* *west*))
-                           (bnd* ((npos (move-straight pos dir)))
-                             (when (and (gethash npos map)
-                                        (or (equal npos start)
-                                            (equal npos target)
-                                            (not (member npos points :test 'equal))))
-                               (collect! (cons npos 1)))))))
-          :heuristic [manhattan-distance _ target]))))
 
-(defun cache-get (cache p1 p2) (aif (gethash p1 cache) (gethash p2 it)))
-(defun cache-set (value cache p1 p2)
-  (if (not (gethash p1 cache))
-    (setf (gethash p1 cache) (make-hash-table :test 'equal)))
-  (setf (gethash p2 (gethash p1 cache)) value))
-
-(defun cached-distances (&optional (input (parse-map)))
-  (destructuring-bind (_ start end) input
-    (declare (ignore _))
-    (bnd* ((points (pr (list* start end (intersections input))))
-           (cache (make-hash-table :test 'equal)))
-      (dosublists ((p1 . rest) points)
-        (cache-set 0 cache p1 p1)
-        (dolist (p2 rest)
-          (awhen (distance p1 p2 points input)
-            (cache-set it cache p1 p2)
-            (cache-set it cache p2 p1))))
-      cache)))
-#+#:excluded (hash-table-alist (cached-distances))
-
-(defun part2 (&optional (input (parse-map)))
+(defun compress-distances (&optional (input (parse-map)))
   (destructuring-bind (map start end) input
-    (bnd* ((cache (cached-distances input))
-           (longest 0))
-      (labels ((recur (pos path distance)
-                 (cond ((gethash pos path) nil)
-                       ((equal pos end)
-                        (setf longest (max distance longest)))
-                       (t (setf (gethash pos path) t)
-                          (dolist (npos (hash-table-keys (gethash pos cache)))
-                            (when (gethash npos map)
-                              (recur npos path (+ (cache-get cache pos npos) distance))))
-                          (remhash pos path)))))
-        (recur start (make-hash-table :test 'equal) 0)
-        longest))))
-#+#:excluded (part2)
-6406
+    (bnd* ((all-points (list* start end (intersections map)))
+           (cache ()))
+      (flet ((cache-set (from to d)
+               (setf (assoc-value (assoc-value cache from :test 'equal) to :test 'equal) d)))
+        (dolist (start all-points)
+          (bnd* ((q (make-queue))
+                 (seen (make-hash-table :test 'equal)))
+            (enqueue (cons start 0) q)
+            (while-not (queue-empty-p q)
+              (bnd1 ((pos . d) (dequeue q))
+                (unless-already-seen (seen pos)
+                  (if (and (not (equal pos start))
+                           (member pos all-points :test #'equal))
+                    (cache-set start pos d)
+                    (doseqs ((dir (list *north* *east* *south* *west*))
+                             (ch "^>v<"))
+                      (bnd1 (npos (move-straight pos dir))
+                        (awhen (gethash npos map)
+                          (when (or (char= it #\.)
+                                    ;; can move to a ^ only by going north
+                                    ;; can move to a > only by going west
+                                    ;; ...
+                                    (char= it ch))
+                            (enqueue (cons npos (1+ d)) q))))))))))))
+      cache)))
+
+
+(defun find-longest-path (&optional (strings (aoc::read-problem-input 2023 23)))
+  (bnd* ((input (parse-map strings))
+         (cache (compress-distances input))
+         (seen (make-hash-table :test 'equal)))
+    (destructuring-bind (start end) (cdr input)
+      (looping
+        (recursively ((pos start)
+                      (d 0))
+          (unless-already-seen (seen pos)
+            (if (equal pos end)
+              (maximize! d)
+              (doseq ((npos . nd) (assoc-value cache pos :test 'equal))
+                (recur npos (+ d nd))))
+            (unsee)))))))
+
+
+(defun massage-input (&optional (strings (aoc::read-problem-input 2023 23)))
+  (flet ((replace-slope (s) (substitute-if #\. [find _ ">v<^"] s)))
+    (mapcar #'replace-slope strings)))
+
+
+(define-solution (2023 23) (strings)
+  (values (find-longest-path strings)
+          (find-longest-path (massage-input strings))))
+
+(define-test (2023 23) (2018 6406))

@@ -371,10 +371,11 @@
   (with-gensyms (memo key)
     `(let ((,memo ,ht)
            (,key (list ,@key-parts)))
-       (unless (gethash ,key ,memo)
-         (setf (gethash ,key ,memo) t)
-         (block unless-already-seen
-                ,@body)))))
+       (flet ((,(symb "UNSEE") () (remhash ,key ,memo)))
+         (unless (gethash ,key ,memo)
+           (setf (gethash ,key ,memo) t)
+           (block unless-already-seen
+                  ,@body))))))
 
 ;;;; Math ---------------------------------------------------------------------
 
