@@ -2,7 +2,12 @@
 (in-package :aoc/2023/14)
 
 
-(defun parse-input (&optional (strings (uiop:read-file-lines #P"src/2023/day14.txt")))
+(defparameter *north* '(-1 0))
+(defparameter *east*  '(0 1))
+(defparameter *south* '(1 0))
+(defparameter *west*  '(0 -1))
+
+(defun parse-input (&optional (strings (aoc::read-problem-input 2023 14)))
   (bnd* ((rows (length strings))
          (cols (length (first strings)))
          (rocks (make-hash-table :test 'equal))
@@ -11,24 +16,31 @@
       (doseq ((j ch) (enumerate s))
         (when (char= ch #\O)
           (setf (gethash (list i j) rocks) ch))
-        (when (char= ch #\# )
+        (when (char= ch #\#)
           (setf (gethash (list i j) walls) ch))))
     (list rocks walls rows cols)))
 
+
 (defun north-first? (pos1 pos2) (< (first pos1) (first pos2)))
+(defun west-first? (pos1 pos2) (< (second pos1) (second pos2)))
+(defun south-first? (pos1 pos2) (> (first pos1) (first pos2)))
+(defun east-first? (pos1 pos2) (> (second pos1) (second pos2)))
+
 
 (defun move (dir sort-predicate &optional (input (parse-input)))
   (destructuring-bind (rocks walls rows cols) input
-    (dolist (pos (sort (hash-table-keys rocks) sort-predicate))
-      (bnd1 (npos (mapcar #'+ pos dir))
-        (while (not (or (gethash npos walls)
-                        (gethash npos rocks)
-                        (< (first npos) 0) (>= (first npos) rows)
-                        (< (second npos) 0) (>= (second npos) cols)))
-          (remhash pos rocks)
-          (setf (gethash npos rocks) #\O
-                pos npos
-                npos (mapcar #'+ pos dir))))))
+    (flet ((outside? (pos)
+             (or (< (first pos) 0) (>= (first pos) rows)
+                 (< (second pos) 0) (>= (second pos) cols))))
+      (dolist (pos (sort (hash-table-keys rocks) sort-predicate))
+        (bnd1 (npos (mapcar #'+ pos dir))
+          (while (not (or (gethash npos walls)
+                          (gethash npos rocks)
+                          (outside? npos)))
+            (remhash pos rocks)
+            (setf (gethash npos rocks) #\O
+                  pos npos
+                  npos (mapcar #'+ pos dir)))))))
   input)
 
 
@@ -38,22 +50,13 @@
     (reduce #'+ (hash-table-keys rocks) :key [- rows (car _)])))
 
 
-(defun part1 (&optional (input (parse-input)))
-  (move (list -1 0) #'north-first? input)
-  (north-load input))
-
-
-(defun west-first? (pos1 pos2) (< (second pos1) (second pos2)))
-(defun south-first? (pos1 pos2) (> (first pos1) (first pos2)))
-(defun east-first? (pos1 pos2) (> (second pos1) (second pos2)))
-
 (defun cycle (&optional (input (parse-input)))
-  (move (list -1  0) #'north-first? input)
-  (move (list  0 -1) #'west-first? input)
-  (move (list  1  0) #'south-first? input)
-  (move (list  0  1) #'east-first? input))
+  (move *north* #'north-first? input)
+  (move *west* #'west-first? input)
+  (move *south* #'south-first? input)
+  (move *east* #'east-first? input))
 
-(defun part2 (&optional (input (parse-input)))
+(defun spin-cycle (n &optional (input (parse-input)))
   (destructuring-bind (cycles-at cycle-size input)
       (floyd #'cycle input
              :copier (lambda (state)
@@ -63,17 +66,22 @@
                                rows
                                cols)))
              :key (lambda (state)
-                    (destructuring-bind (rocks walls rows cols) state
+                    (destructuring-bind (rocks _ rows cols) state
+                      (declare (ignore _))
                       (looping
                         (dorange (i 0 rows)
                           (dorange (j 0 cols)
                             (when (gethash (list i j) rocks)
                               (collect! (list i j))))))))
              :test 'equalp)
-    (bnd1 (rem-steps (rem (- 1000000000 cycles-at) cycle-size))
+    (bnd1 (rem-steps (rem (- n cycles-at) cycle-size))
       (repeat rem-steps
         (cycle input))
-      (north-load input))))
+      input)))
 
-#+#:excluded (time (part2))
-;; 112452
+
+(define-solution (2023 14) (input parse-input)
+  (values (north-load (move *north* #'north-first? input))
+          (north-load (spin-cycle 1000000000 input))))
+
+(define-test (2023 14) (109345 112452))
