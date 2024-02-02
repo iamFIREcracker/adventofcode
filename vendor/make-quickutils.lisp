@@ -20,6 +20,7 @@
                :aif
                :alist-keys
                :alist-values
+               :appendf
                :assoc-value
                :awhen
                :bnd*
@@ -53,9 +54,11 @@
                :ncycle
                :plist-keys
                :plist-values
+               :random-elt
                :recursively
                :removef
                :repeat
+               :shuffle
                :string-ends-with-p
                :string-starts-with-p
                :subdivide
@@ -67,9 +70,7 @@
                :while
                :while-not
                :with-gensyms
+               :xor
 
-:shuffle
-:random-elt
-:xor
                )
   :package "AOC.QUICKUTILS")

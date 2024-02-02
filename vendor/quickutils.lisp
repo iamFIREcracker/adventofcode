@@ -2,7 +2,7 @@
 ;;;; See http://quickutil.org for details.
 
 ;;;; To regenerate:
-;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:KEEP-IF :KEEP-IF-NOT :AAND :AIF :ALIST-KEYS :ALIST-VALUES :ASSOC-VALUE :AWHEN :BND* :BND1 :COPY-ARRAY :COPY-HASH-TABLE :DEFACCESSOR :DIGITS :DIVF :DOALIST :DOHASH :DOLISTS :DORANGE :DORANGEI :DOSEQ :DOSEQS :DOSUBLISTS :ENUMERATE :FLATTEN :HASH-TABLE-ALIST :HASH-TABLE-KEY-EXISTS-P :HASH-TABLE-KEYS :HASH-TABLE-VALUES :IF-LET :IF-NOT :IOTA :LOOPING :MAKE-KEYWORD :MKSTR :MULF :NCYCLE :PLIST-KEYS :PLIST-VALUES :RECURSIVELY :REMOVEF :REPEAT :STRING-ENDS-WITH-P :STRING-STARTS-WITH-P :SUBDIVIDE :SUBSEQ- :SYMB :VOID :WHEN-LET :WHEN-NOT :WHILE :WHILE-NOT :WITH-GENSYMS :SHUFFLE :RANDOM-ELT :XOR) :ensure-package T :package "AOC.QUICKUTILS")
+;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:KEEP-IF :KEEP-IF-NOT :AAND :AIF :ALIST-KEYS :ALIST-VALUES :APPENDF :ASSOC-VALUE :AWHEN :BND* :BND1 :COPY-ARRAY :COPY-HASH-TABLE :DEFACCESSOR :DIGITS :DIVF :DOALIST :DOHASH :DOLISTS :DORANGE :DORANGEI :DOSEQ :DOSEQS :DOSUBLISTS :ENUMERATE :FLATTEN :HASH-TABLE-ALIST :HASH-TABLE-KEY-EXISTS-P :HASH-TABLE-KEYS :HASH-TABLE-VALUES :IF-LET :IF-NOT :IOTA :LOOPING :MAKE-KEYWORD :MKSTR :MULF :NCYCLE :PLIST-KEYS :PLIST-VALUES :RANDOM-ELT :RECURSIVELY :REMOVEF :REPEAT :SHUFFLE :STRING-ENDS-WITH-P :STRING-STARTS-WITH-P :SUBDIVIDE :SUBSEQ- :SYMB :VOID :WHEN-LET :WHEN-NOT :WHILE :WHILE-NOT :WITH-GENSYMS :XOR) :ensure-package T :package "AOC.QUICKUTILS")
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (unless (find-package "AOC.QUICKUTILS")
@@ -15,10 +15,11 @@
 (when (boundp '*utilities*)
   (setf *utilities* (union *utilities* '(:ABBR :KEEP-IF :KEEP-IF-NOT :LET1 :AIF
                                          :AAND :ALIST-KEYS :ALIST-VALUES
-                                         :STRING-DESIGNATOR :WITH-GENSYMS
-                                         :ASSOC-VALUE :AWHEN :BND* :BND1
-                                         :COPY-ARRAY :COPY-HASH-TABLE
-                                         :PARSE-BODY :DEFACCESSOR :DIGITS :DIVF
+                                         :APPENDF :STRING-DESIGNATOR
+                                         :WITH-GENSYMS :ASSOC-VALUE :AWHEN
+                                         :BND* :BND1 :COPY-ARRAY
+                                         :COPY-HASH-TABLE :PARSE-BODY
+                                         :DEFACCESSOR :DIGITS :DIVF
                                          :MAKE-GENSYM-LIST :ONCE-ONLY :DOALIST
                                          :DOHASH :DOLISTS :DORANGE :DORANGEI
                                          :DOSEQ :DOSEQS :DOSUBLISTS :ENUMERATE
@@ -28,14 +29,14 @@
                                          :HASH-TABLE-VALUES :IF-LET :IF-NOT
                                          :IOTA :MKSTR :SYMB :LOOPING
                                          :MAKE-KEYWORD :MULF :NCYCLE
-                                         :PLIST-KEYS :PLIST-VALUES :RECURSIVELY
-                                         :REMOVEF :REPEAT :STRING-ENDS-WITH-P
+                                         :PLIST-KEYS :PLIST-VALUES :SAFE-ENDP
+                                         :CIRCULAR-LIST
+                                         :PROPER-LIST-LENGTH/LAST-CAR
+                                         :RANDOM-ELT :RECURSIVELY :REMOVEF
+                                         :REPEAT :SHUFFLE :STRING-ENDS-WITH-P
                                          :STRING-STARTS-WITH-P :SUBDIVIDE
                                          :SUBSEQ- :VOID :WHEN-LET :WHEN-NOT
-                                         :WHILE :UNTIL :WHILE-NOT :SAFE-ENDP
-                                         :CIRCULAR-LIST
-                                         :PROPER-LIST-LENGTH/LAST-CAR :SHUFFLE
-                                         :RANDOM-ELT :XOR))))
+                                         :WHILE :UNTIL :WHILE-NOT :XOR))))
 
   (defmacro abbr (short long)
     "Defines a new function/macro named `short` and sharing
@@ -92,6 +93,11 @@ FDEFINITION/MACRO-FUNCTION with `long`."
   (defun alist-values (alist)
     "Return all the values of `alist`."
     (mapcar #'cdr alist))
+  
+
+  (define-modify-macro appendf (&rest lists) append
+    "Modify-macro for `append`. Appends `lists` to the place designated by the first
+argument.")
   
 
   (deftype string-designator ()
@@ -830,6 +836,116 @@ Examples:
     (loop for v in (cdr plist) by #'cddr collect v))
   
 
+  (declaim (inline safe-endp))
+  (defun safe-endp (x)
+    (declare (optimize safety))
+    (endp x))
+  
+
+  (defun circular-list (&rest elements)
+    "Creates a circular list of ELEMENTS."
+    (let ((cycle (copy-list elements)))
+      (nconc cycle cycle)))
+
+  (defun circular-list-p (object)
+    "Returns true if OBJECT is a circular list, NIL otherwise."
+    (and (listp object)
+         (do ((fast object (cddr fast))
+              (slow (cons (car object) (cdr object)) (cdr slow)))
+             (nil)
+           (unless (and (consp fast) (listp (cdr fast)))
+             (return nil))
+           (when (eq fast slow)
+             (return t)))))
+  
+  (defun make-circular-list (length &key initial-element)
+    "Creates a circular list of LENGTH with the given INITIAL-ELEMENT."
+    (let ((cycle (make-list length :initial-element initial-element)))
+      (nconc cycle cycle)))
+
+  (deftype circular-list ()
+    "Type designator for circular lists. Implemented as a SATISFIES type, so not
+recommended for performance intensive use. Main usefullness as the
+expected-type designator of a TYPE-ERROR."
+    `(satisfies circular-list-p))
+  
+
+  (defun circular-list-error (list)
+    (error 'type-error
+           :datum list
+           :expected-type '(and list (not circular-list))))
+  
+  (macrolet ((def (name lambda-list doc step declare ret1 ret2)
+               (assert (member 'list lambda-list))
+               `(defun ,name ,lambda-list
+                  ,doc
+                  (do ((last list fast)
+                       (fast list (cddr fast))
+                       (slow (cons (car list) (cdr list)) (cdr slow))
+                       ,@(when step (list step)))
+                      (nil)
+                    (declare (dynamic-extent slow) ,@(when declare (list declare))
+                             (ignorable last))
+                    (when (safe-endp fast)
+                      (return ,ret1))
+                    (when (safe-endp (cdr fast))
+                      (return ,ret2))
+                    (when (eq fast slow)
+                      (circular-list-error list))))))
+    (def proper-list-length (list)
+      "Returns length of LIST, signalling an error if it is not a proper list."
+      (n 1 (+ n 2))
+      ;; KLUDGE: Most implementations don't actually support lists with bignum
+      ;; elements -- and this is WAY faster on most implementations then declaring
+      ;; N to be an UNSIGNED-BYTE.
+      (fixnum n)
+      (1- n)
+      n)
+
+    (def lastcar (list)
+      "Returns the last element of LIST. Signals a type-error if LIST is not a
+proper list."
+      nil
+      nil
+      (cadr last)
+      (car fast))
+
+    (def (setf lastcar) (object list)
+      "Sets the last element of LIST. Signals a type-error if LIST is not a proper
+list."
+      nil
+      nil
+      (setf (cadr last) object)
+      (setf (car fast) object)))
+  
+
+  (defun random-elt (sequence &key (start 0) end)
+    "Returns a random element from `sequence` bounded by `start` and
+`end`. Signals an error if the `sequence` is not a proper non-empty
+sequence, or if `end` and `start` are not proper bounding index
+designators for `sequence`."
+    (declare (sequence sequence) (fixnum start) (type (or fixnum null) end))
+    (let* ((size (if (listp sequence)
+                     (proper-list-length sequence)
+                     (length sequence)))
+           (end2 (or end size)))
+      (cond ((zerop size)
+             (error 'type-error
+                    :datum sequence
+                    :expected-type `(and sequence (not (satisfies emptyp)))))
+            ((not (and (<= 0 start) (< start end2) (<= end2 size)))
+             (error 'simple-type-error
+                    :datum (cons start end)
+                    :expected-type `(cons (integer 0 (,end2))
+                                          (or null (integer (,start) ,size)))
+                    :format-control "~@<~S and ~S are not valid bounding index designators for ~
+                                   a sequence of length ~S.~:@>"
+                    :format-arguments (list start end size)))
+            (t
+             (let ((index (+ start (random (- end2 start)))))
+               (elt sequence index))))))
+  
+
   (defmacro recursively (bindings &body body)
     (let ((names (mapcar #'(lambda (b) (if (atom b) b (first b))) bindings))
           (values (mapcar #'(lambda (b) (if (atom b) nil (second b))) bindings)))
@@ -851,6 +967,34 @@ the result of calling `remove` with `item`, place, and the `keyword-arguments`."
   (defmacro repeat (n &body body)
     "Runs BODY N times."
     `(loop repeat ,n do ,@body))
+  
+
+  (defun shuffle (sequence &key (start 0) end)
+    "Returns a random permutation of `sequence` bounded by `start` and `end`.
+Original sequece may be destructively modified, and share storage with
+the original one. Signals an error if `sequence` is not a proper
+sequence."
+    (declare (type fixnum start)
+             (type (or fixnum null) end))
+    (etypecase sequence
+      (list
+       (let* ((end (or end (proper-list-length sequence)))
+              (n (- end start)))
+         (do ((tail (nthcdr start sequence) (cdr tail)))
+             ((zerop n))
+           (rotatef (car tail) (car (nthcdr (random n) tail)))
+           (decf n))))
+      (vector
+       (let ((end (or end (length sequence))))
+         (loop for i from start below end
+               do (rotatef (aref sequence i)
+                           (aref sequence (+ i (random (- end i))))))))
+      (sequence
+       (let ((end (or end (length sequence))))
+         (loop for i from (- end 1) downto start
+               do (rotatef (elt sequence i)
+                           (elt sequence (+ i (random (- end i)))))))))
+    sequence)
   
 
   (defun string-ends-with-p (suffix s)
@@ -987,144 +1131,6 @@ PROGN."
   
   (abbr while-not until)
 
-  (declaim (inline safe-endp))
-  (defun safe-endp (x)
-    (declare (optimize safety))
-    (endp x))
-  
-
-  (defun circular-list (&rest elements)
-    "Creates a circular list of ELEMENTS."
-    (let ((cycle (copy-list elements)))
-      (nconc cycle cycle)))
-
-  (defun circular-list-p (object)
-    "Returns true if OBJECT is a circular list, NIL otherwise."
-    (and (listp object)
-         (do ((fast object (cddr fast))
-              (slow (cons (car object) (cdr object)) (cdr slow)))
-             (nil)
-           (unless (and (consp fast) (listp (cdr fast)))
-             (return nil))
-           (when (eq fast slow)
-             (return t)))))
-  
-  (defun make-circular-list (length &key initial-element)
-    "Creates a circular list of LENGTH with the given INITIAL-ELEMENT."
-    (let ((cycle (make-list length :initial-element initial-element)))
-      (nconc cycle cycle)))
-
-  (deftype circular-list ()
-    "Type designator for circular lists. Implemented as a SATISFIES type, so not
-recommended for performance intensive use. Main usefullness as the
-expected-type designator of a TYPE-ERROR."
-    `(satisfies circular-list-p))
-  
-
-  (defun circular-list-error (list)
-    (error 'type-error
-           :datum list
-           :expected-type '(and list (not circular-list))))
-  
-  (macrolet ((def (name lambda-list doc step declare ret1 ret2)
-               (assert (member 'list lambda-list))
-               `(defun ,name ,lambda-list
-                  ,doc
-                  (do ((last list fast)
-                       (fast list (cddr fast))
-                       (slow (cons (car list) (cdr list)) (cdr slow))
-                       ,@(when step (list step)))
-                      (nil)
-                    (declare (dynamic-extent slow) ,@(when declare (list declare))
-                             (ignorable last))
-                    (when (safe-endp fast)
-                      (return ,ret1))
-                    (when (safe-endp (cdr fast))
-                      (return ,ret2))
-                    (when (eq fast slow)
-                      (circular-list-error list))))))
-    (def proper-list-length (list)
-      "Returns length of LIST, signalling an error if it is not a proper list."
-      (n 1 (+ n 2))
-      ;; KLUDGE: Most implementations don't actually support lists with bignum
-      ;; elements -- and this is WAY faster on most implementations then declaring
-      ;; N to be an UNSIGNED-BYTE.
-      (fixnum n)
-      (1- n)
-      n)
-
-    (def lastcar (list)
-      "Returns the last element of LIST. Signals a type-error if LIST is not a
-proper list."
-      nil
-      nil
-      (cadr last)
-      (car fast))
-
-    (def (setf lastcar) (object list)
-      "Sets the last element of LIST. Signals a type-error if LIST is not a proper
-list."
-      nil
-      nil
-      (setf (cadr last) object)
-      (setf (car fast) object)))
-  
-
-  (defun shuffle (sequence &key (start 0) end)
-    "Returns a random permutation of `sequence` bounded by `start` and `end`.
-Original sequece may be destructively modified, and share storage with
-the original one. Signals an error if `sequence` is not a proper
-sequence."
-    (declare (type fixnum start)
-             (type (or fixnum null) end))
-    (etypecase sequence
-      (list
-       (let* ((end (or end (proper-list-length sequence)))
-              (n (- end start)))
-         (do ((tail (nthcdr start sequence) (cdr tail)))
-             ((zerop n))
-           (rotatef (car tail) (car (nthcdr (random n) tail)))
-           (decf n))))
-      (vector
-       (let ((end (or end (length sequence))))
-         (loop for i from start below end
-               do (rotatef (aref sequence i)
-                           (aref sequence (+ i (random (- end i))))))))
-      (sequence
-       (let ((end (or end (length sequence))))
-         (loop for i from (- end 1) downto start
-               do (rotatef (elt sequence i)
-                           (elt sequence (+ i (random (- end i)))))))))
-    sequence)
-  
-
-  (defun random-elt (sequence &key (start 0) end)
-    "Returns a random element from `sequence` bounded by `start` and
-`end`. Signals an error if the `sequence` is not a proper non-empty
-sequence, or if `end` and `start` are not proper bounding index
-designators for `sequence`."
-    (declare (sequence sequence) (fixnum start) (type (or fixnum null) end))
-    (let* ((size (if (listp sequence)
-                     (proper-list-length sequence)
-                     (length sequence)))
-           (end2 (or end size)))
-      (cond ((zerop size)
-             (error 'type-error
-                    :datum sequence
-                    :expected-type `(and sequence (not (satisfies emptyp)))))
-            ((not (and (<= 0 start) (< start end2) (<= end2 size)))
-             (error 'simple-type-error
-                    :datum (cons start end)
-                    :expected-type `(cons (integer 0 (,end2))
-                                          (or null (integer (,start) ,size)))
-                    :format-control "~@<~S and ~S are not valid bounding index designators for ~
-                                   a sequence of length ~S.~:@>"
-                    :format-arguments (list start end size)))
-            (t
-             (let ((index (+ start (random (- end2 start)))))
-               (elt sequence index))))))
-  
-
   (defmacro xor (&rest datums)
     "Evaluates its arguments one at a time, from left to right. If more than one
 argument evaluates to a true value no further `datums` are evaluated, and `nil` is
@@ -1145,15 +1151,15 @@ value."
            (return-from ,xor (values ,true t))))))
   
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (export '(keep-if keep-if-not aand aif alist-keys alist-values assoc-value
-            rassoc-value awhen bnd* bnd1 copy-array copy-hash-table defaccessor
-            accesses digits divf doalist dohash dolists dorange dorangei doseq
-            doseqs dosublists enumerate flatten hash-table-alist
+  (export '(keep-if keep-if-not aand aif alist-keys alist-values appendf
+            assoc-value rassoc-value awhen bnd* bnd1 copy-array copy-hash-table
+            defaccessor accesses digits divf doalist dohash dolists dorange
+            dorangei doseq doseqs dosublists enumerate flatten hash-table-alist
             hash-table-key-exists-p hash-table-keys hash-table-values if-let
             if-not iota looping make-keyword mkstr mulf ncycle plist-keys
-            plist-values recursively removef repeat string-ends-with-p
-            string-starts-with-p subdivide subseq- symb void when-let when-let*
-            when-not while while-not with-gensyms with-unique-names shuffle
-            random-elt xor)))
+            plist-values random-elt recursively removef repeat shuffle
+            string-ends-with-p string-starts-with-p subdivide subseq- symb void
+            when-let when-let* when-not while while-not with-gensyms
+            with-unique-names xor)))
 
 ;;;; END OF quickutils.lisp ;;;;
