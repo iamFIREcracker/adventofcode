@@ -14,7 +14,7 @@
                       (make-instance 'cl-source-file :type "lisp"
                                      :pathname p
                                      :name (pathname-name p)
-                                     :parent (component-parent self)))))
+                                     :parent self))))
           (directory-files (component-pathname self)
                            (make-pathname :directory nil :name *wild* :type "lisp"))))
 
