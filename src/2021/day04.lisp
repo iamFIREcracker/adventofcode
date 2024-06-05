@@ -51,6 +51,6 @@
 
 (define-solution (2021 04) (game parse-bingo)
   (let ((scores (play game)))
-    (values (first scores) (car (last scores)))))
+    (values (first scores) (last-elt scores))))
 
 (define-test (2021 04) (82440 20774))

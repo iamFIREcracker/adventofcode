@@ -3,7 +3,7 @@
 
 
 (defun winning-numbers (s)
-  (bnd1 (numbers (second (split-sequence:split-sequence #\: s)))
+  (bnd1 numbers (second (split-sequence:split-sequence #\: s))
     (destructuring-bind (winning yours) (split-sequence:split-sequence #\| numbers)
       (intersection (extract-positive-integers winning)
                     (extract-positive-integers yours)))))
@@ -12,7 +12,7 @@
 
 
 (defun part2 (&optional (strings (uiop:read-file-lines #P"src/2023/day04.txt")))
-  (bnd1 (cards-count (make-array (length strings) :initial-element 1))
+  (bnd1 cards-count (make-array (length strings) :initial-element 1)
     (looping
       (doseq ((curr s) (enumerate strings))
         (bnd* ((current-card-count (aref cards-count curr)))

@@ -33,7 +33,7 @@
              (or (< (first pos) 0) (>= (first pos) rows)
                  (< (second pos) 0) (>= (second pos) cols))))
       (dolist (pos (sort (hash-table-keys rocks) sort-predicate))
-        (bnd1 (npos (mapcar #'+ pos dir))
+        (bnd1 npos (mapcar #'+ pos dir)
           (while (not (or (gethash npos walls)
                           (gethash npos rocks)
                           (outside? npos)))
@@ -74,7 +74,7 @@
                             (when (gethash (list i j) rocks)
                               (collect! (list i j))))))))
              :test 'equalp)
-    (bnd1 (rem-steps (rem (- n cycles-at) cycle-size))
+    (bnd1 rem-steps (rem (- n cycles-at) cycle-size)
       (repeat rem-steps
         (cycle input))
       input)))

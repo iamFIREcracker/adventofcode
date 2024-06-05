@@ -24,7 +24,7 @@
 (defun parse-numbers (s) (extract-positive-integers s))
 
 (defun parse-operation (s)
-  (bnd1 (old (symb "_"))
+  (bnd1 old (symb "_")
     (flet ((make-operand (s)
              (if (string= s "old") old (parse-integer s))))
       (cl-ppcre:register-groups-bind ((#'symb rator) (#'make-operand rand))
@@ -75,12 +75,12 @@
     monkeys))
 
 #+#:excluded (defun solve (&optional (monkeys (parse-monkeys #+#:excluded (uiop:read-file-lines #P"scratch.txt"))))
-               (bnd1 (counts (make-array (length monkeys) :initial-element 0))
+               (bnd1 counts (make-array (length monkeys) :initial-element 0)
                  (loop repeat 20 do
                        (loop for m across monkeys for i from 0 do
                              (loop until (queue-empty-p (items m)) for wl = (dequeue (items m)) do
                                    (incf (aref counts i))
-                                   (bnd1 nwl
+                                   (bnd1 nwl nil
                                      (setf nwl (funcall (operation m) wl))
                                      (setf nwl (floor nwl 3))
                                      (if (dividesp (div-by m) nwl)
@@ -100,7 +100,7 @@
           (loop for m across monkeys for i from 0 do
                 (loop until (queue-empty-p (items m)) for wl = (dequeue (items m)) do
                       (incf (aref counts i))
-                      (bnd1 nwl
+                      (bnd1 nwl nil
                         (setf nwl (rem (funcall (operation m) wl) lcm))
                         #+#:excluded (setf nwl (floor nwl 3))
                         (if (dividesp (div-by m) nwl)
@@ -123,7 +123,7 @@
 (defun parse-numbers (s) (extract-positive-integers s))
 
 (defun parse-operation (s)
-  (bnd1 (old (symb "_"))
+  (bnd1 old (symb "_")
     (flet ((make-operand (s)
              (if (string= s "old") old (parse-integer s))))
       (cl-ppcre:register-groups-bind ((#'symb rator) (#'make-operand rand))
@@ -155,7 +155,7 @@
           (loop for m across monkeys for i from 0 do
                 (loop until (queue-empty-p (items m)) for wl = (dequeue (items m)) do
                       (incf (aref counts i))
-                      (bnd1 nwl
+                      (bnd1 nwl nil
                         (setf nwl (rem (funcall (operation m) wl) lcm))
                         (unless part2?
                           (setf nwl (floor nwl 3)))

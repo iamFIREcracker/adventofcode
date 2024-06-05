@@ -83,14 +83,14 @@
 #+#:excluded (tick (car (blueprints)) (init-state))
 
 (defun simulate (limit blueprint)
-  (bnd1 (queue (list (init-state)))
+  (bnd1 queue (list (init-state))
     (loop repeat limit
           do (pr (length queue))
           do (setf queue (remove-duplicates
                            (loop for s in queue
                                  nconc (tick blueprint s))
                            :test 'equalp)))
-    (bnd1 (max (reduce #'max queue :key [fourth (resources _)]))
+    (bnd1 max (reduce #'max queue :key [fourth (resources _)])
       (loop for s in queue
             when (= (fourth (resources s)) max)
             do (pr s)))))
@@ -101,11 +101,11 @@
                      (best 0))
                  (labels ((recur (remaining state)
                             (incf fcalls)
-                            (bnd1 (existing (gethash state already-seen))
+                            (bnd1 existing (gethash state already-seen)
                               (when (or (not existing) (> remaining existing))
                                 (setf (gethash state already-seen) remaining)
                                 (if (zerop remaining)
-                                  (maxf best (car (last (resources state))))
+                                  (maxf best (last-elt (resources state)))
                                   (progn
                                     (recur (1- remaining)
                                            (make-state :resources (collect-resources (resources state) (robots state))

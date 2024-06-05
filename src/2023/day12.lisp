@@ -8,7 +8,7 @@
 
 (defun count-valid-arrangements (s)
   (destructuring-bind (springs groups) (parse-condition-record s)
-    (bnd1 (memo (make-hash-table :test 'equal))
+    (bnd1 memo (make-hash-table :test 'equal)
       (labels ((recur (springs current remaining)
                  ;; It's important to keep (car springs) as part of the key;
                  ;; when stomping on a ?, we are recursively call ourselves
@@ -16,7 +16,7 @@
                  ;; the list of springs, which means there could be multiple
                  ;; values for the same length
                  (memoizing (memo (car springs) (length springs) current (length remaining))
-                   (bnd1 (ch (car springs))
+                   (bnd1 ch (car springs)
                      (cond
                        ((and (null springs) (plusp current) (not remaining)) 0)
                        ((and (null springs) (plusp current))

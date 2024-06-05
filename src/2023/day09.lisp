@@ -23,11 +23,11 @@
 (defun extrapolate (history)
   (looping
     (dolist (nums (prediction-sequences history))
-      (sum! (car (last nums))))))
+      (sum! (last-elt nums)))))
 
 
 (defun extrapolate-backward (history)
-  (bnd1 (res 0)
+  (bnd1 res 0
     (dolist (nums (reverse (prediction-sequences history)) res)
       (setf res (- (first nums) res)))))
 

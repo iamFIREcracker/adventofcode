@@ -76,10 +76,10 @@
                ;; CEEEEEC
                (count-copies-on-straight-line (step)
                  (memoizing (memo :straight step)
-                   (bnd1 (tiles (ceiling (- max-steps step) size))
+                   (bnd1 tiles (ceiling (- max-steps step) size)
                      (looping
                        (dorangei (x 1 tiles)
-                         (bnd1 (nstep (+ step (* x size)))
+                         (bnd1 nstep (+ step (* x size))
                            (count! (and (<= nstep max-steps)
                                         (reachable? nstep max-steps)))))))))
                ;; CEEEEEC
@@ -98,10 +98,10 @@
                ;;       X
                (count-copies-on-quadrant (step)
                  (memoizing (memo :quadrant step)
-                   (bnd1 (tiles (ceiling (- max-steps step) size))
+                   (bnd1 tiles (ceiling (- max-steps step) size)
                      (looping
                        (dorangei (x 1 tiles)
-                         (bnd1 (nstep (+ step (* x size)))
+                         (bnd1 nstep (+ step (* x size))
                            (when (and (<= nstep max-steps)
                                       (reachable? nstep max-steps))
                              ;; CEEEEEC

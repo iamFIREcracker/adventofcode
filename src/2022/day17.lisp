@@ -148,7 +148,7 @@
   height)
 
 (defun print-tower (tower rock)
-  (bnd1 (max (loop for (row) in rock maximize row))
+  (bnd1 max (loop for (row) in rock maximize row)
     (dorange (row max -1 -1)
       (dorange (col -1 (1+ *width*))
         (princ
@@ -172,9 +172,9 @@
              (prog1 (car moves)
                (setf moves (cdr moves))))
            (next (height)
-             (bnd1 (rock (materialize (next-shape) height))
+             (bnd1 rock (materialize (next-shape) height)
                (loop
-                 (bnd1 (dir (next-move))
+                 (bnd1 dir (next-move)
                    (if (can-move-horizontally-p rock dir tower)
                      (setf rock (move-horizontally rock dir)))
                    (if (can-move-down-p rock tower)
@@ -211,7 +211,7 @@
                    ; (print-tower (tower state) rock)
                    (if (can-move-down-p rock (tower state))
                      (setf rock (move-down rock))
-                     (bnd1 (tower-next (place rock (tower state-next)))
+                     (bnd1 tower-next (place rock (tower state-next))
                        (setf (height state-next) (tower-height tower-next)
                              (tower state-next) tower-next)
                        ; (print-tower (tower state) rock)
@@ -241,7 +241,7 @@
                    ; (print-tower (tower state) rock)
                    (if (can-move-down-p rock (tower state))
                      (setf rock (move-down rock))
-                     (bnd1 (tower-next (place rock (tower state-next)))
+                     (bnd1 tower-next (place rock (tower state-next))
                        (setf (height state-next) (tower-height tower-next)
                              (tower state-next) tower-next)
                        ; (print-tower (tower state) rock)
@@ -251,9 +251,9 @@
         (floyd #'next-step (make-state :move -1 :shape -1 :height 0 :tower (make-hash-table :test 'equal))
                :key #'state-key :test 'equal)
       (pr loop-state)
-      (bnd1 (delta-height (loop with state = loop-state
-                                repeat cycle-size do (setf state (next-step state))
-                                finally (return (- (height state) (height loop-state)))))
+      (bnd1 delta-height (loop with state = loop-state
+                               repeat cycle-size do (setf state (next-step state))
+                               finally (return (- (height state) (height loop-state))))
         (pr delta-height)
         (let ((rem-cycles (floor (- 1000000000000 cycles-at) cycle-size))
               (rem-steps (rem (- 1000000000000 cycles-at) cycle-size)))

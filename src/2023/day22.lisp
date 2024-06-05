@@ -13,10 +13,10 @@
 (defparameter *debug-names* nil)
 
 (defun parse-input (&optional (strings (aoc::read-problem-input 2023 22)))
-  (bnd1 (bricks (mapcar #'brick strings))
+  (bnd1 bricks (mapcar #'brick strings)
     (if-not *debug-names*
       bricks
-      (bnd1 (name #\A)
+      (bnd1 name #\A
         (looping
           (doseq (b bricks)
             (collect! (append b (list (as-keyword name))) )
@@ -24,7 +24,7 @@
 
 
 (defun index-by-z (&optional (bricks (parse-input)))
-  (bnd1 (index (make-hash-table :test 'eql))
+  (bnd1 index (make-hash-table :test 'eql)
     (dolist (b bricks)
       (add-to-index index b))
     index))
@@ -49,7 +49,7 @@
 
 
 (defun blocked? (b index)
-  (bnd1 (b- (move-down b))
+  (bnd1 b- (move-down b)
     (dorangei (z (z1 b-) (z2 b-))
       (dolist (b1 (gethash z index))
         (unless (equal b b1)
@@ -112,7 +112,7 @@
 
 
 (define-solution (2023 22) (bricks parse-input)
-  (bnd1 (index (free-fall bricks))
+  (bnd1 index (free-fall bricks)
     (values (count-if [safe-to-disintegrate? _ index] bricks)
             (reduce #'+ bricks :key [disintegrate-and-count-fallen index _]))))
 

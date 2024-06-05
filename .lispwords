@@ -3,7 +3,7 @@
 (aif 1)
 (awhen 1)
 (bnd* 1)
-(bnd1 1)
+(bnd1 2)
 (case 1)
 (define-solution 2)
 (define-test 2)
@@ -58,3 +58,4 @@
 (with-open-file 1)
 (with-output-to-string 1)
 (with-slots 2)
+(with-simple-restart 1)

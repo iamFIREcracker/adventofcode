@@ -73,8 +73,8 @@
 (defun find-single-intersection (hh)
   (dorangei (vx -250 250)
     (dorangei (vy -250 250)
-      (bnd1 (points (all-intersections (mapcar [adjust-velocity vx vy _]
-                                               hh)))
+      (bnd1 points (all-intersections (mapcar [adjust-velocity vx vy _]
+                                              hh))
         (when (and (> (length points) 1)
                    (= (length (remove-duplicates points :test #'equal)) 1))
           (return-from find-single-intersection (first points)))))))
@@ -82,7 +82,7 @@
 (defun part2 (&optional (hh (parse-input)))
   (recursively ((hh (copy-seq hh)))
     (setf hh (shuffle hh))
-    (bnd1 (sample (subseq hh 0 3))
+    (bnd1 sample (subseq hh 0 3)
       (awhen (find-single-intersection (mapcar [ignore-axis 2 _] sample))
         (destructuring-bind (px1 py) it
           (awhen (find-single-intersection (mapcar [ignore-axis 1 _] sample))

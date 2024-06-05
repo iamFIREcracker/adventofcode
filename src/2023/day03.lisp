@@ -4,12 +4,12 @@
 
 (defun parse-line-numbers (s &key (start 0))
   (aif (position-if #'digit-char-p s :start start)
-    (bnd1 ((values number end) (parse-integer s :start it :junk-allowed t))
+    (bnd1 (values number end) (parse-integer s :start it :junk-allowed t)
       (cons (list number it (1- end))
             (parse-line-numbers s :start end)))))
 
 (defun parse-all-numbers (&optional (strings (uiop:read-file-lines #P"src/2023/day03.txt")))
-  (bnd1 (map (make-hash-table :test 'equal))
+  (bnd1 map (make-hash-table :test 'equal)
     (doseq ((i s) (enumerate strings))
       (doseq ((n start end) (parse-line-numbers s))
         (dorangei (j start end)
@@ -31,7 +31,7 @@
     :test #'equal))
 
 (defun part-numbers (&optional (strings (uiop:read-file-lines #P"src/2023/day03.txt")))
-  (bnd1 (numbers-map (parse-all-numbers strings))
+  (bnd1 numbers-map (parse-all-numbers strings)
     (remove-duplicates
       (looping
         (doseq ((i s) (enumerate strings))
@@ -49,7 +49,7 @@
       (doseq ((i s) (enumerate strings))
         (doseq ((j ch) (enumerate s))
           (when (gear-char-p ch)
-            (bnd1 (numbers (surrounding-numbers numbers-map i j))
+            (bnd1 numbers (surrounding-numbers numbers-map i j)
               (when (= (length numbers) 2)
                 (collect! numbers)))))))))
 

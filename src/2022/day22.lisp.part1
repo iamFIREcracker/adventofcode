@@ -56,7 +56,7 @@
       (loop for n in steps for d in (append turns (list nil)) do
             #+#:excluded (pr pos facing)
             (repeat n
-              (bnd1 (pos-next (forward grid pos facing))
+              (bnd1 pos-next (forward grid pos facing)
                 (unless (wallp grid pos-next)
                   (setf pos pos-next))))
             #+#:excluded (pr pos)
@@ -110,7 +110,7 @@
                    :test 'equal)))))
 
 (defun forward-p1 (grid pos facing)
-  (bnd1 (pos-next (mapcar [+ _1 _2] pos facing))
+  (bnd1 pos-next (mapcar [+ _1 _2] pos facing)
     (if (out-of-grid-p grid pos-next)
       (wrap grid pos-next facing)
       (list pos-next facing))))
@@ -132,13 +132,13 @@
 #+#:excluded (region (list 50 100))
 
 (defun forward (grid pos facing)
-  (bnd1 (pos-next (mapcar [+ _1 _2] pos facing))
+  (bnd1 pos-next (mapcar [+ _1 _2] pos facing)
     (if (out-of-grid-p grid pos-next)
       (wrap grid pos facing) ; XXX we are passing the current pos, not next
       pos-next)))
 
 (defun wrap (grid pos facing)
-  (bnd1 (region (pr (region pos)))
+  (bnd1 region (pr (region pos))
     (cond ((equal (list 0   1) facing)
            (ecase region
              (3 (list

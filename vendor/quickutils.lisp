@@ -2,7 +2,7 @@
 ;;;; See http://quickutil.org for details.
 
 ;;;; To regenerate:
-;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:KEEP-IF :KEEP-IF-NOT :AAND :AIF :ALIST-KEYS :ALIST-VALUES :APPENDF :ASSOC-VALUE :AWHEN :BND* :BND1 :COPY-ARRAY :COPY-HASH-TABLE :DEFACCESSOR :DIGITS :DIVF :DOALIST :DOHASH :DOLISTS :DORANGE :DORANGEI :DOSEQ :DOSEQS :DOSUBLISTS :ENUMERATE :FLATTEN :HASH-TABLE-ALIST :HASH-TABLE-KEY-EXISTS-P :HASH-TABLE-KEYS :HASH-TABLE-VALUES :IF-LET :IF-NOT :IOTA :LOOPING :MAKE-KEYWORD :MKSTR :MULF :NCYCLE :PLIST-KEYS :PLIST-VALUES :RANDOM-ELT :RECURSIVELY :REMOVEF :REPEAT :SHUFFLE :STRING-ENDS-WITH-P :STRING-STARTS-WITH-P :SUBDIVIDE :SUBSEQ- :SYMB :VOID :WHEN-LET :WHEN-NOT :WHILE :WHILE-NOT :WITH-GENSYMS :XOR) :ensure-package T :package "AOC.QUICKUTILS")
+;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:KEEP-IF :KEEP-IF-NOT :AAND :AIF :ALIST-KEYS :ALIST-VALUES :APPENDF :ASSOC-VALUE :AWHEN :BND* :BND1 :COPY-ARRAY :COPY-HASH-TABLE :DEFACCESSOR :DIGITS :DIVF :DOALIST :DOHASH :DOLISTS :DORANGE :DORANGEI :DOSEQ :DOSEQS :DOSUBLISTS :ENUMERATE :FLATTEN :HASH-TABLE-ALIST :HASH-TABLE-KEY-EXISTS-P :HASH-TABLE-KEYS :HASH-TABLE-VALUES :IF-LET :IF-NOT :IOTA :LAST-ELT :LOOPING :MAKE-KEYWORD :MKSTR :MULF :NCYCLE :PLIST-KEYS :PLIST-VALUES :RANDOM-ELT :RECURSIVELY :REMOVEF :REPEAT :SHUFFLE :STRING-ENDS-WITH-P :STRING-STARTS-WITH-P :SUBDIVIDE :SUBSEQ- :SYMB :VOID :WHEN-LET :WHEN-NOT :WHILE :WHILE-NOT :WITH-GENSYMS :XOR) :ensure-package T :package "AOC.QUICKUTILS")
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (unless (find-package "AOC.QUICKUTILS")
@@ -27,16 +27,19 @@
                                          :HASH-TABLE-KEY-EXISTS-P :MAPHASH-KEYS
                                          :HASH-TABLE-KEYS :MAPHASH-VALUES
                                          :HASH-TABLE-VALUES :IF-LET :IF-NOT
-                                         :IOTA :MKSTR :SYMB :LOOPING
-                                         :MAKE-KEYWORD :MULF :NCYCLE
-                                         :PLIST-KEYS :PLIST-VALUES :SAFE-ENDP
+                                         :IOTA :NON-ZERO-P :EMPTYP :SAFE-ENDP
                                          :CIRCULAR-LIST
                                          :PROPER-LIST-LENGTH/LAST-CAR
-                                         :RANDOM-ELT :RECURSIVELY :REMOVEF
-                                         :REPEAT :SHUFFLE :STRING-ENDS-WITH-P
+                                         :PROPER-LIST-P :PROPER-LIST
+                                         :PROPER-SEQUENCE :LAST-ELT :LOOPING
+                                         :MAKE-KEYWORD :MKSTR :MULF :NCYCLE
+                                         :PLIST-KEYS :PLIST-VALUES :RANDOM-ELT
+                                         :RECURSIVELY :REMOVEF :REPEAT :SHUFFLE
+                                         :STRING-ENDS-WITH-P
                                          :STRING-STARTS-WITH-P :SUBDIVIDE
-                                         :SUBSEQ- :VOID :WHEN-LET :WHEN-NOT
-                                         :WHILE :UNTIL :WHILE-NOT :XOR))))
+                                         :SUBSEQ- :SYMB :VOID :WHEN-LET
+                                         :WHEN-NOT :WHILE :UNTIL :WHILE-NOT
+                                         :XOR))))
 
   (defmacro abbr (short long)
     "Defines a new function/macro named `short` and sharing
@@ -152,11 +155,11 @@ unique symbol the named variable will be bound to."
       ((define-alist-get (name get-entry get-value-from-entry add doc)
          `(progn
             (declaim (inline ,name))
-            (defun ,name (alist key &key (test 'eql))
+            (defun ,name (alist key &key (test 'equal))
               ,doc
               (let ((entry (,get-entry key alist :test test)))
                 (values (,get-value-from-entry entry) entry)))
-            (define-setf-expander ,name (place key &key (test ''eql)
+            (define-setf-expander ,name (place key &key (test ''equal)
                                                    &environment env)
               (multiple-value-bind
                     (temporary-variables initforms newvals setter getter)
@@ -275,9 +278,9 @@ BND* will expand to a DESTRUCTURING-BIND call:
       (expand bindings)))
   
 
-  (defmacro bnd1 (binding &body body)
-    "Equivalent to BND* with one binding."
-    `(bnd* (,binding)
+  (defmacro bnd1 (var val &body body)
+    "BND1 is to BND* like LET1 is to LET*."
+    `(bnd* ((,var ,val))
        ,@body))
   
 
@@ -677,163 +680,18 @@ Examples:
           collect i))
   
 
-  (defun mkstr (&rest args)
-    "Receives any number of objects (string, symbol, keyword, char, number), extracts all printed representations, and concatenates them all into one string.
-
-Extracted from _On Lisp_, chapter 4."
-    (with-output-to-string (s)
-      (dolist (a args) (princ a s))))
+  (defun non-zero-p (n)
+    "Check if `n` is non-zero."
+    (not (zerop n)))
   
 
-  (defun symb (&rest args)
-    "Receives any number of objects, concatenates all into one string with `#'mkstr` and converts them to symbol.
-
-Extracted from _On Lisp_, chapter 4.
-
-See also: `symbolicate`"
-    (values (intern (apply #'mkstr args))))
-  
-
-  (defmacro looping (&body body)
-    "Run `body` in an environment where the symbols COLLECT!, APPEND!, ADJOIN!,
-SUM!, MULTIPLY!, COUNT!, MINIMIZE!, and MAXIMIZE! are bound to functions that
-can be used to collect / append, sum, multiply, count, minimize or maximize
-things respectively.
-
-Mixed usage of COLLECT!/APPEND!/ADJOIN!, SUM!, MULTIPLY!, COUNT!, MINIMIZE! and
-MAXIMIZE! is not supported.
-
-Examples:
-
-  (looping
-    (dotimes (i 5)
-      (if (oddp i)
-        (collect! i))))
-  =>
-  (1 3)
-
-  (looping
-    (dotimes (i 5)
-      (if (oddp i)
-        (sum! i))))
-  =>
-  4
-
-  (looping
-    (dotimes (i 5)
-      (count! (oddp i))))
-  =>
-  2
-
-  (looping
-    (dotimes (i 5)
-      (sum! i)
-      (count! (oddp i))))
-  ;; Signals an ERROR: Cannot use COUNT! together with SUM!
-  "
-    (with-gensyms (loop-type result last collect-last)
-      (labels ((extract-loop-type (body)
-                 (cond ((null body) nil)
-                       ((symbolp body) (find body
-                                             '(collect! append! adjoin! sum! multiply! count! minimize! maximize!)
-                                             :test #'string=))
-                       ((consp body) (unless (and (symbolp (car body))
-                                                  (string= (car body) 'looping))
-                                       (or (extract-loop-type (car body))
-                                           (extract-loop-type (cdr body)))))))
-               (init-result (loop-type)
-                 (ecase loop-type
-                   ((collect! append! adjoin! minimize! maximize!) nil)
-                   ((sum! count!) 0)
-                   ((multiply!) 1))))
-        (let* ((loop-type-value (extract-loop-type body))
-               (result-value (init-result loop-type-value)))
-          `(let* ((,loop-type ',loop-type-value)
-                  (,result ,result-value)
-                  (,last nil))
-             ;; TODO: rather than defining all these functions only to get
-             ;; a few of them (one?!) used, why not just define the function
-             ;; that the body is going to use?  will that speed up the
-             ;; compilation process a little bit?
-             (declare (ignorable ,last))
-             (labels ((,collect-last (item)
-                       (if (not ,last)
-                         (prog1 (push item ,result)
-                           (setf ,last ,result))
-                         (prog1 (push item (cdr ,last))
-                           (setf ,last (cdr ,last)))))
-                      (,(symb "COLLECT!") (item)
-                       (if (and ,loop-type (and (not (eql ,loop-type 'collect!))
-                                                (not (eql ,loop-type 'append!))
-                                                (not (eql ,loop-type 'adjoin!)) ))
-                         (error "Cannot use COLLECT! together with ~A" ,loop-type)
-                         (,collect-last item)))
-                      (,(symb "APPEND!") (item)
-                       (if (and ,loop-type (and (not (eql ,loop-type 'collect!))
-                                                (not (eql ,loop-type 'append!))
-                                                (not (eql ,loop-type 'adjoin!)) ))
-                         (error "Cannot use APPEND! together with ~A" ,loop-type)
-                         (progn
-                           (setf ,result (append ,result item)
-                                 ,last (last item))
-                           item)))
-                      (,(symb "ADJOIN!") (item &rest adjoin-args)
-                       (if (and ,loop-type (and (not (eql ,loop-type 'collect!))
-                                                (not (eql ,loop-type 'append!))
-                                                (not (eql ,loop-type 'adjoin!))))
-                         (error "Cannot use ADJOIN! together with ~A" ,loop-type)
-                         (setf ,result (apply #'adjoin item ,result adjoin-args))))
-                      (,(symb "SUM!") (item)
-                       (if (and ,loop-type (not (eql ,loop-type 'sum!)))
-                         (error "Cannot use SUM! together with ~A" ,loop-type)
-                         (progn
-                           (incf ,result item)
-                           item)))
-                      (,(symb "MULTIPLY!") (item)
-                       (if (and ,loop-type (not (eql ,loop-type 'multiply!)))
-                         (error "Cannot use MULTIPLY! together with ~A" ,loop-type)
-                         (setf ,result (* ,result item))))
-                      (,(symb "COUNT!") (item)
-                       (if (and ,loop-type (not (eql ,loop-type 'count!)))
-                         (error "Cannot use COUNT! together with ~A" ,loop-type)
-                         (progn
-                           (when item
-                             (incf ,result)
-                             item))))
-                      (,(symb "MINIMIZE!") (item)
-                       (if (and ,loop-type (not (eql ,loop-type 'minimize!)))
-                         (error "Cannot use MINIMIZE1 together with ~A" ,loop-type)
-                         (setf ,result (min (or ,result item) item))))
-                      (,(symb "MAXIMIZE!") (item)
-                       (if (and ,loop-type (not (eql ,loop-type 'maximize!)))
-                         (error "Cannot use MAXIMIZE! together with ~A" ,loop-type)
-                         (setf ,result (max (or ,result item) item)))))
-               ,@body)
-             ,result)))))
-  
-
-  (defun make-keyword (name)
-    "Interns the string designated by `name` in the `keyword` package."
-    (intern (string name) :keyword))
-  
-
-  (define-modify-macro mulf (&optional (ratio 2)) *
-    "A modifying version of multiplication, similar to `incf`.")
-  
-
-  (defun ncycle (list)
-    "Mutate `list` into a circlular list."
-    (nconc list list))
-  
-
-  (defun plist-keys (plist)
-    "Return all the keys of `plist`."
-    (loop for k in plist by #'cddr collect k))
-  
-
-  (defun plist-values (plist)
-    "Return all the values of `plist`."
-    (loop for v in (cdr plist) by #'cddr collect v))
+  (defgeneric emptyp (object)
+    (:documentation "Determine if `object` is empty.")
+    (:method ((x null)) t)
+    (:method ((x cons)) nil)
+    (:method ((x vector)) (zerop (length x))) ; STRING :< VECTOR
+    (:method ((x array)) (notany #'non-zero-p (array-dimensions x)))
+    (:method ((x hash-table)) (zerop (hash-table-count x))))
   
 
   (declaim (inline safe-endp))
@@ -919,6 +777,223 @@ list."
       (setf (car fast) object)))
   
 
+  (defun proper-list-p (object)
+    "Returns true if `object` is a proper list."
+    (cond ((not object)
+           t)
+          ((consp object)
+           (do ((fast object (cddr fast))
+                (slow (cons (car object) (cdr object)) (cdr slow)))
+               (nil)
+             (unless (and (listp fast) (consp (cdr fast)))
+               (return (and (listp fast) (not (cdr fast)))))
+             (when (eq fast slow)
+               (return nil))))
+          (t
+           nil)))
+  
+
+  (deftype proper-list ()
+    "Type designator for proper lists. Implemented as a `satisfies` type, hence
+not recommended for performance intensive use. Main usefulness as a type
+designator of the expected type in a `type-error`."
+    `(and list (satisfies proper-list-p)))
+  
+
+  (deftype proper-sequence ()
+    "Type designator for proper sequences, that is proper lists and sequences
+that are not lists."
+    `(or proper-list
+         (and (not list) sequence)))
+  
+
+  (defun last-elt (sequence)
+    "Returns the last element of SEQUENCE. Signals a type-error if SEQUENCE is
+not a proper sequence, or is an empty sequence."
+    ;; Can't just directly use ELT, as it is not guaranteed to signal the
+    ;; type-error.
+    (let ((len 0))
+      (cond ((consp sequence)
+             (lastcar sequence))
+            ((and (typep sequence '(and sequence (not list))) (plusp (setf len (length sequence))))
+             (elt sequence (1- len)))
+            (t
+             (error 'type-error
+                    :datum sequence
+                    :expected-type '(and proper-sequence (not (satisfies emptyp))))))))
+
+  (defun (setf last-elt) (object sequence)
+    "Sets the last element of SEQUENCE. Signals a type-error if SEQUENCE is not a proper
+sequence, is an empty sequence, or if OBJECT cannot be stored in SEQUENCE."
+    (let ((len 0))
+      (cond ((consp sequence)
+             (setf (lastcar sequence) object))
+            ((and (typep sequence '(and sequence (not list))) (plusp (setf len (length sequence))))
+             (setf (elt sequence (1- len)) object))
+            (t
+             (error 'type-error
+                    :datum sequence
+                    :expected-type '(and proper-sequence (not (satisfies emptyp))))))))
+  
+
+  (defparameter *looping-reduce-keywords*  '(collect! append! adjoin! sum! multiply! count! minimize! maximize!))
+
+  (defun %extract-reduce-keywords (body)
+    "Walk `body` and collect any symbol that matches any of the keywords inside
+*LOOPING-REDUCE-KEYWORDS*"
+    (cond ((null body) nil)
+          ((symbolp body) (aif (find body *looping-reduce-keywords* :test #'string=)
+                            (list it)))
+          ((consp body) (unless (and (symbolp (car body))
+                                     (string= (car body) 'looping))
+                          (append (%extract-reduce-keywords (car body))
+                                  (%extract-reduce-keywords (cdr body)))))))
+
+  (defun %assert-compatible-reduce-keywords (keywords)
+    "Assert LOOPING reduce functions `keywords` are compatible with one another
+E.g. COLLECT! is compatible with APPEND!, or ADJOIN!, but not with SUM!"
+    (flet ((incompatible-keyword! (k rest)
+             (ecase k
+               ((collect! append! adjoin!) (aif (find-if (lambda (k1) (and (not (eql k1 'collect!))
+                                                                           (not (eql k1 'append!))
+                                                                           (not (eql k1 'adjoin!))))
+                                                         rest)
+                                             (error "Cannot use ~A together with ~A" it k)))
+               (sum! (aif (find 'sum! rest :test-not 'eq)
+                       (error "Cannot use ~A together with ~A" it k)))
+               (multiply! (aif (find 'multiply! rest :test-not 'eq)
+                            (error "Cannot use ~A together with ~A" it k)))
+               (count! (aif (find 'count! rest :test-not 'eq)
+                         (error "Cannot use ~A together with ~A" it k)))
+               (minimize! (aif (find 'minimize! rest :test-not 'eq)
+                            (error "Cannot use ~A together with ~A" it k)))
+               (maximize! (aif (find 'minimize! rest :test-not 'eq)
+                            (error "Cannot use ~A together with ~A" it k))))))
+      (loop for (k . rest) on keywords do (incompatible-keyword! k rest))))
+
+  (defun %initialize-result (keywords)
+    "Initialize the LOOPING return value
+ E.g. when COLLECT!-ing, the initial value will be NIL; when SUM!-ing, the
+ initial value will be 0"
+    (ecase (car keywords)
+      ((collect! append! adjoin! minimize! maximize!) nil)
+      ((sum! count!) 0)
+      ((multiply!) 1)))
+
+  (defgeneric %expand-keyword-into-label (k result last)
+    (:method ((k (eql 'collect!)) result last)
+      `(,(intern "COLLECT!") (item)
+         (if (not ,last)
+           (prog1 (push item ,result)
+             (setf ,last ,result))
+           (prog1 (push item (cdr ,last))
+             (setf ,last (cdr ,last))))))
+    (:method ((k (eql 'append!)) result last)
+      `(,(intern "APPEND!") (item)
+         (setf ,result (append ,result item)
+               ,last (last item))
+         item))
+    (:method ((k (eql 'adjoin!)) result last)
+      `(,(intern "ADJOIN!") (item &rest adjoin-args)
+         (setf ,result (apply #'adjoin item ,result adjoin-args))))
+    (:method ((k (eql 'sum!)) result last)
+      `(,(intern "SUM!") (item)
+         (incf ,result item)))
+    (:method ((k (eql 'multiply!)) result last)
+      `(,(intern "MULTIPLY!") (item)
+         (setf ,result (* ,result item))))
+    (:method ((k (eql 'count!)) result last)
+      `(,(intern "COUNT!") (item)
+         (when item
+           (incf ,result))))
+    (:method ((k (eql 'minimize!)) result last)
+      `(,(intern "MINIMIZE!") (item)
+         (setf ,result (min (or ,result item) item))))
+    (:method ((k (eql 'maximize!)) result last)
+      `(,(intern "MAXIMIZE!") (item)
+         (setf ,result (max (or ,result item) item)))))
+
+  (defmacro looping (&body body)
+    "Run `body` in an environment where the symbols COLLECT!, APPEND!, ADJOIN!,
+SUM!, MULTIPLY!, COUNT!, MINIMIZE!, and MAXIMIZE! are bound to functions that
+can be used to collect / append, sum, multiply, count, minimize or maximize
+things respectively.
+
+Mixed usage of COLLECT!/APPEND!/ADJOIN!, SUM!, MULTIPLY!, COUNT!, MINIMIZE! and
+MAXIMIZE! is not supported.
+
+Examples:
+
+  (looping
+    (dotimes (i 5)
+      (if (oddp i)
+        (collect! i))))
+  =>
+  (1 3)
+
+  (looping
+    (dotimes (i 5)
+      (if (oddp i)
+        (sum! i))))
+  =>
+  4
+
+  (looping
+    (dotimes (i 5)
+      (count! (oddp i))))
+  =>
+  2
+
+  (looping
+    (dotimes (i 5)
+      (sum! i)
+      (count! (oddp i))))
+  ;; Signals an ERROR: Cannot use COUNT! together with SUM!
+  "
+    (let1 keywords (remove-duplicates (%extract-reduce-keywords body))
+      (%assert-compatible-reduce-keywords keywords)
+      (with-gensyms (result last expand-fn)
+        (let1 labels (mapcar (lambda (k) (%expand-keyword-into-label k result last)) keywords)
+          `(let* ((,result ,(%initialize-result keywords))
+                  (,last nil))
+             (declare (ignorable ,last))
+             (labels (,@labels)
+               ,@body)
+             ,result)))))
+  
+
+  (defun make-keyword (name)
+    "Interns the string designated by `name` in the `keyword` package."
+    (intern (string name) :keyword))
+  
+
+  (defun mkstr (&rest args)
+    "Receives any number of objects (string, symbol, keyword, char, number), extracts all printed representations, and concatenates them all into one string.
+
+Extracted from _On Lisp_, chapter 4."
+    (with-output-to-string (s)
+      (dolist (a args) (princ a s))))
+  
+
+  (define-modify-macro mulf (&optional (ratio 2)) *
+    "A modifying version of multiplication, similar to `incf`.")
+  
+
+  (defun ncycle (list)
+    "Mutate `list` into a circlular list."
+    (nconc list list))
+  
+
+  (defun plist-keys (plist)
+    "Return all the keys of `plist`."
+    (loop for k in plist by #'cddr collect k))
+  
+
+  (defun plist-values (plist)
+    "Return all the values of `plist`."
+    (loop for v in (cdr plist) by #'cddr collect v))
+  
+
   (defun random-elt (sequence &key (start 0) end)
     "Returns a random element from `sequence` bounded by `start` and
 `end`. Signals an error if the `sequence` is not a proper non-empty
@@ -947,11 +1022,16 @@ designators for `sequence`."
   
 
   (defmacro recursively (bindings &body body)
+    "Execute `body` recursively, like Clojure's `loop`/`recur`.
+
+`bindings` should contain a list of symbols and (optional) starting values.
+
+In `body` the symbol `recur` will be bound to the function for recurring."
     (let ((names (mapcar #'(lambda (b) (if (atom b) b (first b))) bindings))
           (values (mapcar #'(lambda (b) (if (atom b) nil (second b))) bindings)))
-      `(labels ((,(symb "RECUR") (,@names)
+      `(labels ((,(intern "RECUR") (,@names)
                  ,@body))
-         (,(symb "RECUR") ,@values))))
+         (,(intern "RECUR") ,@values))))
   
 
   (declaim (inline remove/swapped-arguments))
@@ -1042,6 +1122,15 @@ sequence."
       (if (< end 0)
         (setf end (+ (length seq) end))))
     (subseq seq start end))
+  
+
+  (defun symb (&rest args)
+    "Receives any number of objects, concatenates all into one string with `#'mkstr` and converts them to symbol.
+
+Extracted from _On Lisp_, chapter 4.
+
+See also: `symbolicate`"
+    (values (intern (apply #'mkstr args))))
   
 
   (defun void (&rest args)
@@ -1156,10 +1245,10 @@ value."
             defaccessor accesses digits divf doalist dohash dolists dorange
             dorangei doseq doseqs dosublists enumerate flatten hash-table-alist
             hash-table-key-exists-p hash-table-keys hash-table-values if-let
-            if-not iota looping make-keyword mkstr mulf ncycle plist-keys
-            plist-values random-elt recursively removef repeat shuffle
-            string-ends-with-p string-starts-with-p subdivide subseq- symb void
-            when-let when-let* when-not while while-not with-gensyms
+            if-not iota last-elt looping make-keyword mkstr mulf ncycle
+            plist-keys plist-values random-elt recursively removef repeat
+            shuffle string-ends-with-p string-starts-with-p subdivide subseq-
+            symb void when-let when-let* when-not while while-not with-gensyms
             with-unique-names xor)))
 
 ;;;; END OF quickutils.lisp ;;;;

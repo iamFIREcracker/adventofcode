@@ -18,7 +18,7 @@
   id ore clay obsidian geode)
 
 (defun parse-blueprint (string)
-  (bnd1 (nums (extract-positive-integers string))
+  (bnd1 nums (extract-positive-integers string)
     (make-blueprint :id (elt nums 0)
                     :ore (subseq nums 1 2)
                     :clay (subseq nums 2 3)

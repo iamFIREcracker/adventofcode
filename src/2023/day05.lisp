@@ -3,11 +3,11 @@
 
 
 (defun parse-map (strings)
-  (bnd1 (ranges (looping
-                  (dolist (range (rest strings))
-                    (destructuring-bind (dest source size)
-                        (extract-positive-integers range)
-                      (collect! (list source dest size))))))
+  (bnd1 ranges (looping
+                 (dolist (range (rest strings))
+                   (destructuring-bind (dest source size)
+                       (extract-positive-integers range)
+                     (collect! (list source dest size)))))
     (setf ranges (sort ranges #'< :key #'first))
     (cons
       (list 0 0 (first (first ranges)))
@@ -45,7 +45,7 @@
 (defun part2 (&optional (input (parse-input))
                         &aux (ranges (subdivide (car input) 2)) (maps (cdr input)))
   (dolist (map maps)
-    (bnd1 (ranges-next)
+    (bnd1 ranges-next nil
       (doseq ((start length) ranges)
         (while (> length 0)
           (bnd* (((source dest size) (or (find-range start map)

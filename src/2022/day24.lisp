@@ -64,7 +64,7 @@
 #+#:excluded (move (valley) (blizzards-at (valley) 5) (start-pos))
 
 (defun next (valley time pos)
-  (bnd1 (blizzards (blizzards-at valley time))
+  (bnd1 blizzards (blizzards-at valley time)
     (nconc
       (aand (stay-put blizzards pos) (list it))
       (move valley blizzards pos))))
@@ -80,7 +80,7 @@
 #+#:excluded (init-state)
 
 (defun elapsed-next (valley elapsed)
-  (bnd1 (period (lcm (rows valley) (cols valley)))
+  (bnd1 period (lcm (rows valley) (cols valley))
     (mod (1+ elapsed) period)))
 
 (defun traverse (valley start-pos target-pos elapsed)
@@ -89,8 +89,8 @@
                        :goalp [equal (pos _) target-pos]
                        :neighbors (search-unit-cost
                                     (lambda (s)
-                                      ; (bnd1 (elapsed-next (elapsed-next valley (elapsed s)))
-                                      (bnd1 (elapsed-next (1+ (elapsed s)))
+                                      ; (bnd1 elapsed-next (elapsed-next valley (elapsed s))
+                                      (bnd1 elapsed-next (1+ (elapsed s))
                                         (loop for n in (next valley (elapsed s) (pos s))
                                               collect (make-state :pos n
                                                                   :elapsed elapsed-next)))))

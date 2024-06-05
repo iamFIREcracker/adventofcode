@@ -21,7 +21,7 @@
     (+ (lookup person1 person2) (lookup person2 person1))))
 
 (defun circular-table-happyness (notes table)
-  (loop for prev = (car (last table)) then curr
+  (loop for prev = (last-elt table) then curr
         for curr in table
         sum (delta-happiness notes prev curr)))
 

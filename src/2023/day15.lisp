@@ -2,7 +2,7 @@
 (in-package :aoc/2023/15)
 
 (defun hash (s)
-  (bnd1 (value 0)
+  (bnd1 value 0
     (doseq (ch s)
       (setf value (rem (* (+ (char-code ch) value) 17) 256)))
     value))
@@ -12,11 +12,11 @@
 
 
 (defun part2 (&optional (s (first (aoc::read-problem-input 2023 15))))
-  (bnd1 (boxes (make-array 256 :initial-element nil))
+  (bnd1 boxes (make-array 256 :initial-element nil)
     (dolist (part (split-sequence:split-sequence #\, s))
       (cl-ppcre:register-groups-bind (label op num)
           ("(\\w+)(-|=)(\\d*)" part)
-        (bnd1 (i (hash label))
+        (bnd1 i (hash label)
           (if (string= op "-")
             (setf (aref boxes i) (delete-if [string= (car _) label] (aref boxes i)))
             (aif (assoc label (aref boxes i) :test #'string=)

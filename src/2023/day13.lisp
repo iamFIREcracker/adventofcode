@@ -19,7 +19,7 @@
                  (collect! (aref (nth i pattern) j))))))
       ;; Vertical reflections
       (dorange (j 0 (1- cols))
-        (bnd1 (diff 0)
+        (bnd1 diff 0
           (dorange (i 0 rows)
             (dolists ((ch1 (reverse (row i 0 j)))
                       (ch2 (row i (1+ j) (1- cols))))
@@ -33,7 +33,7 @@
             (return-from find-reflection (list :v j)))))
       ;; Horizontal reflections
       (dorange (i 0 (1- rows))
-        (bnd1 (diff 0)
+        (bnd1 diff 0
           (dorange (j 0 cols)
             (dolists ((ch1 (reverse (col j 0 i)))
                       (ch2 (col j (1+ i) (1- rows))))

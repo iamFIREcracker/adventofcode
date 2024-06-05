@@ -3,7 +3,7 @@
 
 
 (defun parse-connections (&optional (strings (aoc::read-problem-input 2023 25)))
-  (bnd1 (adj (make-hash-table))
+  (bnd1 adj (make-hash-table)
     (dolist (s strings)
       (destructuring-bind (a . rest) (mapcar #'as-keyword (cl-ppcre:all-matches-as-strings "\\w+" s))
         (dolist (b rest)

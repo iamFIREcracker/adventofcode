@@ -47,12 +47,12 @@
 ;; Read: https://www.reddit.com/r/adventofcode/comments/18l0qtr/2023_day_18_solutions/kdvrqv8/
 (defun pit-area (&optional (plan (dig-plan)))
   ""
-  (bnd1 (points (list `(0 0)))
+  (bnd1 points (list `(0 0))
     (doseq ((dir length) plan)
       (bnd* ((npos (move-straight (first points) dir length)))
         (push npos points)))
     ;; Close the polygon
-    (setf points (cons (car (last points)) points))
+    (setf points (cons (last-elt points) points))
     (+ (area points) (/ (perimeter points) 2) 1)))
 
 (defun area (polygon)
@@ -78,7 +78,7 @@
 (defun revised-dig-plan (&optional (strings (uiop:read-file-lines #P"src/2023/day18.txt")))
   (looping
     (dolist (s strings)
-      (bnd1 (color (third (split-sequence:split-sequence #\Space s)))
+      (bnd1 color (third (split-sequence:split-sequence #\Space s))
         (setf color (subseq color 2 (1- (length color))))
         (collect!
           (list

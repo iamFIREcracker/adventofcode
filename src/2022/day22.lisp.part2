@@ -92,14 +92,14 @@
 #+#:excluded (region (list 50 100))
 
 (defun forward (grid pos facing)
-  (bnd1 (pos-next (mapcar [+ _1 _2] pos facing))
+  (bnd1 pos-next (mapcar [+ _1 _2] pos facing)
     (pr pos pos-next (gethash pos-next (cells grid)))
     (if (out-of-grid-p grid pos-next)
       (wrap grid pos facing) ; XXX we are passing the current pos, not next
       (list pos-next facing))))
 
 (defun wrap (grid pos facing)
-  (bnd1 (region (region pos))
+  (bnd1 region (region pos)
     (cond ((equal (list 0   1) facing)
            (ecase region
              (3 (list

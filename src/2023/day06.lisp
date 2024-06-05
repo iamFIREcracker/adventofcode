@@ -22,7 +22,7 @@
 
 (define-solution (2023 06) (strings)
   (values (reduce #'* (parse-records strings) :key #'count-wins)
-          (bnd1 (strings (massage-input strings))
+          (bnd1 strings (massage-input strings)
             (reduce #'* (parse-records strings) :key #'count-wins))))
 
 (define-test (2023 06) (220320 34454850))

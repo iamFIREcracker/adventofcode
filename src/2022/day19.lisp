@@ -172,7 +172,7 @@
 #+#:excluded (reduce #'* (blueprints) :key [maximize 32 _] :end 3)
 
 (defun maximize-bfs (limit blueprint)
-  (bnd1 (queue (list (init-state)))
+  (bnd1 queue (list (init-state))
     (loop repeat limit
           do (pr (length queue))
           do (setf queue (remove-duplicates

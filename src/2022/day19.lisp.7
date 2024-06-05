@@ -82,7 +82,7 @@
 #+#:excluded (tick (car (blueprints)) (init-state))
 
 (defun simulate (limit blueprint)
-  (bnd1 (queue (list (init-state)))
+  (bnd1 queue (list (init-state))
     (repeat limit
       (pr (length queue))
       (setf queue (loop for s in queue
@@ -99,7 +99,7 @@
   (let ((best 0))
     (labels ((recur (remaining state)
                #+#:excluded (break)
-               (cond ((zerop remaining) (maxf best (car (last (resources state)))))
+               (cond ((zerop remaining) (maxf best (last-elt (resources state))))
                      ((state-hopeless-p state remaining best) nil)
                      #+#:excluded (t (dolist (n (sort (tick blueprint state) #'state-better-p))
 
@@ -111,10 +111,10 @@
     best))
 
 (defun state-hopeless-p (state remaining best)
-  (let* ((robots (car (last (robots state))))
+  (let* ((robots (last-elt (robots state)))
          (assemblable (- remaining (reduce #'+ (robots state))))
          (collectable (* (/ assemblable 2) (+ 1 assemblable)))
-         (cracked (car (last (resources state)))))
+         (cracked (last-elt (resources state))))
     (pr robots assemblable collectable cracked)
     (< (+ (* robots remaining) cracked collectable) best)))
 
@@ -165,7 +165,7 @@
 #+#:excluded (&optional (file #P"src/2022/day19.txt"))
 #P"scratch.txt"
 
-(bnd1 (limit 32)
+(bnd1 limit 32
   (length
     (remove-duplicates
       (loop for or from 0 upto limit

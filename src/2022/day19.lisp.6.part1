@@ -88,7 +88,7 @@
 #+#:excluded (tick (car (blueprints)) (init-state))
 
 (defun simulate (limit blueprint)
-  (bnd1 (queue (list (init-state)))
+  (bnd1 queue (list (init-state))
     (loop repeat limit
           do (pr (length queue))
           do (setf queue (remove-duplicates

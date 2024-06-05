@@ -47,6 +47,7 @@
                :if-let
                :if-not
                :iota
+               :last-elt
                :looping
                :make-keyword
                :mkstr

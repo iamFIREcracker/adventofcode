@@ -84,7 +84,7 @@
 (defun vertices (sensor)
   (destructuring-bind ((x y) . _) sensor
     (declare (ignore _))
-    (bnd1 (r (r sensor))
+    (bnd1 r (r sensor)
       (list
         (list x (- y r))
         (list (+ x r) y)

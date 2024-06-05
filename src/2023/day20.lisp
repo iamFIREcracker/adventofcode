@@ -10,7 +10,7 @@
       (when (find (char name 0) "%&")
         (setf type (symb (char name 0))
               name (subseq- name 1)))
-      (bnd1 (outputs (cl-ppcre:split ", " destinations))
+      (bnd1 outputs (cl-ppcre:split ", " destinations)
         (list :name (as-keyword name)
               :type type
               :inputs nil
@@ -33,7 +33,7 @@
 
 (defun change-input (m from pulse-type)
   (setf (getf (getf m :inputs) from) pulse-type)
-  (bnd1 (new (%new-state m pulse-type))
+  (bnd1 new (%new-state m pulse-type)
     (if new (setf (getf m :state) new))
     new))
 
@@ -55,7 +55,7 @@
     (while-not (queue-empty-p q)
       (destructuring-bind (pulse-type from to) (dequeue q)
         (signal 'pulse :type pulse-type :from from :to to)
-        (bnd1 (m (find to modules :key #'name))
+        (bnd1 m (find to modules :key #'name)
           (awhen (change-input m from pulse-type)
             (dolist (n (getf m :outputs))
               (incf (getf pulses it))
@@ -64,7 +64,7 @@
 
 
 (defun warm-up (&optional (modules (parse-input)))
-  (bnd1 (pulses (list :low 0 :high 0))
+  (bnd1 pulses (list :low 0 :high 0)
     (repeat 1000
       (destructuring-bind (low high) (push-button modules)
         (incf (getf pulses :low) low)
@@ -87,7 +87,7 @@
 (defun turn-on-engine (&optional (strings (aoc::read-problem-input 2023 20)))
   (apply #'lcm
          (looping
-           (bnd1 (modules (parse-input strings))
+           (bnd1 modules (parse-input strings)
              (destructuring-bind (to) (find-that-outputs-into :rx modules)
                (dolist (from (find-that-outputs-into (name to) modules))
                  (collect! (push-until :high
@@ -101,7 +101,7 @@
 
 (defun push-until (expected-pulse-type expected-from expected-to
                                        &optional (modules (parse-input)))
-  (bnd1 (pushes 0)
+  (bnd1 pushes 0
     (handler-bind ((pulse
                      (lambda (c)
                        (with-slots (type from to) c

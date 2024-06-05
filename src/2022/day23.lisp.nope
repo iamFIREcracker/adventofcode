@@ -2,7 +2,7 @@
 (in-package :aoc/2022/23)
 
 (defun grid (&optional (file #P"src/2022/day22.txt"))
-  (bnd1 (grid (make-hash-table :test 'equal))
+  (bnd1 grid (make-hash-table :test 'equal)
     (loop for string in (uiop:read-file-lines file) for row from 0 do
           (loop for ch across string for col from 0 do
                 (when (char= ch #\# )
@@ -45,12 +45,12 @@
                 for deltas = (nth to-check-next *to-check*) do
                 (when (neighbors grid pos)
                   (unless (neighbors grid pos deltas)
-                    (bnd1 (pos-next (mapcar #'+ pos move))
+                    (bnd1 pos-next (mapcar #'+ pos move)
                       (setf (gethash pos proposals) pos-next)
                       #+#:excluded (pr pos '-> pos-next)
                       (push pos (gethash pos-next candidates))
                       (return))))))
-    (bnd1 moved
+    (bnd1 moved nil
       (loop for pos being the hash-keys of grid using (hash-value to-check)
             for pos-next = (gethash pos proposals)
             for to-check-next = (mod (1+ to-check) 4) do

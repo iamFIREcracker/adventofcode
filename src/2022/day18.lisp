@@ -2,9 +2,9 @@
 (in-package :aoc/2022/18)
 
 (defun parse-cubes (&optional (file #P"src/2022/day18.txt"))
-  (bnd1 (map (make-hash-table :test 'equal ))
+  (bnd1 map (make-hash-table :test 'equal)
     (dolist (s (uiop:read-file-lines file))
-      (bnd1 (coord (mapcar #'parse-integer (split-sequence:split-sequence #\, s)))
+      (bnd1 coord (mapcar #'parse-integer (split-sequence:split-sequence #\, s))
         (setf (gethash coord map) t)))
     map))
 
@@ -28,7 +28,7 @@
         maximizing x into x-max
         maximizing y into y-max
         maximizing z into z-max
-        finally (return (bnd1 (grid (make-hash-table :test 'equal))
+        finally (return (bnd1 grid (make-hash-table :test 'equal)
                           (loop for x from (1- x-min) to (1+ x-max)
                                 do (loop for y from (1- y-min) to (1+ y-max)
                                          do (loop for z from (1- z-min) to (1+ z-max)
@@ -37,7 +37,7 @@
                           grid))))
 
 (defun trapped (map &aux (grid (grid map)))
-  (bnd1 (trapped (make-hash-table :test 'equal))
+  (bnd1 trapped (make-hash-table :test 'equal)
     (loop for coord being the hash-keys of grid
           unless (or (gethash coord map)
                      (escapes map grid trapped coord))
@@ -63,7 +63,7 @@
         maximizing x into x-max
         maximizing y into y-max
         maximizing z into z-max
-        finally (return (bnd1 (grid (make-hash-table :test 'equal))
+        finally (return (bnd1 grid (make-hash-table :test 'equal)
                           (loop for x from (1- x-min) to (1+ x-max)
                                 do (loop for y from (1- y-min) to (1+ y-max)
                                          do (setf (gethash (list x y (1- z-min)) grid) t

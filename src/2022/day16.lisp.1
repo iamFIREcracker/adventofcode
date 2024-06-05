@@ -28,15 +28,15 @@
 #+#:excluded (find-valve (valves) 'at)
 
 (defun compact (valves)
-  (bnd1 (compact (make-hash-table))
+  (bnd1 compact (make-hash-table)
     (loop for v1 being the hash-values of valves when (or (plusp (rate v1))
                                                           (eq (name v1) 'aa))
           do (loop for v2 being the hash-values of valves when (and (plusp (rate v2))
                                                                     (not (eq v1 v2)))
-                   do (bnd1 (cost (search-cost
+                   do (bnd1 cost (search-cost
                                     (bfs v1
                                          :goal-state v2 :test 'equalp
-                                         :neighbors #'connected-to)))
+                                         :neighbors #'connected-to))
                         (push (cons v2 cost) (gethash (name v1) compact)))))
     compact))
 #+#:excluded (compact (valves))
@@ -102,7 +102,7 @@
 #+#:excluded (elapsed-next (init-state) 29)
 
 (defun open-valve (valves state &optional other-state)
-  (bnd1 (valve (find-valve valves (current state)))
+  (bnd1 valve (find-valve valves (current state))
     (unless (or (zerop (rate valve))
                 (already-opened-p state other-state))
       (list
@@ -195,7 +195,7 @@
        (already-seen (make-hash-table :test 'equal))
        (best 0))
   (labels ((recur (state &aux (key (state-key state)))
-             (bnd1 (existing (gethash key already-seen))
+             (bnd1 existing (gethash key already-seen)
                (cond ((and existing (<= existing (elapsed state))) nil)
                      ((= (elapsed state) 30) (maxf best (released state)))
                      (t (assert (< (elapsed state) 30))
@@ -213,7 +213,7 @@
        (already-seen (make-hash-table :test 'equal))
        (best 0))
   (labels ((recur (state &aux (key (state-key state)))
-             (bnd1 (existing (gethash key already-seen))
+             (bnd1 existing (gethash key already-seen)
                (cond ((and existing (<= existing (elapsed state))) nil)
                      ((= (elapsed state) 26) (if (> (released state) best) (pr (maxf best (released state)))))
                      (t (assert (< (elapsed state) 26))

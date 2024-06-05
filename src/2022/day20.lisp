@@ -8,7 +8,7 @@
   refs ring)
 
 (defun make-cyclic-dlink (content)
-  (bnd1 (d (make-dlink :content content))
+  (bnd1 d (make-dlink :content content)
     (setf (dlink-prev d) d
           (dlink-next d) d)
     d))
@@ -45,7 +45,7 @@
            (dlink-prev curr)  prev2)))
 
 (defun print-state (state)
-  (bnd1 (first (car (refs state)))
+  (bnd1 first (car (refs state))
     (pr (loop for i from 0 for each = first then (dlink-next each)
               collect (dlink-content each)
               if (> i 10000) do (error "FUCK")
@@ -63,7 +63,7 @@
   state)
 
 (defun mix (times state)
-  (bnd1 (max-swap (1- (length (refs state))))
+  (bnd1 max-swap (1- (length (refs state)))
     (repeat times
       (dolist (each (refs state))
         (repeat (mod (dlink-content each) max-swap)
@@ -71,7 +71,7 @@
   state)
 
 (defun coordinates (state)
-  (bnd1 (zero (find-if [= _ 0] (refs state) :key #'dlink-content))
+  (bnd1 zero (find-if [= _ 0] (refs state) :key #'dlink-content)
     (loop for i from 0 for each = zero then (dlink-next each)
           when (member i (list 1000 2000 3000)) sum (pr (dlink-content each))
           until (= i 3001))))

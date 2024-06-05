@@ -21,7 +21,7 @@
   (let ((rope (loop repeat rope-size collect (list 0 0)))
         (visited (make-hash-table :test 'equal)))
     (flet ((track-tail ()
-             (setf (gethash (copy-list (car (last rope))) visited) t)))
+             (setf (gethash (copy-list (last-elt rope)) visited) t)))
       (loop with (head . tail) = rope for (steps dir) in moves do
             (loop repeat steps do
                   (progn

@@ -21,8 +21,8 @@
                (doseq ((prefix . d) *digits-prefixes*)
                  (if (string-starts-with-p prefix (subseq s start))
                    (collect! d)))))))
-    (bnd1 (digits (extract-all-digits))
-      (+ (* (first digits) 10) (car (last digits))))))
+    (bnd1 digits (extract-all-digits)
+      (+ (* (first digits) 10) (last-elt digits)))))
 #+#:excluded (calibration-value-p2 "7pqrstsixteen")
 #+#:excluded (calibration-value-p2 "eightwo")
 

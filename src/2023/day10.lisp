@@ -75,7 +75,7 @@
 
 
 (defun furthest-loop-step (&optional (input (parse-loop)))
-  (bnd1 (steps (loop-steps input))
+  (bnd1 steps (loop-steps input)
     (/ (length steps) 2)))
 
 
@@ -120,7 +120,7 @@ Horintal pipes do not move the needle, so they are skipped.
     (looping
       (dorange (i 0 rows)
         (dorange (j 0 cols)
-          (bnd1 (on-loop? (gethash (list i j) loop))
+          (bnd1 on-loop? (gethash (list i j) loop)
             (count! (and (not on-loop?) (enclosed-inside-loop? loop i j)))))))))
 
 

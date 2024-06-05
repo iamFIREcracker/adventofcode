@@ -2,18 +2,18 @@
 (in-package :aoc/2022/21)
 
 (defun parse-monkey (s)
-  (bnd1 (parts (split-sequence:split-sequence #\Space s))
+  (bnd1 parts (split-sequence:split-sequence #\Space s)
     (list* (subseq (car parts) 0 4)
            (cdr parts))))
 
 (defun monkeys (&optional (file #P"src/2022/day21.txt"))
-  (bnd1 (map (make-hash-table :test 'equal))
+  (bnd1 map (make-hash-table :test 'equal)
     (loop for (name . rest) in (mapcar #'parse-monkey (uiop:read-file-lines file))
           do (setf (gethash name map) rest))
     map))
 
 (defun meval (monkeys m)
-  (bnd1 (args (gethash m monkeys))
+  (bnd1 args (gethash m monkeys)
     (cond ((= (length args) 1) (parse-integer (car args)))
           (t (destructuring-bind (rand1 rator rand2) args
                (funcall (symb rator)
@@ -21,7 +21,7 @@
                         (meval monkeys rand2)))))))
 
 (defun meval2 (monkeys m)
-  (bnd1 (args (gethash m monkeys))
+  (bnd1 args (gethash m monkeys)
     (cond ((string= m "humn") "x")
           ((= (length args) 1) (parse-integer (car args)))
           (t (destructuring-bind (rand1 rator rand2) args

@@ -47,7 +47,7 @@
 
 
 (defun stronger-first-card? (hand1 hand2)
-  (bnd1 (labels (if *j-as-jokers* "AKQT98765432J" "AKQJT98765432"))
+  (bnd1 labels (if *j-as-jokers* "AKQT98765432J" "AKQJT98765432")
     (doseqs ((i (map 'vector [position _ labels] hand1))
              (j (map 'vector [position _ labels] hand2)))
       (if (< i j)
@@ -65,7 +65,7 @@
 
 
 (defun total-winning (&optional (input (list-of-hands)))
-  (bnd1 (ranked (reverse (sort (copy-seq input) #'better-hand? :key #'car)))
+  (bnd1 ranked (reverse (sort (copy-seq input) #'better-hand? :key #'car))
     (looping
       (doseq ((i (hand . bid)) (enumerate ranked :start 1))
         (sum! (* i bid))))))
@@ -73,7 +73,7 @@
 
 (define-solution (2023 07) (input list-of-hands)
   (values (total-winning input)
-          (bnd1 (*j-as-jokers* t)
+          (bnd1 *j-as-jokers* t
             (total-winning input))))
 
 (define-test (2023 07) (251806792 252113488))
