@@ -84,6 +84,7 @@
                  (:auto-module "2021")
                  (:auto-module "2022")
                  (:auto-module "2023")
+                 (:auto-module "2024")
                  )))
   :in-order-to ((test-op (test-op :aoc/tests))))
 
