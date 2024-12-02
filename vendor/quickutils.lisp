@@ -2,7 +2,7 @@
 ;;;; See http://quickutil.org for details.
 
 ;;;; To regenerate:
-;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:KEEP-IF :KEEP-IF-NOT :AAND :AIF :ALIST-KEYS :ALIST-VALUES :APPENDF :ASSOC-VALUE :AWHEN :BND* :BND1 :COPY-ARRAY :COPY-HASH-TABLE :DEFACCESSOR :DIGITS :DIVF :DOALIST :DOHASH :DOLISTS :DORANGE :DORANGEI :DOSEQ :DOSEQS :DOSUBLISTS :ENUMERATE :FLATTEN :HASH-TABLE-ALIST :HASH-TABLE-KEY-EXISTS-P :HASH-TABLE-KEYS :HASH-TABLE-VALUES :IF-LET :IF-NOT :IOTA :LAST-ELT :LOOPING :MAKE-KEYWORD :MKSTR :MULF :NCYCLE :PLIST-KEYS :PLIST-VALUES :RANDOM-ELT :RECURSIVELY :REMOVEF :REPEAT :SHUFFLE :STRING-ENDS-WITH-P :STRING-STARTS-WITH-P :SUBDIVIDE :SUBSEQ- :SYMB :VOID :WHEN-LET :WHEN-NOT :WHILE :WHILE-NOT :WITH-GENSYMS :XOR) :ensure-package T :package "AOC.QUICKUTILS")
+;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:KEEP-IF :KEEP-IF-NOT :AAND :AIF :ALIST-KEYS :ALIST-VALUES :APPENDF :ASSOC-VALUE :AWHEN :BND* :BND1 :COPY-ARRAY :COPY-HASH-TABLE :DEFACCESSOR :DIGITS :DIVF :DOALIST :DOHASH :DOLISTS :DORANGE :DORANGEI :DOSEQ :DOSEQS :DOSUBLISTS :ENUMERATE :FLATTEN :HASH-TABLE-ALIST :HASH-TABLE-KEY-EXISTS-P :HASH-TABLE-KEYS :HASH-TABLE-VALUES :IF-LET :IF-NOT :IOTA :LAST-ELT :LET1 :LOOPING :MAKE-KEYWORD :MKSTR :MULF :NCYCLE :PLIST-KEYS :PLIST-VALUES :RANDOM-ELT :RECURSIVELY :REMOVEF :REPEAT :SHUFFLE :STRING-ENDS-WITH-P :STRING-STARTS-WITH-P :SUBDIVIDE :SUBSEQ- :SYMB :VOID :WHEN-LET :WHEN-NOT :WHILE :WHILE-NOT :WITH-GENSYMS :XOR) :ensure-package T :package "AOC.QUICKUTILS")
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (unless (find-package "AOC.QUICKUTILS")
@@ -836,7 +836,13 @@ sequence, is an empty sequence, or if OBJECT cannot be stored in SEQUENCE."
                     :expected-type '(and proper-sequence (not (satisfies emptyp))))))))
   
 
-  (defparameter *looping-reduce-keywords*  '(collect! append! adjoin! sum! multiply! count! minimize! maximize!))
+  (defparameter *looping-reduce-keywords*  '(collect! append! adjoin!
+                                             sum! multiply!
+                                             count!
+                                             minimize!
+                                             maximize!
+                                             never!
+                                             thereis!))
 
   (defun %extract-reduce-keywords (body)
     "Walk `body` and collect any symbol that matches any of the keywords inside
@@ -867,8 +873,12 @@ E.g. COLLECT! is compatible with APPEND!, or ADJOIN!, but not with SUM!"
                          (error "Cannot use ~A together with ~A" it k)))
                (minimize! (aif (find 'minimize! rest :test-not 'eq)
                             (error "Cannot use ~A together with ~A" it k)))
-               (maximize! (aif (find 'minimize! rest :test-not 'eq)
-                            (error "Cannot use ~A together with ~A" it k))))))
+               (maximize! (aif (find 'maximize! rest :test-not 'eq)
+                            (error "Cannot use ~A together with ~A" it k)))
+               (never! (aif (find 'never! rest :test-not 'eq)
+                         (error "Cannot use ~A together with ~A" it k)))
+               (thereis! (aif (find 'thereis! rest :test-not 'eq)
+                           (error "Cannot use ~A together with ~A" it k))))))
       (loop for (k . rest) on keywords do (incompatible-keyword! k rest))))
 
   (defun %initialize-result (keywords)
@@ -878,7 +888,9 @@ E.g. COLLECT! is compatible with APPEND!, or ADJOIN!, but not with SUM!"
     (ecase (car keywords)
       ((collect! append! adjoin! minimize! maximize!) nil)
       ((sum! count!) 0)
-      ((multiply!) 1)))
+      (multiply! 1)
+      (never! t)
+      (thereis! nil)))
 
   (defgeneric %expand-keyword-into-label (k result last)
     (:method ((k (eql 'collect!)) result last)
@@ -911,7 +923,15 @@ E.g. COLLECT! is compatible with APPEND!, or ADJOIN!, but not with SUM!"
          (setf ,result (min (or ,result item) item))))
     (:method ((k (eql 'maximize!)) result last)
       `(,(intern "MAXIMIZE!") (item)
-         (setf ,result (max (or ,result item) item)))))
+         (setf ,result (max (or ,result item) item))))
+    (:method ((k (eql 'never!)) result last)
+      `(,(intern "NEVER!") (item)
+         ;; FIXME: short circuit
+         (setf ,result (and ,result (not item)))))
+    (:method ((k (eql 'thereis!)) result last)
+      `(,(intern "THEREIS!") (item)
+         ;; FIXME: short circuit
+         (setf ,result (or ,result item)))))
 
   (defmacro looping (&body body)
     "Run `body` in an environment where the symbols COLLECT!, APPEND!, ADJOIN!,
@@ -952,7 +972,7 @@ Examples:
   "
     (let1 keywords (remove-duplicates (%extract-reduce-keywords body))
       (%assert-compatible-reduce-keywords keywords)
-      (with-gensyms (result last expand-fn)
+      (with-gensyms (result last)
         (let1 labels (mapcar (lambda (k) (%expand-keyword-into-label k result last)) keywords)
           `(let* ((,result ,(%initialize-result keywords))
                   (,last nil))
@@ -1245,7 +1265,7 @@ value."
             defaccessor accesses digits divf doalist dohash dolists dorange
             dorangei doseq doseqs dosublists enumerate flatten hash-table-alist
             hash-table-key-exists-p hash-table-keys hash-table-values if-let
-            if-not iota last-elt looping make-keyword mkstr mulf ncycle
+            if-not iota last-elt let1 looping make-keyword mkstr mulf ncycle
             plist-keys plist-values random-elt recursively removef repeat
             shuffle string-ends-with-p string-starts-with-p subdivide subseq-
             symb void when-let when-let* when-not while while-not with-gensyms
