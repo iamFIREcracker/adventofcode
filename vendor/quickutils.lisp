@@ -842,7 +842,9 @@ sequence, is an empty sequence, or if OBJECT cannot be stored in SEQUENCE."
                                              minimize!
                                              maximize!
                                              never!
-                                             thereis!))
+                                             always!
+                                             thereis!
+                                             spr!))
 
   (defun %extract-reduce-keywords (body)
     "Walk `body` and collect any symbol that matches any of the keywords inside
@@ -877,8 +879,12 @@ E.g. COLLECT! is compatible with APPEND!, or ADJOIN!, but not with SUM!"
                             (error "Cannot use ~A together with ~A" it k)))
                (never! (aif (find 'never! rest :test-not 'eq)
                          (error "Cannot use ~A together with ~A" it k)))
+               (always! (aif (find 'always! rest :test-not 'eq)
+                         (error "Cannot use ~A together with ~A" it k)))
                (thereis! (aif (find 'thereis! rest :test-not 'eq)
-                           (error "Cannot use ~A together with ~A" it k))))))
+                           (error "Cannot use ~A together with ~A" it k)))
+               (spr! (aif (find 'spr! rest :test-not 'eq)
+                       (error "Cannot use ~A together with ~A" it k))))))
       (loop for (k . rest) on keywords do (incompatible-keyword! k rest))))
 
   (defun %initialize-result (keywords)
@@ -890,7 +896,9 @@ E.g. COLLECT! is compatible with APPEND!, or ADJOIN!, but not with SUM!"
       ((sum! count!) 0)
       (multiply! 1)
       (never! t)
-      (thereis! nil)))
+      (always! t)
+      (thereis! nil)
+      (spr! "")))
 
   (defgeneric %expand-keyword-into-label (k result last)
     (:method ((k (eql 'collect!)) result last)
@@ -928,16 +936,23 @@ E.g. COLLECT! is compatible with APPEND!, or ADJOIN!, but not with SUM!"
       `(,(intern "NEVER!") (item)
          ;; FIXME: short circuit
          (setf ,result (and ,result (not item)))))
+    (:method ((k (eql 'always!)) result last)
+      `(,(intern "ALWAYS!") (item)
+         ;; FIXME: short circuit
+         (setf ,result (and ,result item))))
     (:method ((k (eql 'thereis!)) result last)
       `(,(intern "THEREIS!") (item)
          ;; FIXME: short circuit
-         (setf ,result (or ,result item)))))
+         (setf ,result (or ,result item))))
+    (:method ((k (eql 'spr!)) result last)
+      `(,(intern "SPR!") (&rest args)
+         (setf ,result (apply #'spr ,result args)))))
 
   (defmacro looping (&body body)
     "Run `body` in an environment where the symbols COLLECT!, APPEND!, ADJOIN!,
-SUM!, MULTIPLY!, COUNT!, MINIMIZE!, and MAXIMIZE! are bound to functions that
-can be used to collect / append, sum, multiply, count, minimize or maximize
-things respectively.
+SUM!, MULTIPLY!, COUNT!, MINIMIZE!, MAXIMIZE!, NEVER!, THEREIS!, and SPR! are
+bound to functions that can be used to collect / append, sum, multiply, count,
+minimize or maximize things respectively.
 
 Mixed usage of COLLECT!/APPEND!/ADJOIN!, SUM!, MULTIPLY!, COUNT!, MINIMIZE! and
 MAXIMIZE! is not supported.
