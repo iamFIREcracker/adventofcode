@@ -38,8 +38,7 @@
   :components
   ((:module "vendor"
     :serial t
-    :components ((:file "pmdb")
-                 (:file "quickutils-package")
+    :components ((:file "quickutils-package")
                  (:file "quickutils")
                  ))
    (:module "upstream"

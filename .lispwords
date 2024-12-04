@@ -1,6 +1,7 @@
 (->< 0)
 (acond -1)
 (aif 1)
+(aprog1 1)
 (awhen 1)
 (bnd* 1)
 (bnd1 2)

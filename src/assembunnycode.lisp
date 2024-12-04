@@ -1,5 +1,5 @@
 (defpackage :assembunnycode
-  (:use :cl :pmdb :aoc)
+  (:use :cl :aoc)
   (:export
     :parse-program
     :run

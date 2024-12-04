@@ -1,6 +1,6 @@
 (defpackage :aoc/2016/11a #.cl-user::*aoc-use*)
 (in-package :aoc/2016/11a)
-
+#;
 (setf *elements-mapping*
   '(("strontium" 1)
     ("plutonium" 2)

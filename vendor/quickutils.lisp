@@ -2,7 +2,7 @@
 ;;;; See http://quickutil.org for details.
 
 ;;;; To regenerate:
-;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:KEEP-IF :KEEP-IF-NOT :AAND :AIF :ALIST-KEYS :ALIST-VALUES :APPENDF :ASSOC-VALUE :AWHEN :BND* :BND1 :COPY-ARRAY :COPY-HASH-TABLE :DEFACCESSOR :DIGITS :DIVF :DOALIST :DOHASH :DOLISTS :DORANGE :DORANGEI :DOSEQ :DOSEQS :DOSUBLISTS :ENUMERATE :FLATTEN :HASH-TABLE-ALIST :HASH-TABLE-KEY-EXISTS-P :HASH-TABLE-KEYS :HASH-TABLE-VALUES :IF-LET :IF-NOT :IOTA :LAST-ELT :LET1 :LOOPING :MAKE-KEYWORD :MKSTR :MULF :NCYCLE :PLIST-KEYS :PLIST-VALUES :RANDOM-ELT :RECURSIVELY :REMOVEF :REPEAT :SHUFFLE :STRING-ENDS-WITH-P :STRING-STARTS-WITH-P :SUBDIVIDE :SUBSEQ- :SYMB :VOID :WHEN-LET :WHEN-NOT :WHILE :WHILE-NOT :WITH-GENSYMS :XOR) :ensure-package T :package "AOC.QUICKUTILS")
+;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:@ :AAND :AIF :ALIST :ALIST-KEYS :ALIST-VALUES :APPENDF :APROG1 :ASSOC-VALUE :AWHEN :BND* :BND1 :COPY-ARRAY :COPY-HASH-TABLE :DBG :DBGL :DEFACCESSOR :DIGITS :DIVF :DOALIST :DOHASH :DOLISTS :DORANGE :DORANGEI :DOSEQ :DOSEQS :DOSUBLISTS :ENUMERATE :FLATTEN :FN :HASH-TABLE-ALIST :HASH-TABLE-KEY-EXISTS-P :HASH-TABLE-KEYS :HASH-TABLE-VALUES :IF-LET :IF-NOT :IOTA :KEEP-IF :KEEP-IF-NOT :LAST-ELT :LET1 :LOOPING :MAKE-KEYWORD :MKLIST :MKSTR :MULF :NCYCLE :PLIST-KEYS :PLIST-VALUES :PMX :PSX :PR :PRN :PRS :RANDOM-ELT :RECURSIVELY :REMOVEF :REPEAT :SHUFFLE :SPR :SPRN :SPRS :STRING-ENDS-WITH-P :STRING-STARTS-WITH-P :SUBDIVIDE :SUBSEQ- :SYMB :UNDEFCLASS :UNDEFCONSTANT :UNDEFMACRO :UNDEFMETHOD :UNDEFPACKAGE :UNDEFPARAMETER :UNDEFUN :UNDEFVAR :UNTIL :VALUE-AT :VOID :WHEN-LET :WHEN-NOT :WHILE :WHILE-NOT :WITH-GENSYMS :XOR) :ensure-package T :package "AOC.QUICKUTILS")
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (unless (find-package "AOC.QUICKUTILS")
@@ -13,95 +13,38 @@
 (in-package "AOC.QUICKUTILS")
 
 (when (boundp '*utilities*)
-  (setf *utilities* (union *utilities* '(:ABBR :KEEP-IF :KEEP-IF-NOT :LET1 :AIF
-                                         :AAND :ALIST-KEYS :ALIST-VALUES
-                                         :APPENDF :STRING-DESIGNATOR
-                                         :WITH-GENSYMS :ASSOC-VALUE :AWHEN
-                                         :BND* :BND1 :COPY-ARRAY
-                                         :COPY-HASH-TABLE :PARSE-BODY
-                                         :DEFACCESSOR :DIGITS :DIVF
-                                         :MAKE-GENSYM-LIST :ONCE-ONLY :DOALIST
-                                         :DOHASH :DOLISTS :DORANGE :DORANGEI
-                                         :DOSEQ :DOSEQS :DOSUBLISTS :ENUMERATE
-                                         :FLATTEN :HASH-TABLE-ALIST
+  (setf *utilities* (union *utilities* '(:STRING-DESIGNATOR :WITH-GENSYMS
+                                         :ASSOC-VALUE :VALUE-AT :@ :LET1 :AIF
+                                         :AAND :ALIST :ALIST-KEYS :ALIST-VALUES
+                                         :APPENDF :APROG1 :AWHEN :BND* :BND1
+                                         :COPY-ARRAY :COPY-HASH-TABLE :DBG
+                                         :DBGL :PARSE-BODY :DEFACCESSOR :DIGITS
+                                         :DIVF :MAKE-GENSYM-LIST :ONCE-ONLY
+                                         :DOALIST :DOHASH :DOLISTS :DORANGE
+                                         :DORANGEI :DOSEQ :DOSEQS :DOSUBLISTS
+                                         :ENUMERATE :FLATTEN :FN
+                                         :HASH-TABLE-ALIST
                                          :HASH-TABLE-KEY-EXISTS-P :MAPHASH-KEYS
                                          :HASH-TABLE-KEYS :MAPHASH-VALUES
                                          :HASH-TABLE-VALUES :IF-LET :IF-NOT
-                                         :IOTA :NON-ZERO-P :EMPTYP :SAFE-ENDP
+                                         :IOTA :ABBR :KEEP-IF :KEEP-IF-NOT
+                                         :NON-ZERO-P :EMPTYP :SAFE-ENDP
                                          :CIRCULAR-LIST
                                          :PROPER-LIST-LENGTH/LAST-CAR
                                          :PROPER-LIST-P :PROPER-LIST
                                          :PROPER-SEQUENCE :LAST-ELT :LOOPING
-                                         :MAKE-KEYWORD :MKSTR :MULF :NCYCLE
-                                         :PLIST-KEYS :PLIST-VALUES :RANDOM-ELT
+                                         :MAKE-KEYWORD :MKLIST :MKSTR :MULF
+                                         :NCYCLE :PLIST-KEYS :PLIST-VALUES :PMX
+                                         :PSX :PR :PRN :PRS :RANDOM-ELT
                                          :RECURSIVELY :REMOVEF :REPEAT :SHUFFLE
-                                         :STRING-ENDS-WITH-P
+                                         :SPR :SPRN :SPRS :STRING-ENDS-WITH-P
                                          :STRING-STARTS-WITH-P :SUBDIVIDE
-                                         :SUBSEQ- :SYMB :VOID :WHEN-LET
-                                         :WHEN-NOT :WHILE :UNTIL :WHILE-NOT
-                                         :XOR))))
-
-  (defmacro abbr (short long)
-    "Defines a new function/macro named `short` and sharing
-FDEFINITION/MACRO-FUNCTION with `long`."
-    `(eval-when (:compile-toplevel :load-toplevel :execute)
-       (cond
-         ((macro-function ',long)
-          (setf (macro-function ',short) (macro-function ',long))
-          #+ccl (setf (ccl:arglist ',short) (ccl:arglist ',long)))
-         ((fboundp ',long)
-          (setf (fdefinition ',short) (fdefinition ',long))
-          #+ccl (setf (ccl:arglist ',short) (ccl:arglist ',long)))
-         (t
-           (error "Can't abbreviate ~a" ',long)))))
-  
-  (abbr keep-if remove-if-not)
-  (abbr keep-if-not remove-if)
-
-  (defmacro let1 (var val &body body)
-    "Bind VAR to VAL within BODY. Equivalent to LET with one binding."
-    `(let ((,var ,val))
-       ,@body))
-  
-
-  (defmacro aif (test then &optional else)
-    "Like IF, except binds the result of `test` to IT (via LET) for the scope of `then` and `else` expressions."
-    (aif-expand test then else))
-
-  (eval-when (:compile-toplevel :load-toplevel :execute)
-    (defun aif-expand (test then &optional else)
-      (let1 it (intern "IT")
-        `(let1 ,it ,test
-           (if ,it ,then ,else)))))
-  
-
-  (defmacro aand (&rest forms)
-    "Like AND, except binds the result of each form to IT (via LET)."
-    (aand-expand forms))
-
-  (eval-when (:compile-toplevel :load-toplevel :execute)
-    (defun aand-expand (forms)
-      (cond ((not (car forms)) nil)
-            ((not (cdr forms)) (car forms))
-            (t (let1 car (car forms)
-                 `(aif ,car
-                    (aand ,@(cdr forms))))))))
-  
-
-  (defun alist-keys (alist)
-    "Return all the keys of `alist`."
-    (mapcar #'car alist))
-  
-
-  (defun alist-values (alist)
-    "Return all the values of `alist`."
-    (mapcar #'cdr alist))
-  
-
-  (define-modify-macro appendf (&rest lists) append
-    "Modify-macro for `append`. Appends `lists` to the place designated by the first
-argument.")
-  
+                                         :SUBSEQ- :SYMB :UNDEFCLASS
+                                         :UNDEFCONSTANT :UNDEFMACRO
+                                         :UNDEFMETHOD :UNDEFPACKAGE
+                                         :UNDEFPARAMETER :UNDEFUN :UNDEFVAR
+                                         :UNTIL :VOID :WHEN-LET :WHEN-NOT
+                                         :WHILE :WHILE-NOT :XOR))))
 
   (deftype string-designator ()
     "A string designator type. A string designator is either a string, a symbol,
@@ -196,6 +139,112 @@ be used with SETF.")
     (define-alist-get rassoc-value rassoc car racons
       "RASSOC-VALUE is an alist accessor very much like RASSOC, but it can
 be used with SETF."))
+  
+
+  (defgeneric value-at (x place)
+    (:documentation "Returns the value of the place `place` inside `x`.  Also SETF-able.
+
+If `x` is an STANDARD-OBJECT, this method will delegate to SLOT-VALUE.
+If `x` is a LIST and `place` is NUMBER, this method will delegate to NTH.
+If `x` is a LIST and `place` is STRING, this method will delegate to ASSOC-VALUE.
+If `x` is a LIST and `place` is SYMBOL, this method will delegate to GETF.
+If `x` is a HASH-TABLE, this method will delegate to GETHASH.
+If `x` is an ARRAY, this method will delegate to AREF.
+")
+    (:method ((x standard-object) slot)  (slot-value x slot))
+    (:method ((x list) (n number))  (nth n x))
+    (:method ((x list) (key string))  (assoc-value x key))
+    (:method ((x list) (prop symbol))  (getf x prop))
+    (:method ((x hash-table) key)  (gethash key x))
+    ;; FIXME: add support for multiple subscripts
+    (:method ((x array) subscript) (aref x subscript)))
+
+  (defgeneric (setf value-at) (value x place)
+    (:method (value (x standard-object) slot)  (setf (slot-value x slot) value))
+    (:method (value (x list) (n number))  (setf (nth n x) value))
+    (:method (value (x list) (key string))  (setf (assoc-value x key) value))
+    (:method (value (x list) (prop symbol))  (setf (getf x prop) value))
+    (:method (value (x hash-table) key)  (setf (gethash key x) value))
+    ;; FIXME: add support for multiple subscripts
+    (:method (value (x array) subscript) (setf (aref x subscript) value)))
+  
+
+  (defmacro @ (x &rest places)
+    ;;"XXX"
+    (setf places (reverse places))
+    (labels ((recur (places)
+               (if (not (cdr places))
+                 `(value-at ,x ,(first places))
+                 `(value-at ,(recur (cdr places))
+                    ',(first places)))))
+      (recur places)))
+  
+
+  (defmacro let1 (var val &body body)
+    "Bind VAR to VAL within BODY. Equivalent to LET with one binding."
+    `(let ((,var ,val))
+       ,@body))
+  
+
+  (defmacro aif (test then &optional else)
+    "Like IF, except binds the result of `test` to IT (via LET) for the scope of `then` and `else` expressions."
+    (aif-expand test then else))
+
+  (eval-when (:compile-toplevel :load-toplevel :execute)
+    (defun aif-expand (test then &optional else)
+      (let1 it (intern "IT")
+        `(let1 ,it ,test
+           (if ,it ,then ,else)))))
+  
+
+  (defmacro aand (&rest forms)
+    "Like AND, except binds the result of each form to IT (via LET)."
+    (aand-expand forms))
+
+  (eval-when (:compile-toplevel :load-toplevel :execute)
+    (defun aand-expand (forms)
+      (cond ((not (car forms)) nil)
+            ((not (cdr forms)) (car forms))
+            (t (let1 car (car forms)
+                 `(aif ,car
+                    (aand ,@(cdr forms))))))))
+  
+
+  (defun alist (key value &rest key-values)
+    (list* (cons key value)
+           (loop :for (key value) :on key-values :by #'cddr
+                 :collect (cons key value))))
+  
+
+  (defun alist-keys (alist)
+    "Return all the keys of `alist`."
+    (mapcar #'car alist))
+  
+
+  (defun alist-values (alist)
+    "Return all the values of `alist`."
+    (mapcar #'cdr alist))
+  
+
+  (define-modify-macro appendf (&rest lists) append
+    "Modify-macro for `append`. Appends `lists` to the place designated by the first
+argument.")
+  
+
+  (defmacro aprog1 (result-form &body body)
+    "Like PROG1, except binds the result of the `result-form` (i.e., the returned
+form) to IT (via LET) for the scope of `body`.
+
+Inspired by ActiveSupport: Object#returning
+https://weblog.jamisbuck.org/2006/10/27/mining-activesupport-object-returning.html"
+    (aprog1-expand result-form body))
+
+  (eval-when (:compile-toplevel :load-toplevel :execute)
+    (defun aprog1-expand (result-form body)
+      (let1 it (intern "IT")
+        `(let1 ,it ,result-form
+           ,@body
+           ,it))))
   
 
   (defmacro awhen (test &body body)
@@ -323,6 +372,24 @@ copy is returned by default."
                  (setf (gethash k copy) (funcall key v)))
                table)
       copy))
+  
+
+  (defun dbg (&rest args)
+    "Print `args` to screen, separated by a space, and followed by a newline.
+Returns the first arg."
+    (format t "~{~A~^ ~}" args)
+    (terpri)
+    (finish-output)
+    (first args))
+  
+
+  (defmacro dbgl (&rest args)
+    "Print `args`, labeled, separated by a newline, and followed by a final
+newline.  Returns the last arg. labeled and readably."
+    `(prog1
+       (progn ,@(mapcar (lambda (arg) `(dbg ',arg ,arg)) args))
+       (terpri)
+       (finish-output)))
   
 
   (defun parse-body (body &key documentation whole)
@@ -575,6 +642,11 @@ time."
       (rec xs nil)))
   
 
+  (defmacro fn (lambda-list &body body)
+    "Like LAMBDA, but 4 characters shorter."
+    `(lambda ,lambda-list ,@body))
+  
+
   (defun hash-table-alist (table)
     "Returns an association list containing the keys and values of hash table
 `table`."
@@ -679,6 +751,23 @@ Examples:
           for i = (+ (- (+ start step) step)) then (+ i step)
           collect i))
   
+
+  (defmacro abbr (short long)
+    "Defines a new function/macro named `short` and sharing
+FDEFINITION/MACRO-FUNCTION with `long`."
+    `(eval-when (:compile-toplevel :load-toplevel :execute)
+       (cond
+         ((macro-function ',long)
+          (setf (macro-function ',short) (macro-function ',long))
+          #+ccl (setf (ccl:arglist ',short) (ccl:arglist ',long)))
+         ((fboundp ',long)
+          (setf (fdefinition ',short) (fdefinition ',long))
+          #+ccl (setf (ccl:arglist ',short) (ccl:arglist ',long)))
+         (t
+           (error "Can't abbreviate ~a" ',long)))))
+  
+  (abbr keep-if remove-if-not)
+  (abbr keep-if-not remove-if)
 
   (defun non-zero-p (n)
     "Check if `n` is non-zero."
@@ -841,8 +930,8 @@ sequence, is an empty sequence, or if OBJECT cannot be stored in SEQUENCE."
                                              count!
                                              minimize!
                                              maximize!
-                                             never!
                                              always!
+                                             never!
                                              thereis!
                                              spr!))
 
@@ -877,9 +966,9 @@ E.g. COLLECT! is compatible with APPEND!, or ADJOIN!, but not with SUM!"
                             (error "Cannot use ~A together with ~A" it k)))
                (maximize! (aif (find 'maximize! rest :test-not 'eq)
                             (error "Cannot use ~A together with ~A" it k)))
-               (never! (aif (find 'never! rest :test-not 'eq)
-                         (error "Cannot use ~A together with ~A" it k)))
                (always! (aif (find 'always! rest :test-not 'eq)
+                          (error "Cannot use ~A together with ~A" it k)))
+               (never! (aif (find 'never! rest :test-not 'eq)
                          (error "Cannot use ~A together with ~A" it k)))
                (thereis! (aif (find 'thereis! rest :test-not 'eq)
                            (error "Cannot use ~A together with ~A" it k)))
@@ -895,8 +984,8 @@ E.g. COLLECT! is compatible with APPEND!, or ADJOIN!, but not with SUM!"
       ((collect! append! adjoin! minimize! maximize!) nil)
       ((sum! count!) 0)
       (multiply! 1)
-      (never! t)
       (always! t)
+      (never! t)
       (thereis! nil)
       (spr! "")))
 
@@ -932,14 +1021,14 @@ E.g. COLLECT! is compatible with APPEND!, or ADJOIN!, but not with SUM!"
     (:method ((k (eql 'maximize!)) result last)
       `(,(intern "MAXIMIZE!") (item)
          (setf ,result (max (or ,result item) item))))
-    (:method ((k (eql 'never!)) result last)
-      `(,(intern "NEVER!") (item)
-         ;; FIXME: short circuit
-         (setf ,result (and ,result (not item)))))
     (:method ((k (eql 'always!)) result last)
       `(,(intern "ALWAYS!") (item)
          ;; FIXME: short circuit
          (setf ,result (and ,result item))))
+    (:method ((k (eql 'never!)) result last)
+      `(,(intern "NEVER!") (item)
+         ;; FIXME: short circuit
+         (setf ,result (and ,result (not item)))))
     (:method ((k (eql 'thereis!)) result last)
       `(,(intern "THEREIS!") (item)
          ;; FIXME: short circuit
@@ -950,7 +1039,7 @@ E.g. COLLECT! is compatible with APPEND!, or ADJOIN!, but not with SUM!"
 
   (defmacro looping (&body body)
     "Run `body` in an environment where the symbols COLLECT!, APPEND!, ADJOIN!,
-SUM!, MULTIPLY!, COUNT!, MINIMIZE!, MAXIMIZE!, NEVER!, THEREIS!, and SPR! are
+SUM!, MULTIPLY!, COUNT!, MINIMIZE!, MAXIMIZE!, ALWAYS!, NEVER!, THEREIS!, and SPR! are
 bound to functions that can be used to collect / append, sum, multiply, count,
 minimize or maximize things respectively.
 
@@ -1002,6 +1091,14 @@ Examples:
     (intern (string name) :keyword))
   
 
+  (defun mklist (obj)
+    "If not already a list, mklist will return a
+   new list with its param as element"
+    (if (listp obj)
+      obj
+      (list obj)))
+  
+
   (defun mkstr (&rest args)
     "Receives any number of objects (string, symbol, keyword, char, number), extracts all printed representations, and concatenates them all into one string.
 
@@ -1027,6 +1124,61 @@ Extracted from _On Lisp_, chapter 4."
   (defun plist-values (plist)
     "Return all the values of `plist`."
     (loop for v in (cdr plist) by #'cddr collect v))
+  
+
+  (defmacro pmx (form)
+    "MACROEXPAND-1 `form` and then PRETTY-PRINT it.
+
+The macro utlimately expands into `form`; this makes it particularly convenient
+to wrap an expression with this macro, and see what the expression expands to
+without altering the original behavior.
+"
+    `(progn
+       (pprint (macroexpand-1 ',form))
+       ,form))
+  
+
+  (defmacro psx (form)
+    "PRETTY-PRINT `form`.
+
+The macro utlimately expands into `form`; this makes it particularly convenient
+to wrap a reader macro expression with this macro, and see what it expands to
+without altering the original behavior.
+
+Examples:
+
+> (psx [oddp _])
+; (LAMBDA (&OPTIONAL _) (DECLARE (IGNORABLE _)) (ODDP _))
+#<FUNCTION (LAMBDA (&OPTIONAL _)) {B800F9678B}>
+
+> (mapcar (psx [oddp _]) (list 1 2 3))
+; (LAMBDA (&OPTIONAL _) (DECLARE (IGNORABLE _)) (ODDP _))
+(T NIL T)
+"
+    `(progn
+       (pprint ',form)
+       ,form))
+  
+
+  (defun pr (&rest args)
+    "Print `args` to screen. Returns the first arg."
+    (format t "~{~A~}" args)
+    (finish-output)
+    (first args))
+  
+
+  (defun prn (&rest args)
+    "Print `args` to screen, separated by a newline. Returns the first arg."
+    (format t "~{~A~^~%~}" args)
+    (finish-output)
+    (first args))
+  
+
+  (defun prs (&rest args)
+    "Print `args` to screen, separated by a space. Returns the first arg."
+    (format t "~{~A~^ ~}" args)
+    (finish-output)
+    (first args))
   
 
   (defun random-elt (sequence &key (start 0) end)
@@ -1112,6 +1264,21 @@ sequence."
     sequence)
   
 
+  (defun spr (&rest args)
+    "Print `args` into a string, and return it."
+    (format nil "~{~A~}" args))
+  
+
+  (defun sprn (&rest args)
+    "Print `args` into a string, separated by a newline, and return it."
+    (format nil "~{~A~^~%~}" args))
+  
+
+  (defun sprs (&rest args)
+    "Print `args` into a string, separated by a space, and return it."
+    (format nil "~{~A~^ ~}" args))
+  
+
   (defun string-ends-with-p (suffix s)
     "Returns T if the last few characters of `s` are equal to `suffix`."
     (and (<= (length suffix) (length s))
@@ -1166,6 +1333,114 @@ Extracted from _On Lisp_, chapter 4.
 
 See also: `symbolicate`"
     (values (intern (apply #'mkstr args))))
+  
+
+  (defmacro undefclass (class direct-superclasses direct-slots &rest options)
+    "Removes the association between `class` and its class object.
+
+A mere wrapper around (setf (find-class class) nil), except it has the same
+signature of DEFCLASS; this makes it particularly easy to undefine a class by
+simply changing DEFCLASS into UNDEFCLASS"
+    (declare (ignore direct-superclasses direct-slots options))
+    `(setf (find-class ',class) nil))
+  
+
+  (defmacro undefconstant (name value &optional (doc nil))
+    "Makes the symbol be unbound, regardless of whether it was previously bound.
+
+Similar to MAKUNBOUND, except it has the same signature of DEFCONSTANT; this
+makes it particularly easy to make a symbol unbound by simply changing
+DEFCONSTANT into UNDEFVAR"
+    (declare (ignore value doc))
+    `(makunbound ',name))
+  
+
+  (defmacro undefmacro (name lambda-list &body body)
+    "Removes the function or macro definition, if any, of `name` in the global
+environment.
+
+Similar to FMAKUNBOUND, except it has the same signature of DEFUN; this makes
+it particularly easy to undefine a function or a macro by simply changing DEFUN
+into UNDEFUN and DEFMACRO into UNDEFMACRO"
+    (declare (ignore lambda-list body))
+    `(fmakunbound ',name))
+  
+
+  ;; https://groups.google.com/g/comp.lang.lisp/c/W6OrfjLhPJ8/m/txPfD-pPqPMJ
+  (defmacro undefmethod (name &rest args)
+    "Removes a method from a generic-function `name`.
+
+This macro's signature matches DEFMETHOD's one, and `args` will be used to
+extract the method qualifiers and specializers necessary to find the right
+method to remove; this makes it particularly easy to undefine a method by
+simply changing DEFMETHOD into UNDEFMETHOD"
+    (flet ((parse-undefmethod-args (args)
+             (let (p q method-qualifiers specializers)
+               (loop (cond ((atom (setq p (car args))) (push p method-qualifiers))
+                           (t (return))) ; now P is the specialized-lambda-list
+                     (setq args (cdr args)))
+               (loop (when (null p) (return))
+                     (cond ((symbolp (setq q (car p)))
+                            (case q
+                              ((&aux &key &optional &rest &allow-other-keys) (return))
+                              (t (push T specializers)))) ; handle eql specializers:
+                           ((consp (cadr q)) (push (cadr q) specializers))
+                           (t (push (find-class (cadr q)) specializers)))
+                     (setq p (cdr p)))
+               (values (nreverse method-qualifiers) (nreverse specializers)))))
+      `(let ((fdefn (fdefinition ',name)))
+         (multiple-value-bind (qualifiers specializers)
+             (parse-undefmethod-args ',args)
+           (let ((meth (find-method fdefn qualifiers specializers)))
+             (when meth (remove-method fdefn meth)))))))
+  
+
+  (defmacro undefpackage (name &rest options)
+    "Deletes `package` from all system data structures.
+
+Similar to DELETE-PACKAGE, except it has the same signature of DEFPACKAGE; this
+makes it particularly easy to delete a package by simply changing DEFPACKAGE
+into UNDEFPACKAGE"
+    (declare (ignore options))
+    `(delete-package ',name))
+  
+
+  (defmacro undefparameter (var val &optional (doc nil))
+    "Makes the symbol be unbound, regardless of whether it was previously bound.
+
+Similar to MAKUNBOUND, except it has the same signature of DEFPARAMETER; this
+makes it particularly easy to make a symbol unbound by simply changing
+DEFPARAMETER into UNDEFVAR"
+    (declare (ignore val doc))
+    `(makunbound ',var))
+  
+
+  (defmacro undefun (name lambda-list &body body)
+    "Removes the function or macro definition, if any, of `name` in the global
+environment.
+
+Similar to FMAKUNBOUND, except it has the same signature of DEFUN; this makes
+it particularly easy to undefine a function or a macro by simply changing DEFUN
+into UNDEFUN and DEFMACRO into UNDEFMACRO"
+    (declare (ignore lambda-list body))
+    `(fmakunbound ',name))
+  
+
+  (defmacro undefvar (var &optional (val nil) (doc nil))
+    "Makes the symbol be unbound, regardless of whether it was previously bound.
+
+Similar to MAKUNBOUND, except it has the same signature of DEFVAR; this makes
+it particularly easy to make a symbol unbound by simply changing DEFVAR into
+UNDEFVAR"
+    (declare (ignore val doc))
+    `(makunbound ',var))
+  
+
+  (defmacro until (expression &body body)
+    "Executes `body` until `expression` is true."
+    `(do ()
+         (,expression)
+       ,@body))
   
 
   (defun void (&rest args)
@@ -1246,13 +1521,6 @@ PROGN."
     `(loop while ,expression do
        ,@body))
   
-
-  (defmacro until (expression &body body)
-    "Executes `body` until `expression` is true."
-    `(do ()
-         (,expression)
-       ,@body))
-  
   (abbr while-not until)
 
   (defmacro xor (&rest datums)
@@ -1275,15 +1543,18 @@ value."
            (return-from ,xor (values ,true t))))))
   
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (export '(keep-if keep-if-not aand aif alist-keys alist-values appendf
-            assoc-value rassoc-value awhen bnd* bnd1 copy-array copy-hash-table
+  (export '(@ aand aif alist alist-keys alist-values appendf aprog1 assoc-value
+            rassoc-value awhen bnd* bnd1 copy-array copy-hash-table dbg dbgl
             defaccessor accesses digits divf doalist dohash dolists dorange
-            dorangei doseq doseqs dosublists enumerate flatten hash-table-alist
-            hash-table-key-exists-p hash-table-keys hash-table-values if-let
-            if-not iota last-elt let1 looping make-keyword mkstr mulf ncycle
-            plist-keys plist-values random-elt recursively removef repeat
-            shuffle string-ends-with-p string-starts-with-p subdivide subseq-
-            symb void when-let when-let* when-not while while-not with-gensyms
-            with-unique-names xor)))
+            dorangei doseq doseqs dosublists enumerate flatten fn
+            hash-table-alist hash-table-key-exists-p hash-table-keys
+            hash-table-values if-let if-not iota keep-if keep-if-not last-elt
+            let1 looping make-keyword mklist mkstr mulf ncycle plist-keys
+            plist-values pmx psx pr prn prs random-elt recursively removef
+            repeat shuffle spr sprn sprs string-ends-with-p
+            string-starts-with-p subdivide subseq- symb undefclass
+            undefconstant undefmacro undefmethod undefpackage undefparameter
+            undefun undefvar until value-at void when-let when-let* when-not
+            while while-not with-gensyms with-unique-names xor)))
 
 ;;;; END OF quickutils.lisp ;;;;

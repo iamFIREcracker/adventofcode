@@ -13,20 +13,23 @@
                #+nil :split
                #+nil :split-if
                #+nil :split-if-not
-               :keep-if
-               :keep-if-not
 
+               :@
                :aand
                :aif
+               :alist
                :alist-keys
                :alist-values
                :appendf
+               :aprog1
                :assoc-value
                :awhen
                :bnd*
                :bnd1
                :copy-array
                :copy-hash-table
+               :dbg
+               :dbgl
                :defaccessor
                :digits
                :divf
@@ -40,6 +43,7 @@
                :dosublists
                :enumerate
                :flatten
+               :fn
                :hash-table-alist
                :hash-table-key-exists-p
                :hash-table-keys
@@ -47,25 +51,46 @@
                :if-let
                :if-not
                :iota
+               :keep-if
+               :keep-if-not
                :last-elt
                :let1
                :looping
                :make-keyword
+               :mklist
                :mkstr
                :mulf
                :ncycle
                :plist-keys
                :plist-values
+               :pmx
+               :psx
+               :pr
+               :prn
+               :prs
                :random-elt
                :recursively
                :removef
                :repeat
                :shuffle
+               :spr
+               :sprn
+               :sprs
                :string-ends-with-p
                :string-starts-with-p
                :subdivide
                :subseq-
                :symb
+               :undefclass
+               :undefconstant
+               :undefmacro
+               :undefmethod
+               :undefpackage
+               :undefparameter
+               :undefun
+               :undefvar
+               :until
+               :value-at
                :void
                :when-let
                :when-not

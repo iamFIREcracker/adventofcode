@@ -1,5 +1,5 @@
 (defpackage :intcode
-  (:use :cl :pmdb :aoc)
+  (:use :cl :aoc)
   (:export
     :read-program
     :make-program
