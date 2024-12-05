@@ -4,13 +4,12 @@ all: vendor
 
 # Vendor ----------------------------------------------------------------------
 .PHONY: vendor
-vendor: vendor/pmdb.lisp vendor/quickutils.lisp
-vendor/pmdb.lisp:
-	cp ~/.lisp/pmdb.lisp vendor/pmdb.lisp
-vendor/quickutils.lisp: vendor/quickutil vendor/make-quickutils.lisp
-	cd vendor && sbcl --noinform --load "make-quickutils.lisp"  --non-interactive
-vendor/quickutil:
-	ln -sf ~/Workspace/quickutil vendor/quickutil
+vendor: quickutils
+
+.PHONY: quickutils
+quickutils:
+	cd vendor && sbclw --noinform --load "make-quickutils.lisp"  --non-interactive
+
 cl-classified:
 	mkdir -p vendor/cl-classified
 	cp ~/Workspace/cl-encrypted/classified.asd                         vendor/cl-classified/
@@ -23,7 +22,7 @@ cl-classified:
 # Info ------------------------------------------------------------------------
 .PHONY: lisp-info
 lisp-info:
-	sbcl --noinform --quit \
+	sbclw --noinform --quit \
 		--load "build/info.lisp"
 
 .PHONY: lisp-info-ros
@@ -37,7 +36,9 @@ test: test-sbcl
 
 .PHONY: test-sbcl
 test-sbcl: $(lisps)
-	sbcl --noinform --quit \
+	sbclw --noinform --quit \
+		--eval "(ql:quickload :cl-dotenv)" \
+		--eval "(.env:load-env #P\"./.env\")" \
 		--load "build/setup.lisp" \
 		--load "build/test.lisp"
 
@@ -53,7 +54,7 @@ report-warnings: report-warnings-sbcl
 
 .PHONY: report-warnings-sbcl
 report-warnings-sbcl: $(lisps)
-	sbcl --noinform --quit \
+	sbclw --noinform --quit \
 		--load "build/setup.lisp" \
 		--load "build/report-warnings.lisp"
 
