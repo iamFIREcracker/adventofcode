@@ -1,98 +1,51 @@
 (defpackage :aoc/2024/04 #.cl-user::*aoc-use*)
 (in-package :aoc/2024/04)
 
-#;
-
 (defun parse-grid (&optional (strings (uiop:read-file-lines #P"src/2024/day04.txt")))
   (let1 grid (make-hash-table :test 'equal)
     (doseq ((i s) (enumerate strings))
       (doseq ((j ch) (enumerate s))
-        (setf (gethash (list i j) grid) ch)))
+        (setf (@ grid (list i j)) ch)))
     grid))
+#+#:excluded (parse-grid)
 
-(defparameter *nhood-d1-list* '((-1 0) (0 1) (1 0) (0 -1)))
+(defparameter *xmas-patterns*
+  '(((#\X 0 0) (#\M -1  0) (#\A -2  0) (#\S -3  0))
+    ((#\X 0 0) (#\M  1  0) (#\A  2  0) (#\S  3  0))
 
-(defparameter *nhood-diagonal-list* (concatenate 'list
-                                                    *nhood-d1-list*
-                                                    '((-1 1) (1 1) (1 -1) (-1 -1))))
-#|
-(defun xmas-north? (grid i j)
-  (and (eql (gethash (list i j) grid) #\X)
-       (eql (gethash (list (- i 1) j) grid) #\M)
-       (eql (gethash (list (- i 2) j) grid) #\A)
-       (eql (gethash (list (- i 3) j) grid) #\S)))
- 
-(defun xmas-east? (grid i j)
-  (and (eql (gethash (list i j) grid) #\X)
-       (eql (gethash (list i (+ j 1)) grid) #\M)
-       (eql (gethash (list i (+ j 2)) grid) #\A)
-       (eql (gethash (list i (+ j 3)) grid) #\S)))
+    ((#\X 0 0) (#\M  0  1) (#\A  0  2) (#\S  0  3))
+    ((#\X 0 0) (#\M  0 -1) (#\A  0 -2) (#\S  0 -3))
 
-(defun xmas-south? (grid i j)
-  (and (eql (gethash (list i j) grid) #\X)
-       (eql (gethash (list (+ i 1) j) grid) #\M)
-       (eql (gethash (list (+ i 2) j) grid) #\A)
-       (eql (gethash (list (+ i 3) j) grid) #\S)))
-#+#:excluded (xmas-south? (parse-grid) 0 0)
+    ((#\X 0 0) (#\M -1  1) (#\A -2  2) (#\S -3  3))
+    ((#\X 0 0) (#\M  1 -1) (#\A  2 -2) (#\S  3 -3))
 
-(defun xmas-west? (grid i j)
-  (and (eql (gethash (list i j) grid) #\X)
-       (eql (gethash (list i (- j 1)) grid) #\M)
-       (eql (gethash (list i (- j 2)) grid) #\A)
-       (eql (gethash (list i (- j 3)) grid) #\S)))
-|#
+    ((#\X 0 0) (#\M  1  1) (#\A  2  2) (#\S  3  3))
+    ((#\X 0 0) (#\M -1 -1) (#\A -2 -2) (#\S -3 -3))
+    ))
 
-(defun count-xmas (grid i j &aux (word "XMAS"))
+(defparameter *x-mas-patterns* '(((#\A 0  0) (#\M -1 -1) (#\S -1  1) (#\M 1 -1) (#\S 1  1))
+                                 ((#\A 0  0) (#\M -1 -1) (#\M -1  1) (#\S 1 -1) (#\S 1  1))
+                                 ((#\A 0  0) (#\S -1 -1) (#\M -1  1) (#\S 1 -1) (#\M 1  1))
+                                 ((#\A 0  0) (#\S -1 -1) (#\S -1  1) (#\M 1 -1) (#\M 1  1))
+                                 ))
+
+
+(defun matches? (grid pattern i j)
   (looping
-    (doseq ((di dj) *nhood-diagonal-list*)
-      (count!
-        (looping
-          (doseqs ((ch word)
-                   (mul (iota (length word))))
-            (let ((i1 (+ (* di mul) i))
-                  (j1 (+ (* dj mul) j)))
-              (always! (eql (gethash (list i1 j1) grid) ch)))))))))
-#+#:excluded (count-xmas (parse-grid) 0 0)
+    (doseq ((ch di dj) pattern)
+      (always! (eql (@ grid (list (+ i di) (+ j dj))) ch)))))
 
-#+#:excluded (let1 grid (parse-grid)
-               (looping
-                 (dotimes (i 140)
-                   (dotimes (j 140)
-                     (sum! (count-xmas grid i j))))))
+(defun count-matching (grid patterns)
+  (let ((rows (1+ (reduce 'max (hash-table-keys grid) :key #'car)))
+        (cols (1+ (reduce 'max (hash-table-keys grid) :key #'cadr))))
+    (looping
+      (dotimes (i rows)
+        (dotimes (j cols)
+          (dolist (p patterns)
+            (count! (matches? grid p i j))))))))
 
-; M.S
-; .A.
-; M.S
+(define-solution (2024 4) (grid parse-grid)
+  (values (count-matching grid *xmas-patterns*)
+          (count-matching grid *x-mas-patterns*)))
 
-(defun xmas-shape? (grid i j)
-  (or
-    (and
-     (eql (gethash (list (- i 1) (- j 1)) grid) #\M)
-     (eql (gethash (list (- i 1) (+ j 1)) grid) #\S)
-     (eql (gethash (list i j) grid) #\A)
-     (eql (gethash (list (+ i 1) (- j 1)) grid) #\M)
-     (eql (gethash (list (+ i 1) (+ j 1)) grid) #\S))
-    (and
-     (eql (gethash (list (- i 1) (- j 1)) grid) #\M)
-     (eql (gethash (list (- i 1) (+ j 1)) grid) #\M)
-     (eql (gethash (list i j) grid) #\A)
-     (eql (gethash (list (+ i 1) (- j 1)) grid) #\S)
-     (eql (gethash (list (+ i 1) (+ j 1)) grid) #\S))
-    (and
-     (eql (gethash (list (- i 1) (- j 1)) grid) #\S)
-     (eql (gethash (list (- i 1) (+ j 1)) grid) #\M)
-     (eql (gethash (list i j) grid) #\A)
-     (eql (gethash (list (+ i 1) (- j 1)) grid) #\S)
-     (eql (gethash (list (+ i 1) (+ j 1)) grid) #\M))
-    (and
-     (eql (gethash (list (- i 1) (- j 1)) grid) #\S)
-     (eql (gethash (list (- i 1) (+ j 1)) grid) #\S)
-     (eql (gethash (list i j) grid) #\A)
-     (eql (gethash (list (+ i 1) (- j 1)) grid) #\M)
-     (eql (gethash (list (+ i 1) (+ j 1)) grid) #\M))))
-
-#+#:excluded (let1 grid (parse-grid)
-               (looping
-                 (dotimes (i 140)
-                   (dotimes (j 140)
-                     (count! (xmas-shape? grid i j))))))
+(define-test (2024 03) (2536 1875))
