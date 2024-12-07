@@ -2,7 +2,7 @@
 ;;;; See http://quickutil.org for details.
 
 ;;;; To regenerate:
-;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:@ :AAND :AIF :ALIST :ALIST-KEYS :ALIST-VALUES :APPENDF :APROG1 :ASSOC-VALUE :AWHEN :BND* :BND1 :COPY-ARRAY :COPY-HASH-TABLE :DBG :DBGL :DEFACCESSOR :DIGITS :DIVF :DOALIST :DOHASH :DOLISTS :DORANGE :DORANGEI :DOSEQ :DOSEQS :DOSUBLISTS :ENUMERATE :FLATTEN :FN :HASH-TABLE-ALIST :HASH-TABLE-KEY-EXISTS-P :HASH-TABLE-KEYS :HASH-TABLE-VALUES :IF-LET :IF-NOT :IOTA :KEEP-IF :KEEP-IF-NOT :LAST-ELT :LET1 :LOOPING :MAKE-KEYWORD :MKLIST :MKSTR :MULF :NCYCLE :PLIST-KEYS :PLIST-VALUES :PMX :PSX :PR :PRN :PRS :RANDOM-ELT :RECURSIVELY :REMOVEF :REPEAT :SHUFFLE :SPR :SPRN :SPRS :STRING-ENDS-WITH-P :STRING-STARTS-WITH-P :SUBDIVIDE :SUBSEQ- :SYMB :UNDEFCLASS :UNDEFCONSTANT :UNDEFMACRO :UNDEFMETHOD :UNDEFPACKAGE :UNDEFPARAMETER :UNDEFUN :UNDEFVAR :UNTIL :VALUE-AT :VOID :WHEN-LET :WHEN-NOT :WHILE :WHILE-NOT :WITH-GENSYMS :XOR) :ensure-package T :package "AOC.QUICKUTILS")
+;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:@ :AAND :AIF :ALIST :ALIST-KEYS :ALIST-VALUES :APPENDF :APROG1 :ASSOC-VALUE :AWHEN :BND* :BND1 :COPY-ARRAY :COPY-HASH-TABLE :DBG :DBGL :DEFACCESSOR :DIGITS :DIVF :DOALIST :DOHASH :DOLISTS :DORANGE :DORANGEI :DOSEQ :DOSEQS :DOSUBLISTS :ENUMERATE :FLATTEN :FN :HASH-TABLE-ALIST :HASH-TABLE-KEY-EXISTS-P :HASH-TABLE-KEYS :HASH-TABLE-VALUES :IF-LET :IF-NOT :IOTA :KEEP-IF :KEEP-IF-NOT :LAST-ELT :LET1 :LOOPING :MAKE-KEYWORD :MKLIST :MKSTR :MULF :NCYCLE :PLIST-KEYS :PLIST-VALUES :PMX :PR :PRN :PROG1-LET :PRS :PSX :RANDOM-ELT :RECURSIVELY :REMOVEF :REPEAT :SHUFFLE :SPR :SPRN :SPRS :STRING-ENDS-WITH-P :STRING-STARTS-WITH-P :SUBDIVIDE :SUBSEQ- :SYMB :UNDEFCLASS :UNDEFCONSTANT :UNDEFMACRO :UNDEFMETHOD :UNDEFPACKAGE :UNDEFPARAMETER :UNDEFUN :UNDEFVAR :UNTIL :VALUE-AT :VOID :WHEN-LET :WHEN-NOT :WHILE :WHILE-NOT :WITH-GENSYMS :XOR) :ensure-package T :package "AOC.QUICKUTILS")
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (unless (find-package "AOC.QUICKUTILS")
@@ -35,9 +35,10 @@
                                          :PROPER-SEQUENCE :LAST-ELT :LOOPING
                                          :MAKE-KEYWORD :MKLIST :MKSTR :MULF
                                          :NCYCLE :PLIST-KEYS :PLIST-VALUES :PMX
-                                         :PSX :PR :PRN :PRS :RANDOM-ELT
-                                         :RECURSIVELY :REMOVEF :REPEAT :SHUFFLE
-                                         :SPR :SPRN :SPRS :STRING-ENDS-WITH-P
+                                         :PR :PRN :PROG1-LET :PRS :PSX
+                                         :RANDOM-ELT :RECURSIVELY :REMOVEF
+                                         :REPEAT :SHUFFLE :SPR :SPRN :SPRS
+                                         :STRING-ENDS-WITH-P
                                          :STRING-STARTS-WITH-P :SUBDIVIDE
                                          :SUBSEQ- :SYMB :UNDEFCLASS
                                          :UNDEFCONSTANT :UNDEFMACRO
@@ -989,51 +990,58 @@ E.g. COLLECT! is compatible with APPEND!, or ADJOIN!, but not with SUM!"
       (thereis! nil)
       (spr! "")))
 
-  (defgeneric %expand-keyword-into-label (k result last)
-    (:method ((k (eql 'collect!)) result last)
+  (defgeneric %expand-keyword-into-label (k result last short-circuit-tag)
+    (:method ((k (eql 'collect!)) result last short-circuit-tag)
       `(,(intern "COLLECT!") (item)
          (if (not ,last)
            (prog1 (push item ,result)
              (setf ,last ,result))
            (prog1 (push item (cdr ,last))
              (setf ,last (cdr ,last))))))
-    (:method ((k (eql 'append!)) result last)
+    (:method ((k (eql 'append!)) result last short-circuit-tag)
       `(,(intern "APPEND!") (item)
          (setf ,result (append ,result item)
                ,last (last item))
          item))
-    (:method ((k (eql 'adjoin!)) result last)
+    (:method ((k (eql 'adjoin!)) result last short-circuit-tag)
       `(,(intern "ADJOIN!") (item &rest adjoin-args)
          (setf ,result (apply #'adjoin item ,result adjoin-args))))
-    (:method ((k (eql 'sum!)) result last)
+    (:method ((k (eql 'sum!)) result last short-circuit-tag)
       `(,(intern "SUM!") (item)
          (incf ,result item)))
-    (:method ((k (eql 'multiply!)) result last)
+    (:method ((k (eql 'multiply!)) result last short-circuit-tag)
       `(,(intern "MULTIPLY!") (item)
          (setf ,result (* ,result item))))
-    (:method ((k (eql 'count!)) result last)
+    (:method ((k (eql 'count!)) result last short-circuit-tag)
       `(,(intern "COUNT!") (item)
          (when item
            (incf ,result))))
-    (:method ((k (eql 'minimize!)) result last)
+    (:method ((k (eql 'minimize!)) result last short-circuit-tag)
       `(,(intern "MINIMIZE!") (item)
          (setf ,result (min (or ,result item) item))))
-    (:method ((k (eql 'maximize!)) result last)
+    (:method ((k (eql 'maximize!)) result last short-circuit-tag)
       `(,(intern "MAXIMIZE!") (item)
          (setf ,result (max (or ,result item) item))))
-    (:method ((k (eql 'always!)) result last)
+    (:method ((k (eql 'always!)) result last short-circuit-tag)
       `(,(intern "ALWAYS!") (item)
-         ;; FIXME: short circuit
-         (setf ,result (and ,result item))))
-    (:method ((k (eql 'never!)) result last)
+         (if (not item)
+           (progn
+             (setf ,result nil)
+             (throw ',short-circuit-tag nil))
+           item)))
+    (:method ((k (eql 'never!)) result last short-circuit-tag)
       `(,(intern "NEVER!") (item)
-         ;; FIXME: short circuit
-         (setf ,result (and ,result (not item)))))
-    (:method ((k (eql 'thereis!)) result last)
+         (if item
+           (progn
+             (setf ,result nil)
+             (throw ',short-circuit-tag nil))
+           t)))
+    (:method ((k (eql 'thereis!)) result last short-circuit-tag)
       `(,(intern "THEREIS!") (item)
-         ;; FIXME: short circuit
-         (setf ,result (or ,result item))))
-    (:method ((k (eql 'spr!)) result last)
+         (when item
+           (setf ,result item)
+           (throw ',short-circuit-tag item))))
+    (:method ((k (eql 'spr!)) result last short-circuit-tag)
       `(,(intern "SPR!") (&rest args)
          (setf ,result (apply #'spr ,result args)))))
 
@@ -1076,14 +1084,15 @@ Examples:
   "
     (let1 keywords (remove-duplicates (%extract-reduce-keywords body))
       (%assert-compatible-reduce-keywords keywords)
-      (with-gensyms (result last)
-        (let1 labels (mapcar (lambda (k) (%expand-keyword-into-label k result last)) keywords)
+      (with-gensyms (short-circuit-tag result last)
+        (let1 labels (mapcar (lambda (k) (%expand-keyword-into-label k result last short-circuit-tag)) keywords)
           `(let* ((,result ,(%initialize-result keywords))
                   (,last nil))
              (declare (ignorable ,last))
              (labels (,@labels)
-               ,@body)
-             ,result)))))
+               (catch ',short-circuit-tag
+                 ,@body
+                 ,result)))))))
   
 
   (defun make-keyword (name)
@@ -1138,6 +1147,42 @@ without altering the original behavior.
        ,form))
   
 
+  (defun pr (&rest args)
+    "Print `args` to screen. Returns the first arg."
+    (format t "~{~A~}" args)
+    (finish-output)
+    (first args))
+  
+
+  (defun prn (&rest args)
+    "Print `args` to screen, separated by a newline. Returns the first arg."
+    (format t "~{~A~^~%~}" args)
+    (finish-output)
+    (first args))
+  
+
+  (defmacro prog1-let ((name result-form) &body body)
+    "Like PROG1, except it lets you bind the result of the `result-form` (i.e., the returned
+form) to `name` (via LET) for the scope of `body`.
+
+Inspired by ActiveSupport: Object#returning
+https://weblog.jamisbuck.org/2006/10/27/mining-activesupport-object-returning.html"
+    (prog1-let-expand name result-form body))
+
+  (eval-when (:compile-toplevel :load-toplevel :execute)
+    (defun prog1-let-expand (name result-form body)
+      `(let1 ,name ,result-form
+         ,@body
+         ,name)))
+  
+
+  (defun prs (&rest args)
+    "Print `args` to screen, separated by a space. Returns the first arg."
+    (format t "~{~A~^ ~}" args)
+    (finish-output)
+    (first args))
+  
+
   (defmacro psx (form)
     "PRETTY-PRINT `form`.
 
@@ -1158,27 +1203,6 @@ Examples:
     `(progn
        (pprint ',form)
        ,form))
-  
-
-  (defun pr (&rest args)
-    "Print `args` to screen. Returns the first arg."
-    (format t "~{~A~}" args)
-    (finish-output)
-    (first args))
-  
-
-  (defun prn (&rest args)
-    "Print `args` to screen, separated by a newline. Returns the first arg."
-    (format t "~{~A~^~%~}" args)
-    (finish-output)
-    (first args))
-  
-
-  (defun prs (&rest args)
-    "Print `args` to screen, separated by a space. Returns the first arg."
-    (format t "~{~A~^ ~}" args)
-    (finish-output)
-    (first args))
   
 
   (defun random-elt (sequence &key (start 0) end)
@@ -1550,8 +1574,8 @@ value."
             hash-table-alist hash-table-key-exists-p hash-table-keys
             hash-table-values if-let if-not iota keep-if keep-if-not last-elt
             let1 looping make-keyword mklist mkstr mulf ncycle plist-keys
-            plist-values pmx psx pr prn prs random-elt recursively removef
-            repeat shuffle spr sprn sprs string-ends-with-p
+            plist-values pmx pr prn prog1-let prs psx random-elt recursively
+            removef repeat shuffle spr sprn sprs string-ends-with-p
             string-starts-with-p subdivide subseq- symb undefclass
             undefconstant undefmacro undefmethod undefpackage undefparameter
             undefun undefvar until value-at void when-let when-let* when-not

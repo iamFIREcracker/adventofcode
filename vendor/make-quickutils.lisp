@@ -64,10 +64,11 @@
                :plist-keys
                :plist-values
                :pmx
-               :psx
                :pr
                :prn
+               :prog1-let
                :prs
+               :psx
                :random-elt
                :recursively
                :removef
