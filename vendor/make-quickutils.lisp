@@ -82,6 +82,7 @@
                :subdivide
                :subseq-
                :symb
+               :take
                :undefclass
                :undefconstant
                :undefmacro
@@ -99,6 +100,7 @@
                :while-not
                :with-gensyms
                :xor
+               :~>
 
                )
   :package "AOC.QUICKUTILS")

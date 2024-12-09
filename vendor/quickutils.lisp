@@ -2,7 +2,7 @@
 ;;;; See http://quickutil.org for details.
 
 ;;;; To regenerate:
-;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:@ :AAND :AIF :ALIST :ALIST-KEYS :ALIST-VALUES :APPENDF :APROG1 :ASSOC-VALUE :AWHEN :BND* :BND1 :COPY-ARRAY :COPY-HASH-TABLE :DBG :DBGL :DEFACCESSOR :DIGITS :DIVF :DOALIST :DOHASH :DOLISTS :DORANGE :DORANGEI :DOSEQ :DOSEQS :DOSUBLISTS :ENUMERATE :FLATTEN :FN :HASH-TABLE-ALIST :HASH-TABLE-KEY-EXISTS-P :HASH-TABLE-KEYS :HASH-TABLE-VALUES :IF-LET :IF-NOT :IOTA :KEEP-IF :KEEP-IF-NOT :LAST-ELT :LET1 :LOOPING :MAKE-KEYWORD :MKLIST :MKSTR :MULF :NCYCLE :PLIST-KEYS :PLIST-VALUES :PMX :PR :PRN :PROG1-LET :PRS :PSX :RANDOM-ELT :RECURSIVELY :REMOVEF :REPEAT :SHUFFLE :SPR :SPRN :SPRS :STRING-ENDS-WITH-P :STRING-STARTS-WITH-P :SUBDIVIDE :SUBSEQ- :SYMB :UNDEFCLASS :UNDEFCONSTANT :UNDEFMACRO :UNDEFMETHOD :UNDEFPACKAGE :UNDEFPARAMETER :UNDEFUN :UNDEFVAR :UNTIL :VALUE-AT :VOID :WHEN-LET :WHEN-NOT :WHILE :WHILE-NOT :WITH-GENSYMS :XOR) :ensure-package T :package "AOC.QUICKUTILS")
+;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:@ :AAND :AIF :ALIST :ALIST-KEYS :ALIST-VALUES :APPENDF :APROG1 :ASSOC-VALUE :AWHEN :BND* :BND1 :COPY-ARRAY :COPY-HASH-TABLE :DBG :DBGL :DEFACCESSOR :DIGITS :DIVF :DOALIST :DOHASH :DOLISTS :DORANGE :DORANGEI :DOSEQ :DOSEQS :DOSUBLISTS :ENUMERATE :FLATTEN :FN :HASH-TABLE-ALIST :HASH-TABLE-KEY-EXISTS-P :HASH-TABLE-KEYS :HASH-TABLE-VALUES :IF-LET :IF-NOT :IOTA :KEEP-IF :KEEP-IF-NOT :LAST-ELT :LET1 :LOOPING :MAKE-KEYWORD :MKLIST :MKSTR :MULF :NCYCLE :PLIST-KEYS :PLIST-VALUES :PMX :PR :PRN :PROG1-LET :PRS :PSX :RANDOM-ELT :RECURSIVELY :REMOVEF :REPEAT :SHUFFLE :SPR :SPRN :SPRS :STRING-ENDS-WITH-P :STRING-STARTS-WITH-P :SUBDIVIDE :SUBSEQ- :SYMB :TAKE :UNDEFCLASS :UNDEFCONSTANT :UNDEFMACRO :UNDEFMETHOD :UNDEFPACKAGE :UNDEFPARAMETER :UNDEFUN :UNDEFVAR :UNTIL :VALUE-AT :VOID :WHEN-LET :WHEN-NOT :WHILE :WHILE-NOT :WITH-GENSYMS :XOR :~>) :ensure-package T :package "AOC.QUICKUTILS")
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (unless (find-package "AOC.QUICKUTILS")
@@ -40,12 +40,12 @@
                                          :REPEAT :SHUFFLE :SPR :SPRN :SPRS
                                          :STRING-ENDS-WITH-P
                                          :STRING-STARTS-WITH-P :SUBDIVIDE
-                                         :SUBSEQ- :SYMB :UNDEFCLASS
+                                         :SUBSEQ- :SYMB :TAKE :UNDEFCLASS
                                          :UNDEFCONSTANT :UNDEFMACRO
                                          :UNDEFMETHOD :UNDEFPACKAGE
                                          :UNDEFPARAMETER :UNDEFUN :UNDEFVAR
                                          :UNTIL :VOID :WHEN-LET :WHEN-NOT
-                                         :WHILE :WHILE-NOT :XOR))))
+                                         :WHILE :WHILE-NOT :XOR :~>))))
 
   (deftype string-designator ()
     "A string designator type. A string designator is either a string, a symbol,
@@ -1231,7 +1231,7 @@ designators for `sequence`."
              (let ((index (+ start (random (- end2 start)))))
                (elt sequence index))))))
   
-
+(eval-when (:compile-toplevel :load-toplevel :execute)
   (defmacro recursively (bindings &body body)
     "Execute `body` recursively, like Clojure's `loop`/`recur`.
 
@@ -1243,7 +1243,7 @@ In `body` the symbol `recur` will be bound to the function for recurring."
       `(labels ((,(intern "RECUR") (,@names)
                  ,@body))
          (,(intern "RECUR") ,@values))))
-  
+  )                                        ; eval-when
 
   (declaim (inline remove/swapped-arguments))
   (defun remove/swapped-arguments (sequence item &rest keyword-arguments)
@@ -1357,6 +1357,11 @@ Extracted from _On Lisp_, chapter 4.
 
 See also: `symbolicate`"
     (values (intern (apply #'mkstr args))))
+  
+
+  (defun take (n sequence)
+    "Take the first `n` elements from `sequence`."
+    (subseq sequence 0 (min (length sequence) n)))
   
 
   (defmacro undefclass (class direct-superclasses direct-slots &rest options)
@@ -1566,6 +1571,58 @@ value."
                      datums)
            (return-from ,xor (values ,true t))))))
   
+
+  (defmacro ~> (x &rest forms)
+    "Threads the expr through the forms, like Clojure's `->`.
+
+While threading, for each element of `forms`:
+
+- if a SYMBOL, it's converted into a function call with the accumulated value
+as it's first argument
+- if a function call already, the accumulated value is **prepended** to the
+list of args unless it contains the placeholder '~ (in which case '~ is
+replaced with the accumulated value)
+
+Examples:
+
+(~> 'Hello
+  (list 'World))
+=>
+(HELLO WORLD)
+
+(~> 'Hello
+  (list 'World ~))
+=>
+(WORLD HELLO)
+
+(~> 'Hello
+  (list 'World ~)
+  reverse)
+=>
+(HELLO WORLD)
+  "
+    (labels ((replace-or-prepend (old form new)
+               (if (contains? old form)
+                 (subst new old form)
+                 (list* (car form) new (cdr form))))
+             (contains? (target form)
+               (recursively ((form form))
+                 (if (atom form)
+                   (eq form target)
+                   (or (recur (car form))
+                       (recur (cdr form)))))))
+      (let ((placeholder (intern "~")))
+        (with-gensyms (result)
+          `(let* ((,result ,x)
+                  ,@(mapcar (lambda (form)
+                              (if (atom form)
+                                `(,result (,form ,result))
+                                `(,result ,(replace-or-prepend placeholder
+                                                               form
+                                                               result))))
+                            forms))
+             ,result)))))
+  
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (export '(@ aand aif alist alist-keys alist-values appendf aprog1 assoc-value
             rassoc-value awhen bnd* bnd1 copy-array copy-hash-table dbg dbgl
@@ -1576,9 +1633,9 @@ value."
             let1 looping make-keyword mklist mkstr mulf ncycle plist-keys
             plist-values pmx pr prn prog1-let prs psx random-elt recursively
             removef repeat shuffle spr sprn sprs string-ends-with-p
-            string-starts-with-p subdivide subseq- symb undefclass
+            string-starts-with-p subdivide subseq- symb take undefclass
             undefconstant undefmacro undefmethod undefpackage undefparameter
             undefun undefvar until value-at void when-let when-let* when-not
-            while while-not with-gensyms with-unique-names xor)))
+            while while-not with-gensyms with-unique-names xor ~>)))
 
 ;;;; END OF quickutils.lisp ;;;;
