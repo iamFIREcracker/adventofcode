@@ -35,6 +35,8 @@
                :divf
                :doalist
                :dohash
+               :dohashk
+               :dohashv
                :dolists
                :dorange
                :dorangei
@@ -61,6 +63,7 @@
                :mkstr
                :mulf
                :ncycle
+               :partition-if
                :plist-keys
                :plist-values
                :pmx
@@ -73,6 +76,7 @@
                :recursively
                :removef
                :repeat
+               :retriable
                :shuffle
                :spr
                :sprn
@@ -100,6 +104,7 @@
                :while-not
                :with-gensyms
                :xor
+               :zapf
                :~>
 
                )

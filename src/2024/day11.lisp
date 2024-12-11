@@ -6,25 +6,30 @@
   (extract-positive-integers (first strings)))
 #+#:excluded (parse-input)
 
+(defun change (stone)
+  (cond ((= stone 0) (list 1))
+        ((evenp (length (spr stone)))
+         (let* ((s (spr stone))
+                (left (parse-integer (subseq s 0 (/ (length s) 2))))
+                (right (parse-integer (subseq s (/ (length s) 2)))))
+           (list left right)))
+        (t (list (* stone 2024)))))
 
-(defvar *memo* (make-hash-table :test 'equal))
 
-(defun count-stones (stone blinks)
-  (memoizing (*memo* stone blinks)
-    (cond ((= blinks 0) 1)
-          ((= stone 0) (count-stones 1 (1- blinks)))
-          ((evenp (length (spr stone))) (let* ((s (spr stone))
-                                               (left (parse-integer (subseq s 0 (/ (length s) 2))))
-                                               (right (parse-integer (subseq s (/ (length s) 2)))))
-                                          (+ (count-stones left (1- blinks))
-                                             (count-stones right (1- blinks)))))
-          (t (count-stones (* stone 2024) (1- blinks))))))
-
+(defun blink (times stones)
+  (let1 curr (make-counter stones)
+    (repeat times
+      (setf curr
+            (prog1-let (next (make-counter nil))
+              (dohash (stone n curr)
+                (dolist (stone1 (change stone))
+                  (incf (gethash stone1 next 0) n))))))
+    (looping (dohashv (n curr) (sum! n)))))
 
 
 (define-solution (2024 11) (stones parse-input)
   (values
-    (reduce '+ stones :key [count-stones _ 25])
-    (reduce '+ stones :key [count-stones _ 75])))
+    (blink 25 stones)
+    (blink 75 stones)))
 
 (define-test (2024 11) (231278 274229228071551))

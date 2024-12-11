@@ -7,6 +7,7 @@
     :dividesp
     :hexadecimal-string
     :hexadecimal->binary
+    :make-counter
     :frequencies
     :hamming-distance
     :manhattan-distance

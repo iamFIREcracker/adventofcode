@@ -11,6 +11,8 @@
 (destructuring-bind 2)
 (doalist 1)
 (dohash 1)
+(dohashk 1)
+(dohashv 1)
 (dolist 1)
 (dolists 1)
 (dorange 1)

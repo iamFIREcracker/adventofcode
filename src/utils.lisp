@@ -109,13 +109,18 @@
          (num (parse-integer s :radix 16)))
     (format NIL control-str num)))
 
+(defun make-counter (x &key (test 'eql))
+  "Returns a HASH-TABLE mapping _unique_ elements of `x` to the number
+  of times they occur in `x`."
+  (prog1-let (map (make-hash-table :test test))
+    (map nil (lambda (e) (incf (gethash e map 0))) x)))
+
+
 (defun frequencies (x &key (test 'eql))
   "Returns an association list mapping _unique_ elements of `x` to the number
   of times they occur in `x`."
-  (let ((freqs (make-hash-table :test test))
-        alist)
-    (map nil (lambda (e) (incf (gethash e freqs 0))) x)
-    (maphash (lambda (k v) (push (cons k v) alist)) freqs)
+  (let (alist)
+    (maphash (lambda (k v) (push (cons k v) alist)) (make-counter x :test test))
     alist))
 
 (defun hamming-distance (s1 s2 &key (test 'eql))
