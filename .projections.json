@@ -1,6 +1,6 @@
 {
   "*": {
-    "start": "-title=REPL sbcl-vlime",
+    "start": "-title=REPL make start",
     "plan": {
         "root_add": "etc/plan"
     }

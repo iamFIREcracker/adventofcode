@@ -19,6 +19,15 @@ cl-classified:
 	cp ~/Workspace/cl-encrypted/vendor/ml/mlutils.lisp                 vendor/cl-classified/vendor/ml/
 	cp ~/Workspace/cl-encrypted/vendor/ml/net.matteolandi.utils.asd    vendor/cl-classified/vendor/ml/
 
+# Start -----------------------------------------------------------------------
+.PHONY: start
+start:
+	sbcl-vlime ${SBCL_ARGS} \
+		--eval "(pushnew '*default-pathname-defaults* asdf:*central-registry*)" \
+		--eval "(ql:quickload :cl-dotenv)" \
+		--eval "(.env:load-env #P\"./.env\")" \
+		--eval "(ql:quickload \"AOC\")"
+
 # Info ------------------------------------------------------------------------
 .PHONY: lisp-info
 lisp-info:
