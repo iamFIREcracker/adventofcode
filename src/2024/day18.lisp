@@ -12,9 +12,11 @@
 #+#:excluded (parse-input)
 
 
-(defun steps-to-exit (grid)
+(defun steps-to-exit (grid bytes &aux (grid (copy-hash-table grid)))
   (let ((start (list 0 0))
         (end (list (1- *side*) (1- *side*))))
+    (doseq ((j i) bytes)
+      (setf (gethash (list i j) grid) #\#))
     (search-cost
       (a* start :goal-state end :test 'equal
           :neighbors (fn (pos)
@@ -29,13 +31,11 @@
 
 (define-solution (2024 18) (input parse-input)
   (destructuring-bind (grid bytes) input
-    (let (part1 part2)
-      (doeseq ((n 1) (j i) bytes)
-        (setf (gethash (list i j) grid) #\#)
-        (if (= n 1024)
-            (setf part1 (steps-to-exit grid)))
-        (if (and (not part2) (not (steps-to-exit grid)))
-            (setf part2 (spr j "," i))))
-      (values part1 part2))))
+    (values (steps-to-exit grid (take 1024 bytes))
+            (let1 n (binary-search (1+ 1024) (1- (length bytes))
+                                   (fn (n)
+                                     (if (steps-to-exit grid (take n bytes)) -1 +1)))
+              (destructuring-bind (j i) (nth n bytes)
+                (spr j "," i))))))
 
 (define-test (2024 18) (408 "45,16"))
