@@ -14,60 +14,42 @@
     (list map start end)))
 #+#:excluded (parse-input)
 
-(defun paths-to-end (&optional (input (parse-input)))
+
+(defun path-to-end (&optional (input (parse-input)))
   (destructuring-bind (map start end) input
-    (prog1-let (all-paths (make-hash-table :test 'equal))
-      (recursively ((pos start)
-                    prev)
-        (setf (gethash pos all-paths)
-              (cond ((equal pos end) nil)
-                    (t (destructuring-bind (i j) pos
-                         (doseq ((di dj) '((-1 0) (0 1) (1 0) (0 -1)))
-                           (let1 next (list (+ i di) (+ j dj))
-                             (when (not (equal next prev))
-                               (when (aand (gethash next map) (char/= it #\#))
-                                 (return (cons next (recur next pos)))))))))))))))
-#+#:excluded (paths-to-end)
+    (cons start
+          (recursively ((pos start)
+                        prev)
+            (cond ((equal pos end) nil)
+                  (t (destructuring-bind (i j) pos
+                       (doseq ((di dj) '((-1 0) (0 1) (1 0) (0 -1)))
+                         (let1 next (list (+ i di) (+ j dj))
+                           (when (not (equal next prev))
+                             (when (aand (gethash next map) (char/= it #\#))
+                               (return (cons next (recur next pos))))))))))))))
+#+#:excluded (path-to-end)
+#+#:excluded (length *)
 
-#+#:excluded (defun cheat-cuts (&optional (input (parse-input)))
-               (let1 all-paths (paths-to-end input)
-                 (looping
-                   (dohash ((i j) path all-paths)
-                     (doseq ((di dj) '((-1 0) (0 1) (1 0) (0 -1)))
-                       (let ((i1 (+ i di)) (j1 (+ j dj)))
-                         ;; Check if we are going off the beaten path -- i.e., into a wall
-                         (when (not (hash-table-key-exists-p all-paths (list i1 j1)))
-                           (doseq ((di1 dj1) '((-1 0) (0 1) (1 0) (0 -1)))
-                             (let ((i2 (+ i1 di1)) (j2 (+ j1 dj1)))
-                               (when (or (/= i i2) (/= j j2))
-                                 ;; Check if we are back on the beaten track
-                                 (when (hash-table-key-exists-p all-paths (list i2 j2))
-                                   (let1 new-path (list* (list i1 j1) (list i2 j2) (gethash (list i2 j2) all-paths))
-                                     (if (< (length new-path) (length path))
-                                         (collect! (- (length path) (length new-path))))))))))))))))
-#+#:excluded (~> (cheat-cuts) frequencies (sort ~ #'< :key 'car))
-#+#:excluded (count-if [>= _ 100] (cheat-cuts))
-
-(defun cheat-cuts (&optional (max-cut-distance 2) (input (parse-input)))
-  (let1 all-paths (paths-to-end input)
-    (looping
-      (dohash (pos path all-paths)
-        (dolist (pos1 path)
+;; A shortcut is convenient if it takes you further down on the path (i.e,
+;; closer to destination); this means that given a position on the path, their
+;; candidate shortcuts can only be found in the remainder of the path.
+;; Furthermore, a shortcut is legit if the beginning and ending positions of
+;; the shortcuts are at most `max-cut-distance` locations away.
+(defun count-cheat-cuts-if (predicate &optional (max-cut-distance 2) (input (parse-input)))
+  (looping
+    (dosublists ((pos . path) (path-to-end input))
+      (let1 path-len (length path)
+        (doeseq ((n 1) pos1 path)
           (let1 distance (manhattan-distance pos1 pos)
-            (when (<= distance max-cut-distance)
-              (let1 new-path-len (+ distance (length (gethash pos1 all-paths)))
-                (if (< new-path-len (length path))
-                    (collect! (- (length path) new-path-len)))))))))))
-#;
-(~> (cheat-cuts 2) frequencies (sort ~ #'< :key 'car))
-(count-if [>= _ 100] (cheat-cuts 2))
-(count-if [>= _ 100] (cheat-cuts 20))
-985332
+            (let1 path1-len (- path-len n)
+              (when (<= distance max-cut-distance)
+                (let1 new-path-len (+ distance path1-len)
+                  (when (< new-path-len path-len)
+                    (count! (funcall predicate (- path-len new-path-len)))))))))))))
 
 
 (define-solution (2024 20) (input parse-input)
-  (destructuring-bind (patterns designs) input
-    (values (count-if #'plusp designs :key [design-possible? patterns _])
-            (reduce #'+ designs :key [design-possible? patterns _]))))
+  (values (count-cheat-cuts-if [>= _ 100] 2  input)
+          (count-cheat-cuts-if [>= _ 100] 20 input)))
 
-(define-test (2024 20) (350 769668867512623))
+(define-test (2024 20) (1463 985332))
