@@ -26,6 +26,7 @@
                :awhen
                :bnd*
                :bnd1
+               :continuable
                :copy-array
                :copy-hash-table
                :dbg
@@ -34,6 +35,7 @@
                :digits
                :divf
                :doalist
+               :doeseq
                :dohash
                :dohashk
                :dohashv
@@ -43,6 +45,7 @@
                :doseq
                :doseqs
                :dosublists
+               :doesublists
                :enumerate
                :flatten
                :fn

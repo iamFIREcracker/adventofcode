@@ -2,7 +2,7 @@
 ;;;; See http://quickutil.org for details.
 
 ;;;; To regenerate:
-;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:@ :AAND :AIF :ALIST :ALIST-KEYS :ALIST-VALUES :APPENDF :APROG1 :ASSOC-VALUE :AWHEN :BND* :BND1 :COPY-ARRAY :COPY-HASH-TABLE :DBG :DBGL :DEFACCESSOR :DIGITS :DIVF :DOALIST :DOHASH :DOHASHK :DOHASHV :DOLISTS :DORANGE :DORANGEI :DOSEQ :DOSEQS :DOSUBLISTS :ENUMERATE :FLATTEN :FN :HASH-TABLE-ALIST :HASH-TABLE-KEY-EXISTS-P :HASH-TABLE-KEYS :HASH-TABLE-VALUES :IF-LET :IF-NOT :IOTA :KEEP-IF :KEEP-IF-NOT :LAST-ELT :LET1 :LOOPING :MAKE-KEYWORD :MKLIST :MKSTR :MULF :NCYCLE :PARTITION-IF :PLIST-KEYS :PLIST-VALUES :PMX :PR :PRN :PROG1-LET :PRS :PSX :RANDOM-ELT :RECURSIVELY :REMOVEF :REPEAT :RETRIABLE :SHUFFLE :SPR :SPRN :SPRS :STRING-ENDS-WITH-P :STRING-STARTS-WITH-P :SUBDIVIDE :SUBSEQ- :SYMB :TAKE :UNDEFCLASS :UNDEFCONSTANT :UNDEFMACRO :UNDEFMETHOD :UNDEFPACKAGE :UNDEFPARAMETER :UNDEFUN :UNDEFVAR :UNTIL :VALUE-AT :VOID :WHEN-LET :WHEN-NOT :WHILE :WHILE-NOT :WITH-GENSYMS :XOR :ZAPF :~>) :ensure-package T :package "AOC.QUICKUTILS")
+;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:@ :AAND :AIF :ALIST :ALIST-KEYS :ALIST-VALUES :APPENDF :APROG1 :ASSOC-VALUE :AWHEN :BND* :BND1 :CONTINUABLE :COPY-ARRAY :COPY-HASH-TABLE :DBG :DBGL :DEFACCESSOR :DIGITS :DIVF :DOALIST :DOESEQ :DOHASH :DOHASHK :DOHASHV :DOLISTS :DORANGE :DORANGEI :DOSEQ :DOSEQS :DOSUBLISTS :DOESUBLISTS :ENUMERATE :FLATTEN :FN :HASH-TABLE-ALIST :HASH-TABLE-KEY-EXISTS-P :HASH-TABLE-KEYS :HASH-TABLE-VALUES :IF-LET :IF-NOT :IOTA :KEEP-IF :KEEP-IF-NOT :LAST-ELT :LET1 :LOOPING :MAKE-KEYWORD :MKLIST :MKSTR :MULF :NCYCLE :PARTITION-IF :PLIST-KEYS :PLIST-VALUES :PMX :PR :PRN :PROG1-LET :PRS :PSX :RANDOM-ELT :RECURSIVELY :REMOVEF :REPEAT :RETRIABLE :SHUFFLE :SPR :SPRN :SPRS :STRING-ENDS-WITH-P :STRING-STARTS-WITH-P :SUBDIVIDE :SUBSEQ- :SYMB :TAKE :UNDEFCLASS :UNDEFCONSTANT :UNDEFMACRO :UNDEFMETHOD :UNDEFPACKAGE :UNDEFPARAMETER :UNDEFUN :UNDEFVAR :UNTIL :VALUE-AT :VOID :WHEN-LET :WHEN-NOT :WHILE :WHILE-NOT :WITH-GENSYMS :XOR :ZAPF :~>) :ensure-package T :package "AOC.QUICKUTILS")
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (unless (find-package "AOC.QUICKUTILS")
@@ -17,13 +17,15 @@
                                          :ASSOC-VALUE :VALUE-AT :@ :LET1 :AIF
                                          :AAND :ALIST :ALIST-KEYS :ALIST-VALUES
                                          :APPENDF :APROG1 :AWHEN :BND* :BND1
-                                         :COPY-ARRAY :COPY-HASH-TABLE :DBG
-                                         :DBGL :PARSE-BODY :DEFACCESSOR :DIGITS
-                                         :DIVF :MAKE-GENSYM-LIST :ONCE-ONLY
-                                         :DOALIST :DOHASH :DOHASHK :DOHASHV
+                                         :CONTINUABLE :COPY-ARRAY
+                                         :COPY-HASH-TABLE :DBG :DBGL
+                                         :PARSE-BODY :DEFACCESSOR :DIGITS :DIVF
+                                         :MAKE-GENSYM-LIST :ONCE-ONLY :DOALIST
+                                         :DOESEQ :DOHASH :DOHASHK :DOHASHV
                                          :DOLISTS :DORANGE :DORANGEI :DOSEQ
-                                         :DOSEQS :DOSUBLISTS :ENUMERATE
-                                         :FLATTEN :FN :HASH-TABLE-ALIST
+                                         :DOSEQS :DOSUBLISTS :DOESUBLISTS
+                                         :ENUMERATE :FLATTEN :FN
+                                         :HASH-TABLE-ALIST
                                          :HASH-TABLE-KEY-EXISTS-P :MAPHASH-KEYS
                                          :HASH-TABLE-KEYS :MAPHASH-VALUES
                                          :HASH-TABLE-VALUES :IF-LET :IF-NOT
@@ -334,6 +336,37 @@ BND* will expand to a DESTRUCTURING-BIND call:
        ,@body))
   
 
+    (defmacro continuable (&body body)
+      "Wraps `body` in a RESTART-CASE with a CONTINUE restart. When invoked, the
+restart will simply return NIL, allowing the program to continue execution.
+
+Returns the value of the last form in body, or NIL if the CONTINUE restart is
+invoked.
+
+By default, the message reported by the restart case will be \"Continue.\".
+This can be overridden by providing a :report form as the first element of the
+body.
+
+Examples:
+
+  ;; Basic usage
+  (continuable
+    (format t \"This might fail~%\")
+    (/ 1 0))
+
+  ;; With custom report message
+  (continuable
+    (:report \"Ignore division by zero and continue\")
+    (format t \"This might fail~%\")
+    (/ 1 0))
+"
+      (let1 report-args (list "Continue.")
+        (if (eq (caar body) :report)
+          (setf report-args (cdar body) body (cdr body)))
+        `(with-simple-restart (continue ,@report-args)
+           ,@body)))
+    
+
   (defun copy-array (array &key (element-type (array-element-type array))
                                 (fill-pointer (and (array-has-fill-pointer-p array)
                                                    (fill-pointer array)))
@@ -531,6 +564,46 @@ Example:
       `(loop :for (,key . ,val) :in ,alist :do ,@body ,@(when result? `(:finally (return ,result))))))
   
 
+  (defmacro doeseq ((count var seq &optional (result nil result?)) &body body)
+    "Executes `body` once for each element of `seq`, with `var` bound to the element,
+and `count` bound to increasing integer values starting from 0.  Then `result`
+is returned.
+
+Note: it's possible to change the count start value by passing in a LIST,
+instad of a symbol, where the first element is the name of count variable, and
+the second is the count start value.
+
+Note: DOESEQ expands to a LOOP form, so `var` can either be a symbol, or a
+lambda-list.
+
+Examples:
+
+    ;; Count starting from 0
+    (doeseq (i x '(a b c d)) (prin1 i) (princ \" \") (prin1 x) (princ \" \"))
+    >> 0 A 1 B 2 C 3 D
+    => NIL
+
+    ;; Custom count start 
+    (doeseq ((i 1) x '(a b c d)) (prin1 i) (princ \" \") (prin1 x) (princ \" \"))
+    >> 1 A 2 B 3 C 4 D
+    => NIL
+"
+    (once-only (seq)
+      (let ((count-var (if (atom count) count (car count)))
+            (count-start (if (atom count) 0 (cadr count))))
+        `(etypecase ,seq
+           (list (loop
+                   :for ,count-var :from ,count-start
+                   :for ,var :in ,seq :do
+                   ,@body
+                   ,@(when result? `(:finally (return ,result)))))
+           (sequence (loop
+                       :for ,count-var :from ,count-start
+                       :for ,var :across ,seq :do
+                       ,@body
+                       ,@(when result? `(:finally (return ,result)))))))))
+  
+
   (defmacro dohash ((key value table &optional (result nil result?)) &body body)
     "Iterate over the hash table `table`, executing `body`, with `key` and
    `value` bound to the keys and values of the hash table
@@ -604,12 +677,34 @@ lexical environmnet."
   
 
   (defmacro doseq ((var seq &optional (result nil result?)) &body body)
-    "Iterate across the sequence `seq`, binding the variable `var` to
-each element of the sequence and executing `body`. Return the value
-`return` from the iteration form.
+    "Executes `body` once for each element of `seq`, with `var` bound to the element.
+Then `result` is returned.
 
 Note: DOSEQ expands to a LOOP form, so `var` can either be a symbol, or a
-lambda-list"
+lambda-list.
+
+Examples:
+
+    ;; Iterate a LIST
+    (doseq (x '(1 2 3 4)) (prin1 x) (princ \" \"))
+    >> 1 2 3 4
+    => NIL
+
+    ;; Iterate a SEQUENCE
+    (doseq (x #(1 2 3 4)) (prin1 x) (princ \" \"))
+    >> 1 2 3 4
+    => NIL
+
+    ;; Return form
+    (doseq (x '(1 2 3 4) 'ret-form) (prin1 x) (princ \" \"))
+    >> 1 2 3 4
+    => RET-FORM
+
+    ;; Iteration with structural binding
+    (doseq ((x _) '((1 a) (2 b) (3 c) (4 d)) 'ret-form) (prin1 x) (princ \" \"))
+    >> 1 2 3 4
+    => RET-FORM
+"
     (once-only (seq)
       `(etypecase ,seq
          (list (loop :for ,var :in ,seq :do ,@body ,@(when result? `(:finally (return ,result)))))
@@ -617,11 +712,18 @@ lambda-list"
   
 
   (defmacro doseqs (((var1 seq1) (var2 seq2) &rest var-seq-specs) &body body)
-    "Like DOSEQ, except this can iterate over multiple sequences at the same
-time."
+    "Like DOSEQ, except DOSEQS can iterate over multiple sequences in parallel
+at the same time (it will stop looping as soon as one of the input sequences is
+exhausted).
+
+Unlike DOSEQ, DOSEQS does not have support for explicitly returning a value at
+the end of the iteration (e.g., via `result` form); this means DOSEQS will
+always return NIL.
+
+Also, unlike DOSEQ, DOSEQS does not expand into a LOOP form which means `var1`,
+`var2`, ..., all need to be symbols."
     (let* ((vars (list* var1 var2 (mapcar #'car var-seq-specs)))
            (seqs (list* seq1 seq2 (mapcar #'cadr var-seq-specs))))
-
       `(block nil
          (map nil (lambda (,@vars) ,@body) ,@seqs))))
   
@@ -633,6 +735,40 @@ time."
 - `var` can be a lambda-list
 "
     `(loop :for ,var :on ,list :do ,@body ,@(when result? `(:finally (return ,result)))))
+  
+
+  (defmacro doesublists ((count var list &optional (result nil result?)) &body body)
+    "Executes `body` once for each sublist of `list`, with `var` bound to the sublist,
+and `count` bound to increasing integer values starting from 0.  Then `result`
+is returned.
+
+Note: it's possible to change the count start value by passing in a LIST,
+instad of a symbol, where the first element is the name of count variable, and
+the second is the count start value.
+
+Note: DOESUBLISTS expands to a LOOP form, so `var` can either be a symbol, or a
+lambda-list.
+
+Examples:
+
+    ;; Count starting from 0
+    (doeseq (i x '(a b c d)) (prin1 i) (princ \" \") (prin1 x) (princ \" \"))
+    >> 0 A 1 B 2 C 3 D
+    => NIL
+
+    ;; Custom count start
+    (doeseq ((i 1) x '(a b c d)) (prin1 i) (princ \" \") (prin1 x) (princ \" \"))
+    >> 1 A 2 B 3 C 4 D
+    => NIL
+"
+    (once-only (list)
+      (let ((count-var (if (atom count) count (car count)))
+            (count-start (if (atom count) 0 (cadr count))))
+        `(loop
+           :for ,count-var :from ,count-start
+           :for ,var :on ,list :do
+           ,@body
+           ,@(when result? `(:finally (return ,result)))))))
   
 
   (defgeneric enumerate (x &key start)
@@ -1286,13 +1422,17 @@ designators for `sequence`."
 
 `bindings` should contain a list of symbols and (optional) starting values.
 
-In `body` the symbol `recur` will be bound to the function for recurring."
+In `body` the symbol `recur` will be bound to the function for recurring.
+
+Note: RECURSIVELY expansion is wrapped inside a NIL BLOCK, which makes it super
+convinient to break out of the recursion loop with a simple call to RETURN."
     (let ((names (mapcar #'(lambda (b) (if (atom b) b (first b))) bindings))
           (values (mapcar #'(lambda (b) (if (atom b) nil (second b))) bindings)))
-      `(labels ((,(intern "RECUR") (,@names)
-                 ,@body))
-         (,(intern "RECUR") ,@values))))
-  )                                        ; eval-when
+      `(block nil
+         (labels ((,(intern "RECUR") (,@names)
+                   ,@body))
+           (,(intern "RECUR") ,@values)))))
+    )                                        ; eval-when
 
   (declaim (inline remove/swapped-arguments))
   (defun remove/swapped-arguments (sequence item &rest keyword-arguments)
@@ -1390,10 +1530,11 @@ sequence."
          (string= suffix s :start2 (- (length s) (length suffix)))))
   
 
-  (defun string-starts-with-p (prefix s)
-    "Returns T if the first few characters of `s` are equal to `prefix`."
-    (and (<= (length prefix) (length s))
-         (string= prefix s :end2 (length prefix))))
+  (defun string-starts-with-p (prefix s &key (start 0))
+    "Returns T if the first few characters of `s` starting from `start` (which
+defaults to 0), are equal to `prefix`."
+    (and (<= (length prefix) (- (length s) start))
+         (string= prefix s :start2 start :end2 (+ (length prefix) start))))
   
 
   (defun subdivide (sequence chunk-size)
@@ -1723,18 +1864,18 @@ Examples:
   
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (export '(@ aand aif alist alist-keys alist-values appendf aprog1 assoc-value
-            rassoc-value awhen bnd* bnd1 copy-array copy-hash-table dbg dbgl
-            defaccessor accesses digits divf doalist dohash dohashk dohashv
-            dolists dorange dorangei doseq doseqs dosublists enumerate flatten
-            fn hash-table-alist hash-table-key-exists-p hash-table-keys
-            hash-table-values if-let if-not iota keep-if keep-if-not last-elt
-            let1 looping make-keyword mklist mkstr mulf ncycle partition-if
-            partition-if-not plist-keys plist-values pmx pr prn prog1-let prs
-            psx random-elt recursively removef repeat retriable shuffle spr
-            sprn sprs string-ends-with-p string-starts-with-p subdivide subseq-
-            symb take undefclass undefconstant undefmacro undefmethod
-            undefpackage undefparameter undefun undefvar until value-at void
-            when-let when-let* when-not while while-not with-gensyms
-            with-unique-names xor zapf ~>)))
+            rassoc-value awhen bnd* bnd1 continuable copy-array copy-hash-table
+            dbg dbgl defaccessor accesses digits divf doalist doeseq dohash
+            dohashk dohashv dolists dorange dorangei doseq doseqs dosublists
+            doesublists enumerate flatten fn hash-table-alist
+            hash-table-key-exists-p hash-table-keys hash-table-values if-let
+            if-not iota keep-if keep-if-not last-elt let1 looping make-keyword
+            mklist mkstr mulf ncycle partition-if partition-if-not plist-keys
+            plist-values pmx pr prn prog1-let prs psx random-elt recursively
+            removef repeat retriable shuffle spr sprn sprs string-ends-with-p
+            string-starts-with-p subdivide subseq- symb take undefclass
+            undefconstant undefmacro undefmethod undefpackage undefparameter
+            undefun undefvar until value-at void when-let when-let* when-not
+            while while-not with-gensyms with-unique-names xor zapf ~>)))
 
 ;;;; END OF quickutils.lisp ;;;;
