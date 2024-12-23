@@ -97,7 +97,7 @@
     (dorangei (z z1 z2)
       (dolist (b1 (gethash z index))
         (when (can-move-down? b1 index)
-          (adjoin! b1 :test #'equal))))))
+          (adjoin! b1))))))
 
 
 (defun disintegrate-and-count-fallen (index b)

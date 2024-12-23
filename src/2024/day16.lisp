@@ -48,6 +48,6 @@
             (length (looping
                       (dolist (path paths)
                         (doseq (tile path)
-                          (adjoin! tile :test 'equal))))))))
+                          (adjoin! tile))))))))
 
 (define-test (2024 16) (135536 583))

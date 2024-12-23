@@ -1,48 +1,52 @@
 (defpackage :aoc/2024/23 #.cl-user::*aoc-use*)
 (in-package :aoc/2024/23)
 
-#;
-
-
-
 (defun parse-input (&optional (strings (uiop:read-file-lines #P"src/2024/day23.txt")))
-  (prog1-let (conns (make-hash-table :test 'equal))
+  (prog1-let (edges (make-hash-table :test 'equal))
     (doseq (s strings)
       (destructuring-bind (from to) (split-sequence:split-sequence #\- s)
-        (pushnew to (gethash from conns))
-        (pushnew from (gethash to conns))))))
+        (pushnew to (gethash from edges))
+        (pushnew from (gethash to edges))))))
 #+#:excluded (parse-input)
 
-(defun find-connected (conns &optional (size 3))
-  (looping
-    (dohashk (comp conns)
-      (recursively ((network (list comp))
-                    (computers (gethash comp conns)))
-        (cond ((= (length network) size) (adjoin! (sort (copy-seq network) #'string<) :test 'equal))
-              (t (dolist (comp computers)
-                   (recur (cons comp network)
-                          (intersection computers (gethash comp conns) :test 'string=)))))))))
-(find-connected (parse-input))
-(find-connected (parse-input))
-(count-if [some [string-starts-with-p "t" _] _] (find-connected (parse-input)))
-1000!
 
-(defun find-connected (conns &optional (size 3))
+(defun canonicalize (clique)
+  (sort (copy-seq clique) #'string<))
+
+(defun find-cliques (size &optional (edges (parse-input)))
   (let1 seen (make-hash-table :test 'equal)
     (looping
-      (dohashk (comp conns)
-        (recursively ((network (list comp))
-                      (computers (gethash comp conns)))
-          (zapf network [sort (copy-seq _) #'string<])
-          (unless-already-seen (seen network)
-            (cond ((= (length network) size) (format t "~{~A~^,~}" network) (count! 1))
+      (dohashk (comp edges)
+        (recursively ((clique (list comp))
+                      (computers (gethash comp edges)))
+          (zapf clique #'canonicalize)
+          (unless-already-seen (seen clique)
+            (cond ((= (length clique) size) (adjoin! (canonicalize clique)))
                   (t (dolist (comp computers)
-                       (recur (cons comp network)
-                              (intersection computers (gethash comp conns) :test 'string=)))))))))))
-(find-connected (parse-input))
-(find-connected (parse-input) 4)
-(find-connected (parse-input) 5)
-(find-connected (parse-input) 6)
-(find-connected (parse-input) 10)
-(find-connected (parse-input) 13)
-cf,ct,cv,cz,fi,lq,my,pa,sl,tt,vw,wz,yd
+                       (recur (cons comp clique)
+                              (intersection computers (gethash comp edges)
+                                            :test 'string=)))))))))))
+
+
+(defun find-max-clique (&optional (edges (parse-input)))
+  (let1 seen (make-hash-table :test 'equal)
+    (looping
+      (dohashk (comp edges)
+        (recursively ((clique (list comp))
+                      (computers (gethash comp edges)))
+          (zapf clique #'canonicalize)
+          (maximize! clique :key #'length)
+          (unless-already-seen (seen clique)
+            (dolist (comp computers)
+              (recur (cons comp clique)
+                     (intersection computers (gethash comp edges)
+                                   :test 'string=)))))))))
+
+
+(define-solution (2024 23) (edges parse-input)
+  (values (looping
+            (dolist (clique (find-cliques 3 edges))
+              (count! (some [string-starts-with-p "t" _] clique))))
+          (~> (find-max-clique edges) (format nil "~{~A~^,~}" ~))))
+
+(define-test (2024 23) (1000 "cf,ct,cv,cz,fi,lq,my,pa,sl,tt,vw,wz,yd"))
