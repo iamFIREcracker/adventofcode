@@ -5,6 +5,7 @@
   strings)
 #+#:excluded (parse-input)
 
+
 (defparameter *num-keypad* (make-array (list 4 3) :initial-contents '("789"
                                                                       "456"
                                                                       "123"
@@ -18,19 +19,12 @@
       (dotimes (j cols)
         (if (char= (aref keypad i j) char)
             (return-from coords-for (list i j)))))))
-#+#:excluded (coords-for *num-keypad* #\A)
-#+#:excluded (coords-for *num-keypad* #\0)
-#+#:excluded (coords-for *num-keypad* #\1)
 
 (defun button-at (keypad row col)
   (when (array-in-bounds-p keypad row col)
     (let1 b (aref keypad row col)
       (when (char/= b #\Space)
         b))))
-#+#:excluded (button-at *num-keypad* 3 2)
-#+#:excluded (button-at *num-keypad* 3 1)
-#+#:excluded (button-at *num-keypad* 3 0)
-#+#:excluded (button-at *num-keypad* 4 0)
 
 (defun move-to (keypad start end)
   (let ((hq (make-hq :key #'car))
@@ -53,58 +47,16 @@
                   (when (button-at keypad ni nj)
                     (assert (char/= (aref keypad ni nj) #\Space))
                     (hq-insert hq (list (1+ cost) (list ni nj) (cons ch path)))))))))))))
-#+#:excluded (move-to *num-keypad* (coords-for *num-keypad* #\A) (coords-for *num-keypad* #\A))
-#+#:excluded (move-to *num-keypad* (coords-for *num-keypad* #\A) (coords-for *num-keypad* #\0))
-#+#:excluded (move-to *num-keypad* (coords-for *num-keypad* #\A) (coords-for *num-keypad* #\2))
+
 
 (defun robot (keypad) (list keypad (coords-for keypad #\A)))
 (defaccessor keypad (robot) (accesses (car robot)))
 (defaccessor pos (robot) (accesses (cadr robot)))
 
-(defun type-code (robot code)
-  (let1 keypad (keypad robot)
-    (recursively ((code (coerce code 'list)))
-      (cond ((zerop (length code)) (list ""))
-            (t (let1 to-ch (move-to keypad (pos robot) (coords-for keypad (car code)))
-                 (assert to-ch () "A path to ~A should exist" (car code))
-                 (setf (pos robot) (coords-for keypad (car code)))
-                 (let1 from-ch-to-end (recur (cdr code))
-                   (looping
-                     (doseq (seq1 to-ch)
-                       (doseq (seq2 from-ch-to-end)
-                         (collect! (spr seq1 #\A seq2))))))))))))
-
-; robots always seem to start and end at A, so we might as well recreate them every time
-(defun shortest-path-to-code (code3)
-  (~> (looping
-        (dolist (code2 (type-code (robot *num-keypad*) code3))
-          (dolist (code1 (type-code (robot *dir-keypad*) code2))
-            (dolist (code (type-code (robot *dir-keypad*) code1))
-              (collect! code)))))
-      (sort ~ #'< :key #'length)
-      first
-      length))
-#+#:excluded (shortest-path-to-code "029A")
-#+#:excluded (shortest-path-to-code "0")
-
-(defun complexity (code3)
-  (* (dbg (shortest-path-to-code code3))
-     (dbg (first (extract-integers code3)))))
-#+#:excluded (complexity "029A")
-#+#:excluded (complexity "980A")
-#+#:excluded (complexity "179A")
-#+#:excluded (complexity "456A")
-#+#:excluded (complexity "379A")
-
-#;
-#+#:excluded (reduce #'+ (parse-input) :key #'complexity)
-176870
-
-(defun type-code (code &rest robots)
+(defun min-steps-for-code (code robots)
   (let1 memo (make-hash-table :test 'equal)
     (recursively ((code code)
                   (robots robots))
-
       (memoizing (memo code robots)
         (cond ((null robots) (length code))
               (t (destructuring-bind (robot . robots) robots
@@ -116,16 +68,19 @@
                            (looping
                              (dolist (code1 codes1)
                                (minimize! (recur (spr code1 #\A) robots)))))))))))))))
-#+#:excluded (type-code "029A" (robot *num-keypad*) (robot *dir-keypad*) (robot *dir-keypad*))
 
 (defun complexity (code robots)
-  (* (dbg (apply 'type-code code robots))
-     (dbg (first (extract-integers code)))))
+  (* (min-steps-for-code code robots)
+     (~> code extract-integers first)))
 
-(let1 robots (list* (robot *num-keypad*)
-                    (looping (repeat 2 (collect! (robot *dir-keypad*)))))
-  (reduce #'+ (parse-input) :key [complexity _ robots]))
 
-(let1 robots (list* (robot *num-keypad*)
-                    (looping (repeat 25 (collect! (robot *dir-keypad*)))))
-  (reduce #'+ (parse-input) :key [complexity _ robots]))
+(define-solution (2024 21) (strings)
+  (flet ((mkrobots (n)
+           (list* (robot *num-keypad*)
+                  (looping (repeat n (collect! (robot *dir-keypad*)))))))
+    (values (let1 rbts (mkrobots 2)
+              (reduce #'+ strings :key [complexity _ rbts]))
+            (let1 rbts (mkrobots 25)
+              (reduce #'+ strings :key [complexity _ rbts])))))
+
+(define-test (2024 21) (176870 223902935165512))
