@@ -1,36 +1,35 @@
 (defpackage :aoc/2024/05 #.cl-user::*aoc-use*)
 (in-package :aoc/2024/05)
 
-#;
-
 (defun parse-input (&optional (strings (uiop:read-file-lines #P"src/2024/day05.txt")))
-  (destructuring-bind (rules pages) (split-sequence:split-sequence "" strings :test 'equal)
-    (list (aprog1 (make-hash-table)
+  (destructuring-bind (rules updates) (split-sequence:split-sequence "" strings :test 'equal)
+    (list (prog1-let (before-than (make-hash-table))
             (doseq ((a b) (mapcar #'extract-positive-integers rules))
-              (push b (gethash a it))))
-            (mapcar #'extract-positive-integers pages))))
-#+#:excluded (parse-input)
+              (push b (gethash a before-than))))
+          (mapcar #'extract-positive-integers updates))))
 
+;; The problem description clearly states that any ordering rule involving pages
+;; not included in the update should not be included, so we just have to rely
+;; on the explicit rules, without any recursion.
 (defun before? (rules p1 p2)
-  (recursively ((a p1) seen)
-    (if (= a p2) (return-from before? t))
-    (unless (member a seen)
-      (dolist (b (gethash a rules))
-        (recur b (cons b seen))))))
+  (member p2 (gethash p1 rules)))
 
-(defun correctly-ordered? (rules pages)
+(defun correctly-ordered? (rules update)
   (looping
-    (doseqs ((a pages)
-             (b (rest pages)))
-      (always! (before? rules a b)))))
+    (doseqs ((a update)
+             (b (rest update)))
+      (always! (before? rules a b)) )))
 
-#+#:excluded (destructuring-bind (rules updates) (parse-input)
-               (looping
-                 (dolist (ok (remove-if-not [correctly-ordered? rules _] updates))
-                   (sum! (@ ok (floor (length ok) 2))))))
+(defun middle-page (update)
+  (nth (floor (length update) 2) update))
 
-#+#:excluded (destructuring-bind (rules updates) (parse-input)
-               (looping
-                 (dolist (!ok (remove-if [correctly-ordered? rules _] updates))
-                   (let1 ok (sort !ok (fn (a b) (before? rules a b)))
-                     (sum! (@ ok (floor (length ok) 2)))))))
+
+(define-solution (2024 5) (input parse-input)
+  (destructuring-bind (rules updates) input
+    (multiple-value-bind (ok !ok) (partition-if [correctly-ordered? rules %] updates)
+      (values (reduce #'+ ok :key 'middle-page)
+              (flet ((sort-pages (update)
+                       (sort update [before? rules %1 %2])))
+                (reduce #'+ (mapcar #'sort-pages !ok) :key 'middle-page))))))
+
+(define-test (2024 5) (4689 6336))
