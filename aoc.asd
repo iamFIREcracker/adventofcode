@@ -40,7 +40,8 @@
     :serial t
     :components ((:file "quickutils-package")
                  (:file "quickutils")
-                 ))
+                 (:module "mlsyntax" :serial t
+                      :components ((:file "mlsyntax")))))
    (:module "upstream"
     :serial t
     :components ((:file "quickutils-local")

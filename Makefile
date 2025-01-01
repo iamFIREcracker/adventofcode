@@ -1,15 +1,24 @@
 lisps := $(shell find . -follow -type f \( -iname \*.asd -o -iname \*.lisp \) ! -path "./vendor/*")
 
+SBCL_BIN ?= sbclw
+SBCL_ARGS ?= --noinform --dynamic-space-size 4096
+
 all: vendor
 
 # Vendor ----------------------------------------------------------------------
 .PHONY: vendor
 vendor: quickutils
 
+.PHONY: mlsyntax
+mlsyntax:
+	mkdir -p vendor/mlsyntax
+	cp ~/Workspace/mlutils/mlsyntax.lisp vendor/mlsyntax/
+
 .PHONY: quickutils
 quickutils:
 	cd vendor && sbclw --noinform --load "make-quickutils.lisp"  --non-interactive
 
+.PHONY: cl-classified
 cl-classified:
 	mkdir -p vendor/cl-classified
 	cp ~/Workspace/cl-encrypted/classified.asd                         vendor/cl-classified/
@@ -23,9 +32,9 @@ cl-classified:
 .PHONY: start
 start:
 	sbcl-vlime ${SBCL_ARGS} \
-		--eval "(pushnew '*default-pathname-defaults* asdf:*central-registry*)" \
 		--eval "(ql:quickload :cl-dotenv)" \
 		--eval "(.env:load-env #P\"./.env\")" \
+		--eval "(pushnew '*default-pathname-defaults* asdf:*central-registry*)" \
 		--eval "(ql:quickload \"AOC\")"
 
 # Info ------------------------------------------------------------------------
