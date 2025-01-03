@@ -1,67 +1,50 @@
 (defpackage :aoc/2024/22 #.cl-user::*aoc-use*)
 (in-package :aoc/2024/22)
 
-#;
-
-
 (defun parse-input (&optional (strings (uiop:read-file-lines #P"src/2024/day22.txt")))
   (mapcar 'parse-integer strings))
 #+#:excluded (parse-input)
 
 (defun mix (n v) (logxor n v))
-#+#:excluded (mix 42 15)
-
 (defun prune (n) (mod n 16777216))
-#+#:excluded (prune 100000000)
 
-(defun evolve (x n)
-  (repeat n
-    (setf x (~> x (* 64) (mix x) prune))
-    (setf x (~> x (floor ~ 32) (mix x) prune))
-    (setf x (~> x (* 2048) (mix x) prune)))
-  x)
-#+#:excluded (evolve 123 2000)
-#+#:excluded (evolve * 1)
+(defun evolve (x)
+  (setf x (~> x (* 64) (mix x) prune))
+  (setf x (~> x (floor ~ 32) (mix x) prune))
+  (setf x (~> x (* 2048) (mix x) prune)))
 
-#+#:excluded (reduce #'+ (parse-input) :key [evolve _ 2000])
-; 17163502021
 
 (defun unit-digit (x) (mod x 10))
 
-(defun prices (x &optional (n 2000))
+(defun prices (x)
   (looping
     (collect! (unit-digit x))
-    (repeat n
-      (setf x (~> x (* 64) (mix x) prune))
-      (setf x (~> x (floor ~ 32) (mix x) prune))
-      (setf x (~> x (* 2048) (mix x) prune))
+    (repeat 2000
+      (zapf x #'evolve)
       (collect! (unit-digit x)))))
 #+#:excluded (prices 123)
 
-(defun collectables (x &optional (n 2000))
+(defun winning-by-sequence (prices)
   (prog1-let (map (make-hash-table :test 'equal))
-    (let1 prices (prices x n)
-      (doseqs ((p1 prices)
-               (p2 (cdr prices))
-               (p3 (cddr prices))
-               (p4 (cdddr prices))
-               (p5 (cddddr prices)))
-        (let1 key (list (- p2 p1) (- p3 p2) (- p4 p3) (- p5 p4))
-          (unless (hash-table-key-exists-p map key)
-            (setf (gethash key map) p5)))))))
-#+#:excluded (collectables 123)
+    (dosublists ((p1 p2 p3 p4 p5) prices)
+      (when (and p1 p2 p3 p4 p5)
+        (let1 sequence (list (- p2 p1) (- p3 p2) (- p4 p3) (- p5 p4))
+          (unless (hash-table-key-exists-p map sequence)
+            (setf (gethash sequence map) p5)))))))
+#+#:excluded (winning-by-sequence (prices 123))
 
-(let1 all-collectables (mapcar 'collectables (parse-input))
-  (let1 seen (make-hash-table :test 'equal)
-    (looping
-      (dolist (coll all-collectables)
-        (dohashk (key coll)
-          (maximize!
+
+(define-solution (2024 22) (secrets parse-input)
+  (values (looping
+            (dolist (x secrets)
+              (repeat 2000 (zapf x #'evolve))
+              (sum! x)))
+          (let1 bananas-by-sequence (make-hash-table :test 'equal)
+            (dolist (x secrets)
+              (dohash (sequence price ~x.prices.winning-by-sequence)
+                (incf (gethash sequence bananas-by-sequence 0) price)))
             (looping
-              (unless-already-seen (seen key)
-                (dolist (coll all-collectables)
-                  (awhen (gethash key coll)
-                    (sum! it)))))))))))
+              (dohashv (bananas bananas-by-sequence)
+                (maximize! bananas))))))
 
-; 17557521 too high
-1938
+(define-test (2024 22) (17163502021 1938))
