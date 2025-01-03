@@ -8,11 +8,16 @@
               (push b (gethash a before-than))))
           (mapcar #'extract-positive-integers updates))))
 
-;; The problem description clearly states that any ordering rule involving pages
-;; not included in the update should not be included, so we just have to rely
-;; on the explicit rules, without any recursion.
+
+;; By taking a good look at the input we can notice that for every pair of
+;; pages p1 and p2 listed in any input page update, there exists an
+;; **explicit** rule which either put p1 before p2 or p2 before p1.  This means
+;; we don't have to mess with recursion to figure out if p1 should be printed
+;; before p2, or vice-versa.
 (defun before? (rules p1 p2)
-  (member p2 (gethash p1 rules)))
+  (aprog1 (member p2 (gethash p1 rules))
+    (assert (xor it
+                 (member p1 (gethash p2 rules))))))
 
 (defun correctly-ordered? (rules update)
   (looping
