@@ -2,7 +2,7 @@
 (in-package :aoc/2024/23)
 
 (defun parse-input (&optional (strings (uiop:read-file-lines #P"src/2024/day23.txt")))
-  (prog1-let (edges (make-hash-table :test 'equal))
+  (prog1-let edges (make-hash-table :test 'equal)
     (doseq (s strings)
       (destructuring-bind (from to) (split-sequence:split-sequence #\- s)
         (pushnew to (gethash from edges))

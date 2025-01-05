@@ -3,7 +3,7 @@
 
 
 (defun parse-input (&optional (strings (uiop:read-file-lines #P"src/2024/day10.txt")))
-  (prog1-let (map (make-hash-table :test 'equal))
+  (prog1-let map (make-hash-table :test 'equal)
     (doseq ((i s) (enumerate strings))
       (doseq ((j ch) (enumerate s))
         (setf (gethash (list i j) map) (- (char-code ch) (char-code #\0)))))))

@@ -3,7 +3,7 @@
 
 (defun parse-input (&optional (strings (uiop:read-file-lines #P"src/2024/day05.txt")))
   (destructuring-bind (rules updates) (split-sequence:split-sequence "" strings :test 'equal)
-    (list (prog1-let (before-than (make-hash-table))
+    (list (prog1-let before-than (make-hash-table)
             (doseq ((a b) (mapcar #'extract-positive-integers rules))
               (push b (gethash a before-than))))
           (mapcar #'extract-positive-integers updates))))

@@ -1,19 +1,18 @@
 (defpackage :aoc/2024/24 #.cl-user::*aoc-use*)
 (in-package :aoc/2024/24)
 
-(declaim (optimize (debug 3)))
-
+#;
 (defun parse-input (&optional (strings (uiop:read-file-lines #P"src/2024/day24.txt")))
   (destructuring-bind (connections initial-wires)
       (split-sequence:split-sequence "" strings :test 'equal)
     (list
       ;; values
-      (prog1-let (map (make-hash-table :test 'equal))
+      (prog1-let1 map (make-hash-table :test 'equal)
         (dolist (s connections)
           (setf (gethash (subseq s 0 3) map)
                 (parse-integer (subseq s 5)))))
       ;; inputs
-      (prog1-let (map (make-hash-table :test 'equal))
+      (prog1-let map (make-hash-table :test 'equal)
         (dolist (s initial-wires)
           (destructuring-bind (in1 gate in2 _ output)
               (split-sequence:split-sequence #\Space s)
@@ -21,7 +20,7 @@
             (setf (gethash in1 map) (list in1 gate in2 output)
                   (gethash in2 map) (list in1 gate in2 output) ))))
       ;; outputs
-      (prog1-let (map (make-hash-table :test 'equal))
+      (prog1-let map (make-hash-table :test 'equal)
         (dolist (s initial-wires)
           (destructuring-bind (in1 gate in2 _ output)
               (split-sequence:split-sequence #\Space s)
@@ -140,7 +139,7 @@
                          (same-expansion? rand12 rand21)))))))))
 
 (defun swap (outputs gate1 gate2 gate3 gate4 gate5 gate6 gate7 gate8)
-  (prog1-let (copy (copy-hash-table outputs))
+  (prog1-let1 copy (copy-hash-table outputs)
     (rotatef (gethash gate1 copy)
              (gethash gate2 copy))
     (rotatef (gethash gate3 copy)

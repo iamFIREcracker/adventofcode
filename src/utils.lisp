@@ -112,7 +112,7 @@
 (defun make-counter (x &key (test 'eql))
   "Returns a HASH-TABLE mapping _unique_ elements of `x` to the number
   of times they occur in `x`."
-  (prog1-let (map (make-hash-table :test test))
+  (prog1-let map (make-hash-table :test test)
     (map nil (lambda (e) (incf (gethash e map 0))) x)))
 
 

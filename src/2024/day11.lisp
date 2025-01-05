@@ -20,7 +20,7 @@
   (let1 curr (make-counter stones)
     (repeat times
       (setf curr
-            (prog1-let (next (make-counter nil))
+            (prog1-let next (make-counter nil)
               (dohash (stone n curr)
                 (dolist (stone1 (change stone))
                   (incf (gethash stone1 next 0) n))))))

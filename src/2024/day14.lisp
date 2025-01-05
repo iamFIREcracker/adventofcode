@@ -5,7 +5,7 @@
 (defparameter *height* 103)
 
 (defun parse-input (&optional (strings (uiop:read-file-lines #P"src/2024/day14.txt")))
-  (prog1-let (grid (make-hash-table :test 'equal))
+  (prog1-let grid (make-hash-table :test 'equal)
     (dolist (s strings)
       (destructuring-bind (x y vx vy) (extract-integers s)
         (push (list vx vy) (gethash (list x y) grid))))))
@@ -13,7 +13,7 @@
 
 
 (defun tick (curr)
-  (prog1-let (next (make-hash-table :test 'equal))
+  (prog1-let next (make-hash-table :test 'equal)
     (dohash ((x y) robots curr)
       (doseq ((vx vy) robots)
         (let ((x1 (mod (+ x vx) *width*))

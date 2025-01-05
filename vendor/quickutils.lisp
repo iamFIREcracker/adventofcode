@@ -1355,11 +1355,24 @@ without altering the original behavior.
     (first args))
   
 
-  (defmacro prog1-let ((name result-form) &body body)
-    "Like PROG1, except it lets you bind the result of the `result-form` (i.e., the returned
-form) to `name` (via LET) for the scope of `body`.
+  (defmacro prog1-let (name result-form &body body)
+    "Evaluates `result-form`, binds its value to `name`, executes `body`, and
+finally return `name`.  Similar to PROG1 but maintains the binding of
+the result throughout `body`'s execution.
 
-Inspired by ActiveSupport: Object#returning
+Example:
+
+    (prog1-let x (list 1 2 3)
+       (setf (first x) 10)    ; modifies the list
+       (print x))             ; prints (10 2 3)
+    => (10 2 3)               ; returns the modified list
+
+    (prog1-let x (make-hash-table)
+       (setf (gethash 'hello x) t)                   ; modifies the hash-table
+       (setf (gethash 'world x) t)                   ; modifies it again
+    => #<HASH-TABLE :TEST EQL :COUNT 2 {700AB03913}> ; returns the initialized hash-table
+
+Inspired by ActiveSupport's Object#returning from Ruby on Rails:
 https://weblog.jamisbuck.org/2006/10/27/mining-activesupport-object-returning.html"
     (prog1-let-expand name result-form body))
 

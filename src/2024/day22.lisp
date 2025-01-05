@@ -25,7 +25,7 @@
 #+#:excluded (prices 123)
 
 (defun winning-by-sequence (prices)
-  (prog1-let (map (make-hash-table :test 'equal))
+  (prog1-let map (make-hash-table :test 'equal)
     (dosublists ((p1 p2 p3 p4 p5) prices)
       (when (and p1 p2 p3 p4 p5)
         (let1 sequence (list (- p2 p1) (- p3 p2) (- p4 p3) (- p5 p4))

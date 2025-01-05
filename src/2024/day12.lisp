@@ -2,7 +2,7 @@
 (in-package :aoc/2024/12)
 
 (defun parse-input (&optional (strings (uiop:read-file-lines #P"src/2024/day12.txt")))
-  (prog1-let (map (make-hash-table :test 'equal))
+  (prog1-let map (make-hash-table :test 'equal)
     (doseq ((i s) (enumerate strings))
       (doseq ((j ch) (enumerate s))
         (setf (gethash (list i j) map) ch)))))
@@ -38,7 +38,7 @@
 ;; facing the same direction, and if there is, we subtract one from the total
 ;; sides count.
 (defun sides (r &aux (fence (fence r)))
-  (prog1-let (total (length fence))
+  (prog1-let total (length fence)
     (flet ((adjacent? (p1 p2)
              (= (+ (abs (- (car p1) (car p2)))
                    (abs (- (cadr p1) (cadr p2))))
