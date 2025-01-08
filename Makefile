@@ -54,7 +54,7 @@ test: test-sbcl
 
 .PHONY: test-sbcl
 test-sbcl: $(lisps)
-	sbclw --noinform --quit \
+	sbclw ${SBCL_ARGS} --quit \
 		--eval "(ql:quickload :cl-dotenv)" \
 		--eval "(.env:load-env #P\"./.env\")" \
 		--load "build/setup.lisp" \
@@ -62,7 +62,9 @@ test-sbcl: $(lisps)
 
 .PHONY: test-ros
 test-ros: $(lisps)
-	ros run \
+	ros run -- ${SBCL_ARGS} \
+		--eval "(ql:quickload :cl-dotenv)" \
+		--eval "(.env:load-env #P\"./.env\")" \
 		--load "build/setup.lisp" \
 		--load "build/test.lisp"
 
