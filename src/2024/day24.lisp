@@ -1,236 +1,165 @@
 (defpackage :aoc/2024/24 #.cl-user::*aoc-use*)
 (in-package :aoc/2024/24)
 
-#;
 (defun parse-input (&optional (strings (uiop:read-file-lines #P"src/2024/day24.txt")))
-  (destructuring-bind (connections initial-wires)
-      (split-sequence:split-sequence "" strings :test 'equal)
+  (destructuring-bind (initial-wires connections)
+                      (split-sequence:split-sequence "" strings :test 'equal)
     (list
-      ;; values
-      (prog1-let1 map (make-hash-table :test 'equal)
-        (dolist (s connections)
-          (setf (gethash (subseq s 0 3) map)
-                (parse-integer (subseq s 5)))))
       ;; inputs
       (prog1-let map (make-hash-table :test 'equal)
         (dolist (s initial-wires)
-          (destructuring-bind (in1 gate in2 _ output)
-              (split-sequence:split-sequence #\Space s)
-            (declare (ignore _))
-            (setf (gethash in1 map) (list in1 gate in2 output)
-                  (gethash in2 map) (list in1 gate in2 output) ))))
-      ;; outputs
+          (setf (gethash (subseq s 0 3) map)
+                (parse-integer (subseq s 5)))))
+      ;; output->inputs
       (prog1-let map (make-hash-table :test 'equal)
-        (dolist (s initial-wires)
+        (dolist (s connections)
           (destructuring-bind (in1 gate in2 _ output)
-              (split-sequence:split-sequence #\Space s)
+                              (split-sequence:split-sequence #\Space s)
             (declare (ignore _))
-            (setf (gethash output map) (list in1 gate in2 output))))))))
+            (setf (gethash output map) (list in1 gate in2))))))))
 #+#:excluded (parse-input)
 
+
 (defun run (&optional (input (parse-input)))
-  (destructuring-bind (values inputs outputs) input
-    (declare (ignore inputs))
+  (destructuring-bind (values outputs) input
     (flet ((value (name)
              (recursively ((curr name))
                (cond ((gethash curr values) (gethash curr values))
-                     (t (destructuring-bind (in1 gate in2 out) (gethash curr outputs)
-                          (declare (ignore out))
+                     (t (destructuring-bind (in1 gate in2) (gethash curr outputs)
                           (setf (gethash curr values)
-                                (cond ((string= gate "AND") (logand (recur in1) (recur in2)))
-                                      ((string= gate "OR") (logior (recur in1) (recur in2)))
-                                      ((string= gate "XOR") (logxor (recur in1) (recur in2)))))))))))
-      (~> (hash-table-keys outputs)
-          (keep-if [string-starts-with-p "z" _] ~)
-          (sort ~ #'string>)
-          (mapcar [value _] ~)
-          (apply #'spr ~)
-          (parse-integer ~ :radix 2)
-          ))))
-(run)
-;51410244478064!
+                                (epcase string= gate
+                                  ("AND" (logand (recur in1) (recur in2)))
+                                  ("OR" (logior (recur in1) (recur in2)))
+                                  ("XOR" (logxor (recur in1) (recur in2)))))))))))
+      (let1 outputs (~>> (hash-table-keys outputs)
+                         (keep-if [string-starts-with-p "z" %])
+                         (sort ~ #'string>))
+        (parse-integer
+          (looping
+            (doseq (out outputs)
+              (spr! ~out.value)))
+          :radix 2)))))
 
+;; We know our input is meant to represent a 45-bit full-adder, and that there
+;; are 8 gates that were swapped.
+;;
+;; Here is one way to tackle the problem:
+;;
+;; 1. For each output gate Z, figure out what the _correct_ network having
+;;    X and Y as inputs should look like -- it's a full-adder, so we can easily
+;;    grab the spec online, and derive a function for it (EXPECTED-NTH)
+;; 2. Compare each output's expected network with the _actual_ one (from the input),
+;;    to locate which gates are correctly placed and which ones are not
+;; 3. For each misplaced gate, collect the all the gates contributing to them,
+;;    as the swap might happen not just at the output layer, but even in the
+;;    inner ones
+;; 4. Try to swap all pairs of misplaced gates until the _actual_ network
+;;    looks like the _expected_ version
 
-(defun wires (name &optional (input (parse-input)))
-  (or (~> (hash-table-keys (third input))
-          (keep-if [string-starts-with-p name _] ~)
-          (sort ~ #'string>))
-      (~> (hash-table-keys (second input))
-          (keep-if [string-starts-with-p name _] ~)
-          (sort ~ #'string>))))
-(wires "z")
-(wires "y")
-(wires "x")
-
-(defun in->out (out &optional (outputs (third (parse-input))))
-  (recursively ((curr out)
-                (rec-limit 100))
-    (decf rec-limit)
-    (when (plusp rec-limit)
-      (cond
-        ((string-starts-with-p "x" curr) curr)
-        ((string-starts-with-p "y" curr) curr)
-        (t (destructuring-bind (in1 gate in2 out) (gethash curr outputs)
-             (declare (ignore out))
-             (cond ((string= gate "AND") `(logand ,(recur in1 rec-limit) ,(recur in2 rec-limit)))
-                   ((string= gate "OR") `(logior ,(recur in1 rec-limit) ,(recur in2 rec-limit)))
-                   ((string= gate "XOR") `(logxor ,(recur in1 rec-limit) ,(recur in2 rec-limit))))))))))
-(in->out "z00")
-; (LOGXOR "y00" "x00")
-
-(in->out "z01")
-;(LOGXOR (LOGAND "y00" "x00") (LOGXOR "y01" "x01"))
-
-(in->out "z02")
-; (LOGXOR
-;  ;; carry out previous step
-;  (LOGIOR (LOGAND (LOGXOR "y01" "x01") (LOGAND "y00" "x00"))
-;          (LOGAND "y01" "x01"))
-;  ;; new bits
-;  (LOGXOR "x02" "y02"))
-
-; sum i
-#+#:excluded (logxor x-i y-i)
-; carri i
-#+#:excluded (LOGIOR
-               (LOGAND (sum i-1)
-                       (carry i-1))
-               (LOGAND "y01" "x01"))
-
-(defun input-th (name n)
+(defun wire (name n)
   (if (< n 10) (spr name 0 n) (spr name n)))
-#+#:excluded (input-th "z" 0)
+#+#:excluded (string= (wire "z" 0) "z00")
+#+#:excluded (string= (wire "x" 19) "x19")
 
-(defun sum-th (n &optional)
-  `(logxor ,(input-th "y" n) ,(input-th "x" n)))
-#+#:excluded (sum-th 0)
-#+#:excluded (sum-th 3)
+(defun expected-nth (n)
+  (labels ((carry-th (n)
+             (cond
+               ((= n 0) `(logand ,(wire "y" n) ,(wire "x" n)))
+               (t `(logior
+                     (logand ,(sum-th n)
+                             ,(carry-th (1- n)))
+                     (logand ,(wire "y" n) ,(wire "x" n))))))
+           (sum-th (n &optional)
+             `(logxor ,(wire "y" n) ,(wire "x" n))))
+    (if (plusp n)
+        `(logxor ,(carry-th (1- n)) ,(sum-th n))
+        (sum-th n))))
+#+#:excluded (equal (expected-nth 0)
+                    `(logxor "y00" "x00"))
+#+#:excluded (equal (expected-nth 1)
+                    `(logxor (logand "y00" "x00") (logxor "y01" "x01")))
+#+#:excluded (equal (expected-nth 2)
+                    `(logxor
+                       (logior (logand (logxor "y01" "x01") (logand "y00" "x00"))
+                               (logand "y01" "x01"))
+                       (logxor "y02" "x02")))
 
-(defun carry-th (n)
-  (cond
-    ((= n 0) `(logand ,(input-th "y" n) ,(input-th "x" n)))
-    ;; XXX does the order matter?
-    (t `(logior
-          (logand ,(sum-th n)
-                  ,(carry-th (1- n)))
-          (logand ,(input-th "y" n) ,(input-th "x" n))))))
-#+#:excluded (pprint (carry-th 2))
+(defun actual-nth (n &optional (outputs (second (parse-input))))
+  (recursively ((curr (wire "z" n))
+                (depth 0))
+    (cond
+      ((string-starts-with-p "x" curr) curr)
+      ((string-starts-with-p "y" curr) curr)
+      ((= depth 100) :loop-detected)
+      (t (destructuring-bind (in1 gate in2) (gethash curr outputs)
+           (epcase string= gate
+             ("AND" `(logand ,(recur in1 ~depth.1+) ,(recur in2 ~depth.1+)))
+             ("OR" `(logior ,(recur in1 ~depth.1+) ,(recur in2 ~depth.1+)))
+             ("XOR" `(logxor ,(recur in1 ~depth.1+) ,(recur in2 ~depth.1+)))))))))
+#+#:excluded (equal (actual-nth 0) `(logxor "y00" "x00"))
+#+#:excluded (equal (actual-nth 1) `(logxor (logand "y00" "x00") (logxor "y01" "x01")))
+#+#:excluded (equal (actual-nth 2)
+                    `(logxor
+                       (logior (logand (logxor "y01" "x01") (logand "y00" "x00"))
+                               (logand "y01" "x01"))
+                       (logxor "x02" "y02")))
 
-(defun out-th (n)
-  (if (plusp n)
-      `(logxor ,(carry-th (1- n)) ,(sum-th n))
-      (sum-th n)))
-#+#:excluded (out-th 0)
-#+#:excluded (out-th 1)
 
 (defun same-expansion? (sx1 sx2)
-  (cond
-    ((xor (atom sx1) (atom sx2)) nil)
-    ((xor (stringp sx1) (stringp sx2)) nil)
-    ((xor (listp sx1) (listp sx2)) nil)
-    ((atom sx1) (equal sx1 sx2))
-    ((stringp sx1) (equal sx1 sx2))
-    (t (destructuring-bind (rator1 rand11 rand12) sx1
-         (destructuring-bind (rator2 rand21 rand22) sx2
-           (and (same-expansion? rator1 rator2)
-                (or (and (same-expansion? rand11 rand21)
-                         (same-expansion? rand12 rand22))
-                    (and (same-expansion? rand11 rand22)
-                         (same-expansion? rand12 rand21)))))))))
+  (labels ((canonicalize-expansion (x)
+             (recursively ((x x))
+               (cond ((listp x) (sort (mapcar #'recur x) #'< :key #'sxhash))
+                     (t x)))))
+    (equal (canonicalize-expansion sx1) (canonicalize-expansion sx2))))
 
-(defun swap (outputs gate1 gate2 gate3 gate4 gate5 gate6 gate7 gate8)
-  (prog1-let1 copy (copy-hash-table outputs)
-    (rotatef (gethash gate1 copy)
-             (gethash gate2 copy))
-    (rotatef (gethash gate3 copy)
-             (gethash gate4 copy))
-    (rotatef (gethash gate5 copy)
-             (gethash gate6 copy))
-    (rotatef (gethash gate7 copy)
-             (gethash gate8 copy))))
-
-#;
-(block solve
-  (let1 outputs (third (parse-input))
-    (let1 out-keys (hash-table-keys outputs)
-      (dosublists ((gate1 . rem1) out-keys)
-        (dbgl gate1 (length rem1))
-        (dosublists ((gate2 . rem2) rem1)
-          (dosublists ((gate3 . rem3) rem2)
-            (dosublists ((gate4 . rem4) rem3)
-              (dosublists ((gate5 . rem5) rem4)
-                (dosublists ((gate6 . rem6) rem5)
-                  (dosublists ((gate7 . rem7) rem6)
-                    (dosublists ((gate8 . rem8) rem7)
-                      (when (= (length (remove-duplicates (list gate1 gate2 gate3 gate4
-                                                                gate5 gate6 gate7 gate8)
-                                                          :test 'equal)) 8)
-                        (let1 swapped (swap outputs
-                                            gate1 gate2 gate3 gate4
-                                            gate5 gate6 gate7 gate8)
-                          (when (looping
-                                  (dotimes (n 44)
-                                    (always! (same-expansion? (out-th n)
-                                                              (in->out (input-th "z" n) swapped)))))
-                            (return-from solve (format t "~{~A~^,~}" (sort (list gate1 gate2 gate3 gate4
-                                                                                   gate5 gate6 gate7 gate8)
-                                                                             #'string<)))
-                            ))))))))))))))
-#+#:excluded (let1 outputs (third (parse-input))
+(defun alright-nth? (n &optional (outputs (second (parse-input))))
+  (same-expansion? (expected-nth n) (actual-nth n outputs)))
+#+#:excluded (looping
                (dotimes (n 44)
-                 (dbgl n)
-                 (continuable
-                   (dbgl (gates-for (input-th "z" n)) n outputs)
-                   (assert (same-expansion? (out-th n)
-                                            (in->out (input-th "z" n) outputs))))))
-(defun alright? (n outputs)
-  (same-expansion? (out-th n)
-                   (in->out (input-th "z" n) outputs)))
+                 (let1 alright? (alright-nth? n)
+                   (dbgl n alright?)
+                   (thereis! (not alright?)))))
 
-(defun gates-for (out &optional (outputs (third (parse-input))))
+
+(defun gates-for-nth (n &optional (outputs (second (parse-input))))
   (looping
-    (recursively ((curr out))
+    (recursively ((curr (wire "z" n)))
       (cond
         ((string-starts-with-p "x" curr) nil)
         ((string-starts-with-p "y" curr) nil)
-        (t (destructuring-bind (in1 gate in2 out) (gethash curr outputs)
-            (declare (ignore gate))
-            (adjoin! out)
-            (recur in1)
-            (recur in2)))))))
-#+#:excluded (gates-for "z00")
-#+#:excluded (gates-for "z01")
-#+#:excluded (gates-for "z04")
-#+#:excluded (gates-for "z45")
+        (t (adjoin! curr)
+           (destructuring-bind (in1 gate in2) (gethash curr outputs)
+             (declare (ignore gate))
+             (recur in1)
+             (recur in2)))))))
 
-
-
-(defun canonicalize (gates) (sort (copy-seq gates) #'string<))
-
-(defun solve (&optional (outputs (third (parse-input))))
+(defun find-swaps (&optional (input (parse-input))
+                   &aux (outputs ~input.second))
   (let1 gates (hash-table-keys outputs)
     (recursively ((n 0)
                   (gates gates)
                   (swapped nil))
-      (cond ((and (= n 44) (= (length swapped) 8)) (format t "~{~A~^,~}" (canonicalize swapped)))
-            ((alright? n outputs)
+      (cond ((and (= n 44) (= (length swapped) 8)) (return swapped))
+            ((alright-nth? n outputs)
               (recur (1+ n)
-                     (set-difference gates (gates-for (input-th "z" n) outputs) :test 'equal)
+                     (set-difference gates (gates-for-nth n outputs) :test 'equal)
                      swapped))
             (t (dosublists ((gate1 . rem1) gates)
                  (dolist (gate2 rem1)
                    (rotatef (gethash gate1 outputs)
                             (gethash gate2 outputs))
-                   (when (alright? n outputs)
-                     (dbgl n gate1 gate2 swapped)
+                   (when (alright-nth? n outputs)
                      (assert (looping
                                (dotimes (m n)
-                                 (always! (alright? n outputs)))))
+                                 (always! (alright-nth? n outputs)))))
                      (recur (1+ n)
-                            (set-difference gates (gates-for (input-th "z" n) outputs) :test 'equal)
+                            (set-difference gates (gates-for-nth n outputs) :test 'equal)
                             (list* gate1 gate2 swapped)))
                    (rotatef (gethash gate1 outputs)
-                            (gethash gate2 outputs)) ))))
-      )))
-(solve)
-gst,khg,nhn,tvb,vdc,z12,z21,z33
+                            (gethash gate2 outputs)))))))))
+
+(define-solution (2024 24) (input parse-input)
+  (values (run input)
+          (~> input find-swaps (sort ~ #'string<) (format nil "~{~A~^,~}" ~))))
+
+(define-test (2024 24) (51410244478064 "gst,khg,nhn,tvb,vdc,z12,z21,z33"))

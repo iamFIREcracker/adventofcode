@@ -2,7 +2,7 @@
 ;;;; See http://quickutil.org for details.
 
 ;;;; To regenerate:
-;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:@ :AAND :AIF :ALIST :ALIST-KEYS :ALIST-VALUES :APPENDF :APROG1 :ASSOC-VALUE :AWHEN :BND* :BND1 :CONTINUABLE :COPY-ARRAY :COPY-HASH-TABLE :DBG :DBGL :DEFACCESSOR :DIGITS :DIVF :DOALIST :DOESEQ :DOHASH :DOHASHK :DOHASHV :DOLISTS :DORANGE :DORANGEI :DOSEQ :DOSEQS :DOSUBLISTS :DOESUBLISTS :ENUMERATE :FLATTEN :FN :HASH-TABLE-ALIST :HASH-TABLE-KEY-EXISTS-P :HASH-TABLE-KEYS :HASH-TABLE-VALUES :IF-LET :IF-NOT :IOTA :KEEP-IF :KEEP-IF-NOT :LAST-ELT :LET1 :LOOPING :MAKE-KEYWORD :MKLIST :MKSTR :MULF :NCYCLE :PARTITION-IF :PLIST-KEYS :PLIST-VALUES :PMX :PR :PRN :PROG1-LET :PRS :PSX :RANDOM-ELT :RECURSIVELY :REMOVEF :REPEAT :RETRIABLE :SHUFFLE :SPR :SPRN :SPRS :STRING-ENDS-WITH-P :STRING-STARTS-WITH-P :SUBDIVIDE :SUBSEQ- :SYMB :TAKE :UNDEFCLASS :UNDEFCONSTANT :UNDEFMACRO :UNDEFMETHOD :UNDEFPACKAGE :UNDEFPARAMETER :UNDEFUN :UNDEFVAR :UNTIL :VALUE-AT :VOID :WHEN-LET :WHEN-NOT :WHILE :WHILE-NOT :WITH-GENSYMS :XOR :ZAPF :~>) :ensure-package T :package "AOC.QUICKUTILS")
+;;;; (qtlc:save-utils-as "quickutils.lisp" :utilities '(:@ :AAND :AIF :ALIST :ALIST-KEYS :ALIST-VALUES :APPENDF :APROG1 :ASSOC-VALUE :AWHEN :BND* :BND1 :CONTINUABLE :COPY-ARRAY :COPY-HASH-TABLE :DBG :DBGL :DEFACCESSOR :DIGITS :DIVF :DOALIST :DOESEQ :DOESUBLISTS :DOHASH :DOHASHK :DOHASHV :DOLISTS :DORANGE :DORANGEI :DOSEQ :DOSEQS :DOSUBLISTS :ENUMERATE :FLATTEN :FN :HASH-TABLE-ALIST :HASH-TABLE-KEY-EXISTS-P :HASH-TABLE-KEYS :HASH-TABLE-VALUES :IF-LET :IF-NOT :IOTA :KEEP-IF :KEEP-IF-NOT :LAST-ELT :LET1 :LOOPING :MAKE-KEYWORD :MKLIST :MKSTR :MULF :NCYCLE :PARTITION-IF :PCASE :PLIST-KEYS :PLIST-VALUES :PMX :PR :PRN :PROG1-LET :PRS :PSX :RANDOM-ELT :RECURSIVELY :REMOVEF :REPEAT :RETRIABLE :SHUFFLE :SPR :SPRN :SPRS :STRING-ENDS-WITH-P :STRING-STARTS-WITH-P :SUBDIVIDE :SUBSEQ- :SYMB :TAKE :UNDEFCLASS :UNDEFCONSTANT :UNDEFMACRO :UNDEFMETHOD :UNDEFPACKAGE :UNDEFPARAMETER :UNDEFUN :UNDEFVAR :UNTIL :VALUE-AT :VOID :WHEN-LET :WHEN-NOT :WHILE :WHILE-NOT :WITH-GENSYMS :XOR :ZAPF :~> :~>>) :ensure-package T :package "AOC.QUICKUTILS")
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (unless (find-package "AOC.QUICKUTILS")
@@ -21,11 +21,10 @@
                                          :COPY-HASH-TABLE :DBG :DBGL
                                          :PARSE-BODY :DEFACCESSOR :DIGITS :DIVF
                                          :MAKE-GENSYM-LIST :ONCE-ONLY :DOALIST
-                                         :DOESEQ :DOHASH :DOHASHK :DOHASHV
-                                         :DOLISTS :DORANGE :DORANGEI :DOSEQ
-                                         :DOSEQS :DOSUBLISTS :DOESUBLISTS
-                                         :ENUMERATE :FLATTEN :FN
-                                         :HASH-TABLE-ALIST
+                                         :DOESEQ :DOESUBLISTS :DOHASH :DOHASHK
+                                         :DOHASHV :DOLISTS :DORANGE :DORANGEI
+                                         :DOSEQ :DOSEQS :DOSUBLISTS :ENUMERATE
+                                         :FLATTEN :FN :HASH-TABLE-ALIST
                                          :HASH-TABLE-KEY-EXISTS-P :MAPHASH-KEYS
                                          :HASH-TABLE-KEYS :MAPHASH-VALUES
                                          :HASH-TABLE-VALUES :IF-LET :IF-NOT
@@ -36,18 +35,19 @@
                                          :PROPER-LIST-P :PROPER-LIST
                                          :PROPER-SEQUENCE :LAST-ELT :LOOPING
                                          :MAKE-KEYWORD :MKLIST :MKSTR :MULF
-                                         :NCYCLE :PARTITION-IF :PLIST-KEYS
-                                         :PLIST-VALUES :PMX :PR :PRN :PROG1-LET
-                                         :PRS :PSX :RANDOM-ELT :RECURSIVELY
-                                         :REMOVEF :REPEAT :RETRIABLE :SHUFFLE
-                                         :SPR :SPRN :SPRS :STRING-ENDS-WITH-P
+                                         :NCYCLE :PARTITION-IF :PCASE
+                                         :PLIST-KEYS :PLIST-VALUES :PMX :PR
+                                         :PRN :PROG1-LET :PRS :PSX :RANDOM-ELT
+                                         :RECURSIVELY :REMOVEF :REPEAT
+                                         :RETRIABLE :SHUFFLE :SPR :SPRN :SPRS
+                                         :STRING-ENDS-WITH-P
                                          :STRING-STARTS-WITH-P :SUBDIVIDE
                                          :SUBSEQ- :SYMB :TAKE :UNDEFCLASS
                                          :UNDEFCONSTANT :UNDEFMACRO
                                          :UNDEFMETHOD :UNDEFPACKAGE
                                          :UNDEFPARAMETER :UNDEFUN :UNDEFVAR
                                          :UNTIL :VOID :WHEN-LET :WHEN-NOT
-                                         :WHILE :WHILE-NOT :XOR :ZAPF :~>))))
+                                         :WHILE :WHILE-NOT :XOR :ZAPF :~> :~>>))))
 
   (deftype string-designator ()
     "A string designator type. A string designator is either a string, a symbol,
@@ -336,8 +336,8 @@ BND* will expand to a DESTRUCTURING-BIND call:
        ,@body))
   
 
-    (defmacro continuable (&body body)
-      "Wraps `body` in a RESTART-CASE with a CONTINUE restart. When invoked, the
+  (defmacro continuable (&body body)
+    "Wraps `body` in a RESTART-CASE with a CONTINUE restart. When invoked, the
 restart will simply return NIL, allowing the program to continue execution.
 
 Returns the value of the last form in body, or NIL if the CONTINUE restart is
@@ -360,12 +360,12 @@ Examples:
     (format t \"This might fail~%\")
     (/ 1 0))
 "
-      (let1 report-args (list "Continue.")
-        (if (eq (caar body) :report)
-          (setf report-args (cdar body) body (cdr body)))
-        `(with-simple-restart (continue ,@report-args)
-           ,@body)))
-    
+    (let1 report-args (list "Continue.")
+      (if (eq (caar body) :report)
+        (setf report-args (cdar body) body (cdr body)))
+      `(with-simple-restart (continue ,@report-args)
+         ,@body)))
+  
 
   (defun copy-array (array &key (element-type (array-element-type array))
                                 (fill-pointer (and (array-has-fill-pointer-p array)
@@ -604,6 +604,40 @@ Examples:
                        ,@(when result? `(:finally (return ,result)))))))))
   
 
+  (defmacro doesublists ((count var list &optional (result nil result?)) &body body)
+    "Executes `body` once for each sublist of `list`, with `var` bound to the sublist,
+and `count` bound to increasing integer values starting from 0.  Then `result`
+is returned.
+
+Note: it's possible to change the count start value by passing in a LIST,
+instad of a symbol, where the first element is the name of count variable, and
+the second is the count start value.
+
+Note: DOESUBLISTS expands to a LOOP form, so `var` can either be a symbol, or a
+lambda-list.
+
+Examples:
+
+    ;; Count starting from 0
+    (doeseq (i x '(a b c d)) (prin1 i) (princ \" \") (prin1 x) (princ \" \"))
+    >> 0 A 1 B 2 C 3 D
+    => NIL
+
+    ;; Custom count start
+    (doeseq ((i 1) x '(a b c d)) (prin1 i) (princ \" \") (prin1 x) (princ \" \"))
+    >> 1 A 2 B 3 C 4 D
+    => NIL
+"
+    (once-only (list)
+      (let ((count-var (if (atom count) count (car count)))
+            (count-start (if (atom count) 0 (cadr count))))
+        `(loop
+           :for ,count-var :from ,count-start
+           :for ,var :on ,list :do
+           ,@body
+           ,@(when result? `(:finally (return ,result)))))))
+  
+
   (defmacro dohash ((key value table &optional (result nil result?)) &body body)
     "Iterate over the hash table `table`, executing `body`, with `key` and
    `value` bound to the keys and values of the hash table
@@ -735,40 +769,6 @@ Also, unlike DOSEQ, DOSEQS does not expand into a LOOP form which means `var1`,
 - `var` can be a lambda-list
 "
     `(loop :for ,var :on ,list :do ,@body ,@(when result? `(:finally (return ,result)))))
-  
-
-  (defmacro doesublists ((count var list &optional (result nil result?)) &body body)
-    "Executes `body` once for each sublist of `list`, with `var` bound to the sublist,
-and `count` bound to increasing integer values starting from 0.  Then `result`
-is returned.
-
-Note: it's possible to change the count start value by passing in a LIST,
-instad of a symbol, where the first element is the name of count variable, and
-the second is the count start value.
-
-Note: DOESUBLISTS expands to a LOOP form, so `var` can either be a symbol, or a
-lambda-list.
-
-Examples:
-
-    ;; Count starting from 0
-    (doeseq (i x '(a b c d)) (prin1 i) (princ \" \") (prin1 x) (princ \" \"))
-    >> 0 A 1 B 2 C 3 D
-    => NIL
-
-    ;; Custom count start
-    (doeseq ((i 1) x '(a b c d)) (prin1 i) (princ \" \") (prin1 x) (princ \" \"))
-    >> 1 A 2 B 3 C 4 D
-    => NIL
-"
-    (once-only (list)
-      (let ((count-var (if (atom count) count (car count)))
-            (count-start (if (atom count) 0 (cadr count))))
-        `(loop
-           :for ,count-var :from ,count-start
-           :for ,var :on ,list :do
-           ,@body
-           ,@(when result? `(:finally (return ,result)))))))
   
 
   (defgeneric enumerate (x &key start)
@@ -1317,6 +1317,92 @@ satisfy the predicate F, and the second whose elements do."
     (multiple-value-bind (yes no)
         (partition-if f seq)
       (values no yes)))
+  
+
+  (defmacro pcase (predicate datum &rest clauses)
+    "PCASE (predicate-case) and EPCASE are macros that allow the conditional
+execution of a body of forms in a clause that is selected by matching `datum`
+against the clause key using `predicate`.
+
+Arguments:
+
+predicate - A function of two arguments that compares `datum` with each clause key
+datum     - The value to match against clause keys
+clauses   - List of clauses of the form (key form*)
+
+Each clause's key is compared to `datum` using predicate. When a match is found,
+the remaining forms in that clause are evaluated and the last value is returned.
+If no clauses match, PCASE will return NIL, while EPCASE will signal a non
+coninuable error.
+
+Examples:
+
+    ;; String matching example
+    (pcase string= gate
+      (\"AND\" (print 'and-gate))
+      (\"OR\"  (print 'or-gate))
+      (\"XOR\" (print 'xor-gate)))
+
+    ;; Sequence prefix matching
+    (pcase mismatch command
+      (\"help\"    (show-help))
+      (\"version\" (show-version))
+      (\"quit\"    (quit-application)))
+
+    ;; Custom predicate example
+    (pcase (lambda (x y) (< (abs (- x y)) 0.001))
+       value
+       (1.0 \"approximately one\")
+       (2.0 \"approximately two\"))
+
+Notes:
+- Datum is evaluated exactly once"
+    (let* (($datum (gensym "datum"))
+           (clauses (loop :for cls :in clauses
+                          :collect (destructuring-bind (test &rest rest) cls
+                                     `((,predicate ,$datum ,test) ,@rest)))))
+      `(let ((,$datum ,datum))
+         (cond ,@clauses))))
+
+  (defmacro epcase (predicate datum &rest clauses)
+    "PCASE (predicate-case) and EPCASE are macros that allow the conditional
+execution of a body of forms in a clause that is selected by matching `datum`
+against the clause key using `predicate`.
+
+Arguments:
+
+predicate - A function of two arguments that compares `datum` with each clause key
+datum     - The value to match against clause keys
+clauses   - List of clauses of the form (key form*)
+
+Each clause's key is compared to `datum` using predicate. When a match is found,
+the remaining forms in that clause are evaluated and the last value is returned.
+If no clauses match, PCASE will return NIL, while EPCASE will signal a non
+coninuable error.
+
+Examples:
+
+    ;; String matching example
+    (pcase string= gate
+      (\"AND\" (print 'and-gate))
+      (\"OR\"  (print 'or-gate))
+      (\"XOR\" (print 'xor-gate)))
+
+    ;; Sequence prefix matching
+    (pcase mismatch command
+      (\"help\"    (show-help))
+      (\"version\" (show-version))
+      (\"quit\"    (quit-application)))
+
+    ;; Custom predicate example
+    (pcase (lambda (x y) (< (abs (- x y)) 0.001))
+       value
+       (1.0 \"approximately one\")
+       (2.0 \"approximately two\"))
+
+Notes:
+- Datum is evaluated exactly once"
+    `(pcase ,predicate ,datum ,@(append clauses `((t (error "None of the specified clauses matched."))))))
   
 
   (defun plist-keys (plist)
@@ -1884,20 +1970,72 @@ Examples:
                             forms))
              ,result)))))
   
+
+  (defmacro ~>> (x &rest forms)
+    "Threads the expr through the forms, like Clojure's `->>`.
+
+While threading, for each element of `forms`:
+
+- if a SYMBOL, it's converted into a function call with the accumulated value
+as it's first argument
+- if a function call already, the accumulated value is **appended** to the
+list of args unless it contains the placeholder '~ (in which case '~ is
+replaced with the accumulated value)
+
+Examples:
+(~>> 'World
+  (list 'Hello))
+=>
+(HELLO WORLD)
+
+(~>> 'World
+  (list ~ 'Hello))
+=>
+(HELLO WORLD)
+
+(~>> 'World
+  (list ~ 'Hello)
+  reverse)
+=>
+(HELLO WORLD)
+  "
+    (labels ((replace-or-append (old form new)
+               (if (contains? old form)
+                 (subst new old form)
+                 (append form (list new))))
+             (contains? (target form)
+               (recursively ((form form))
+                 (if (atom form)
+                   (eq form target)
+                   (or (recur (car form))
+                       (recur (cdr form)))))))
+      (let ((placeholder (intern "~")))
+        (with-gensyms (result)
+          `(let* ((,result ,x)
+                  ,@(mapcar (lambda (form)
+                              (if (atom form)
+                                `(,result (,form ,result))
+                                `(,result ,(replace-or-append placeholder
+                                                              form
+                                                              result))))
+                            forms))
+             ,result)))))
+  
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (export '(@ aand aif alist alist-keys alist-values appendf aprog1 assoc-value
             rassoc-value awhen bnd* bnd1 continuable copy-array copy-hash-table
-            dbg dbgl defaccessor accesses digits divf doalist doeseq dohash
-            dohashk dohashv dolists dorange dorangei doseq doseqs dosublists
-            doesublists enumerate flatten fn hash-table-alist
+            dbg dbgl defaccessor accesses digits divf doalist doeseq
+            doesublists dohash dohashk dohashv dolists dorange dorangei doseq
+            doseqs dosublists enumerate flatten fn hash-table-alist
             hash-table-key-exists-p hash-table-keys hash-table-values if-let
             if-not iota keep-if keep-if-not last-elt let1 looping make-keyword
-            mklist mkstr mulf ncycle partition-if partition-if-not plist-keys
-            plist-values pmx pr prn prog1-let prs psx random-elt recursively
-            removef repeat retriable shuffle spr sprn sprs string-ends-with-p
-            string-starts-with-p subdivide subseq- symb take undefclass
-            undefconstant undefmacro undefmethod undefpackage undefparameter
-            undefun undefvar until value-at void when-let when-let* when-not
-            while while-not with-gensyms with-unique-names xor zapf ~>)))
+            mklist mkstr mulf ncycle partition-if partition-if-not epcase
+            plist-keys plist-values pmx pr prn prog1-let prs psx random-elt
+            recursively removef repeat retriable shuffle spr sprn sprs
+            string-ends-with-p string-starts-with-p subdivide subseq- symb take
+            undefclass undefconstant undefmacro undefmethod undefpackage
+            undefparameter undefun undefvar until value-at void when-let
+            when-let* when-not while while-not with-gensyms with-unique-names
+            xor zapf ~> ~>>)))
 
 ;;;; END OF quickutils.lisp ;;;;

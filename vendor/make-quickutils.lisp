@@ -36,6 +36,7 @@
                :divf
                :doalist
                :doeseq
+               :doesublists
                :dohash
                :dohashk
                :dohashv
@@ -45,7 +46,6 @@
                :doseq
                :doseqs
                :dosublists
-               :doesublists
                :enumerate
                :flatten
                :fn
@@ -67,6 +67,7 @@
                :mulf
                :ncycle
                :partition-if
+               :pcase
                :plist-keys
                :plist-values
                :pmx
@@ -109,6 +110,7 @@
                :xor
                :zapf
                :~>
+               :~>>
 
                )
   :package "AOC.QUICKUTILS")
