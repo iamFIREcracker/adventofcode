@@ -56,7 +56,7 @@ test: test-sbcl
 test-sbcl: $(lisps)
 	sbclw ${SBCL_ARGS} --quit \
 		--eval "(ql:quickload :cl-dotenv)" \
-		--eval "(.env:load-env #P\"./.env\")" \
+		--eval "(if (probe-file #P\"./.env\") (.env:load-env #P\"./.env\"))" \
 		--load "build/setup.lisp" \
 		--load "build/test.lisp"
 
@@ -64,7 +64,7 @@ test-sbcl: $(lisps)
 test-ros: $(lisps)
 	ros run -- ${SBCL_ARGS} --quit \
 		--eval "(ql:quickload :cl-dotenv)" \
-		--eval "(.env:load-env #P\"./.env\")" \
+		--eval "(if (probe-file #P\"./.env\") (.env:load-env #P\"./.env\"))" \
 		--load "build/setup.lisp" \
 		--load "build/test.lisp"
 
