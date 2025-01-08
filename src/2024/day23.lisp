@@ -21,7 +21,7 @@
                       (computers (gethash comp edges)))
           (zapf clique #'canonicalize)
           (unless-already-seen (seen clique)
-            (cond ((= (length clique) size) (adjoin! (canonicalize clique)))
+            (cond ((= (length clique) size) (adjoin! clique))
                   (t (dolist (comp computers)
                        (recur (cons comp clique)
                               (intersection computers (gethash comp edges)
