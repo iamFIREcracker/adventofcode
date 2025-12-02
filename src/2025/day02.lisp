@@ -8,12 +8,13 @@
         (collect! (list (parse-integer a)
                         (parse-integer b)))))))
 
-(defun sum-invalid-ids (&optional (ranges (read-ranges)) (invalidp 'invalid?))
+(defun sum-ids-if (&optional (ranges (read-ranges)) (predicate 'invalid?))
   (looping
     (doseq ((a b) ranges)
       (dorangei (n a b)
-        (when (funcall invalidp n)
+        (when (funcall predicate n)
           (sum! n))))))
+
 
 (defun invalid? (n)
   (let1 s (spr n)
@@ -33,7 +34,7 @@
 
 
 (define-solution (2025 02) (ranges read-ranges)
-  (values (sum-invalid-ids ranges 'invalid?)
-          (sum-invalid-ids ranges 'invalid-p2?)))
+  (values (sum-ids-if ranges 'invalid?)
+          (sum-ids-if ranges 'invalid-p2?)))
 
 (define-test (2025 02) (5398419778 15704845910))
