@@ -898,9 +898,12 @@
                            (arg &optional (reader 'identity))
                            &body body)
   (let ((run (symb 'solution-run)))
-    `(defun ,run ()
-       (let ((,arg (,reader (read-problem-input ,year ,day))))
-         ,@body))))
+    `(progn
+       (defun ,run ()
+         (let ((,arg (,reader (read-problem-input ,year ,day))))
+           ,@body))
+       (unless (or *compile-file-pathname* *load-pathname*)
+         (,run)))))
 (defun problem-input-path (year day &optional (ext "txt"))
   (make-pathname :directory `(:relative "src" ,(format NIL "~A" year))
                  :name (format nil "day~2,'0D" day)
@@ -926,12 +929,14 @@
         (test-runner-name (symb 'test-run))
         (runner-name (symb 'solution-run)))
     `(values
-      (deftest ,test-name
-        (let ((*package* (find-package ',package-name)))
-          (multiple-value-bind (actual-part1 actual-part2) (,runner-name)
-            (1am:is (equal ,expected-part1 actual-part1))
-            (when actual-part2
-              (1am:is (equal ,expected-part2 actual-part2)))
-            (values))))
-      (defun ,test-runner-name ()
-        (,test-name)))))
+       (deftest ,test-name
+                (let ((*package* (find-package ',package-name)))
+                  (multiple-value-bind (actual-part1 actual-part2) (,runner-name)
+                    (1am:is (equal ,expected-part1 actual-part1))
+                    (when actual-part2
+                      (1am:is (equal ,expected-part2 actual-part2)))
+                    (values))))
+       (defun ,test-runner-name ()
+         (,test-name))
+       (unless (or *compile-file-pathname* *load-pathname*)
+         (,test-runner-name)))))
